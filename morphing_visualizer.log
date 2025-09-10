@@ -1,0 +1,1407 @@
+2025-09-08 19:53:13,899 - __main__ - INFO - Starting MIDI to OSC Morphing Interface...
+2025-09-08 19:53:14,122 - __main__ - INFO - Application started successfully
+2025-09-08 19:54:33,568 - __main__ - INFO - Starting MIDI to OSC Morphing Interface...
+2025-09-08 19:54:33,657 - __main__ - INFO - Application started successfully
+2025-09-08 19:59:04,578 - __main__ - INFO - Starting MIDI to OSC Morphing Interface...
+2025-09-08 19:59:04,681 - __main__ - INFO - Application started successfully
+2025-09-09 06:39:45,891 - __main__ - INFO - ==================================================
+2025-09-09 06:39:45,891 - __main__ - INFO - Starting MIDI to OSC Morphing Interface v1.0.0
+2025-09-09 06:39:45,891 - __main__ - INFO - ==================================================
+2025-09-09 06:39:46,956 - __main__ - INFO - Creating main application window...
+2025-09-09 06:39:46,959 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 06:39:46,993 - geometry - ERROR - Error creating meshes: module 'pyvista' has no attribute 'Torus'
+2025-09-09 06:39:46,996 - geometry - INFO - Created fallback meshes with sphere deformation
+2025-09-09 06:39:46,996 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 06:39:47,176 - performance_monitoring - INFO - Performance monitoring started
+2025-09-09 06:39:47,182 - __main__ - INFO - System Information:
+2025-09-09 06:39:47,182 - __main__ - INFO -   Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 06:39:47,182 - __main__ - INFO -   Platform: darwin
+2025-09-09 06:39:47,182 - __main__ - INFO -   Command line args: 
+2025-09-09 06:39:47,182 - __main__ - INFO -   Available features: MIDI, Audio Analysis, Multi-object Scenes
+2025-09-09 06:39:47,182 - __main__ - INFO - Application startup complete - ready for input
+2025-09-09 06:39:47,182 - __main__ - INFO - Starting Qt event loop...
+2025-09-09 07:43:28,489 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-09 07:43:28,511 - __main__ - INFO - Application exiting with code: 0
+2025-09-09 07:43:28,512 - __main__ - INFO - Shutdown complete
+2025-09-09 15:19:05,283 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 15:19:05,283 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 15:19:05,283 - __main__ - INFO - Platform: darwin
+2025-09-09 15:19:05,315 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 15:19:05,701 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 15:19:05,786 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 15:19:05,787 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 15:19:05,843 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 15:19:05,845 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 15:19:05,848 - __main__ - INFO - ✓ Librosa available
+2025-09-09 15:19:05,848 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 15:19:05,853 - __main__ - INFO - ✓ psutil available
+2025-09-09 15:19:05,854 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 15:19:05,862 - __main__ - ERROR - Failed to import application modules: cannot import name 'PerformanceAwareMainWindow' from 'main_fixed_window' (/Users/ticegunther/morphing_interface/main_fixed_window.py)
+2025-09-09 15:19:05,862 - __main__ - ERROR - Please ensure all dependencies are installed correctly
+2025-09-09 15:19:05,862 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 15:20:28,759 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 15:20:28,759 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 15:20:28,759 - __main__ - INFO - Platform: darwin
+2025-09-09 15:20:28,790 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 15:20:29,168 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 15:20:29,250 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 15:20:29,250 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 15:20:29,305 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 15:20:29,307 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 15:20:29,307 - __main__ - INFO - ✓ Librosa available
+2025-09-09 15:20:29,308 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 15:20:29,312 - __main__ - INFO - ✓ psutil available
+2025-09-09 15:20:29,312 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 15:20:29,315 - __main__ - ERROR - Failed to import application modules: cannot import name 'PerformanceAwareMainWindow' from 'main_fixed_window' (/Users/ticegunther/morphing_interface/main_fixed_window.py)
+2025-09-09 15:20:29,315 - __main__ - ERROR - Please ensure all dependencies are installed correctly
+2025-09-09 15:20:29,315 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 15:25:30,810 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 15:25:30,810 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 15:25:30,810 - __main__ - INFO - Platform: darwin
+2025-09-09 15:25:30,845 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 15:25:31,585 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 15:25:31,741 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 15:25:31,741 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 15:25:31,842 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 15:25:31,845 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 15:25:31,846 - __main__ - INFO - ✓ Librosa available
+2025-09-09 15:25:31,847 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 15:25:31,853 - __main__ - INFO - ✓ psutil available
+2025-09-09 15:25:31,853 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 15:25:31,857 - __main__ - ERROR - Failed to import application modules: cannot import name 'PerformanceAwareMainWindow' from 'main_fixed_window' (/Users/ticegunther/morphing_interface/main_fixed_window.py)
+2025-09-09 15:25:31,857 - __main__ - ERROR - Please ensure all dependencies are installed correctly
+2025-09-09 15:25:31,857 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 20:49:48,372 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 20:49:48,372 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 20:49:48,372 - __main__ - INFO - Platform: darwin
+2025-09-09 20:49:48,409 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 20:49:49,162 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 20:49:49,303 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 20:49:49,303 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 20:49:49,405 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 20:49:49,409 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 20:49:49,410 - __main__ - INFO - ✓ Librosa available
+2025-09-09 20:49:49,411 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 20:49:49,417 - __main__ - INFO - ✓ psutil available
+2025-09-09 20:49:49,417 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 20:49:49,431 - __main__ - ERROR - Failed to import application modules: No module named 'PyQt5'
+2025-09-09 20:49:49,431 - __main__ - ERROR - Please ensure all dependencies are installed correctly
+2025-09-09 20:49:49,431 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 20:51:18,637 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 20:51:18,638 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 20:51:18,638 - __main__ - INFO - Platform: darwin
+2025-09-09 20:51:18,671 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 20:51:19,109 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 20:51:19,196 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 20:51:19,197 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 20:51:19,263 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 20:51:19,266 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 20:51:19,267 - __main__ - INFO - ✓ Librosa available
+2025-09-09 20:51:19,267 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 20:51:19,273 - __main__ - INFO - ✓ psutil available
+2025-09-09 20:51:19,273 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 20:51:19,278 - __main__ - ERROR - Failed to import application modules: No module named 'PyQt5'
+2025-09-09 20:51:19,278 - __main__ - ERROR - Please ensure all dependencies are installed correctly
+2025-09-09 20:51:19,278 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 20:55:03,042 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 20:55:03,042 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 20:55:03,042 - __main__ - INFO - Platform: darwin
+2025-09-09 20:55:03,073 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 20:55:03,444 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 20:55:03,528 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 20:55:03,528 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 20:55:03,585 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 20:55:03,586 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 20:55:03,587 - __main__ - INFO - ✓ Librosa available
+2025-09-09 20:55:03,587 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 20:55:03,592 - __main__ - INFO - ✓ psutil available
+2025-09-09 20:55:03,592 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 20:55:03,676 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 20:55:03,677 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 20:55:03,680 - geometry - INFO - Target vertex count: 2402
+2025-09-09 20:55:03,680 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 20:55:03,680 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 20:55:03,680 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 20:55:03,681 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 20:55:03,767 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 20:55:03,767 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 20:55:03,767 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 20:55:03,767 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 20:55:03,880 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'
+2025-09-09 20:55:03,880 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 609, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.status_bar.showMessage("Ready - Enhanced multi-object scene with note range mapping active")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'. Did you mean: 'statusBar'?
+2025-09-09 20:55:03,885 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 20:58:56,208 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 20:58:56,208 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 20:58:56,208 - __main__ - INFO - Platform: darwin
+2025-09-09 20:58:56,242 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 20:58:56,623 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 20:58:56,707 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 20:58:56,707 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 20:58:56,777 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 20:58:56,779 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 20:58:56,780 - __main__ - INFO - ✓ Librosa available
+2025-09-09 20:58:56,780 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 20:58:56,784 - __main__ - INFO - ✓ psutil available
+2025-09-09 20:58:56,784 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 20:58:56,879 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 20:58:56,881 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 20:58:56,883 - geometry - INFO - Target vertex count: 2402
+2025-09-09 20:58:56,883 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 20:58:56,883 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 20:58:56,883 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 20:58:56,884 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 20:58:56,951 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 20:58:56,951 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 20:58:56,951 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 20:58:56,952 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 20:58:57,119 - performance_monitoring - INFO - Performance monitoring started
+2025-09-09 20:58:57,123 - __main__ - INFO - Application window created and displayed
+2025-09-09 20:58:57,123 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'
+2025-09-09 20:58:57,123 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 407, in main
+    window.status_bar.showMessage("MIDI Morphing Visualizer - Ready", 5000)
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'. Did you mean: 'statusBar'?
+2025-09-09 20:58:57,124 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:19:07,480 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:19:07,480 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:19:07,480 - __main__ - INFO - Platform: darwin
+2025-09-09 21:19:07,517 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:19:08,261 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:19:08,400 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:19:08,401 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:19:08,486 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:19:08,490 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:19:08,491 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:19:08,491 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:19:08,498 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:19:08,498 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:19:08,591 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 21:19:08,593 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 21:19:08,596 - geometry - INFO - Target vertex count: 2402
+2025-09-09 21:19:08,596 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 21:19:08,597 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 21:19:08,597 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 21:19:08,597 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 21:19:08,665 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 21:19:08,665 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 21:19:08,665 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 21:19:08,665 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 21:19:08,846 - performance_monitoring - INFO - Performance monitoring started
+2025-09-09 21:19:08,858 - __main__ - INFO - Application window created and displayed
+2025-09-09 21:19:08,858 - __main__ - INFO - Starting Qt event loop...
+2025-09-09 21:20:13,064 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-09 21:20:13,083 - __main__ - INFO - Application exited with code: 0
+2025-09-09 21:20:13,084 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:20:16,540 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:20:16,540 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:20:16,541 - __main__ - INFO - Platform: darwin
+2025-09-09 21:20:16,571 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:20:16,949 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:20:17,035 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:20:17,035 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:20:17,092 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:20:17,094 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:20:17,095 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:20:17,095 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:20:17,099 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:20:17,099 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:20:17,175 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 21:20:17,176 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 21:20:17,178 - geometry - INFO - Target vertex count: 2402
+2025-09-09 21:20:17,178 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 21:20:17,179 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 21:20:17,179 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 21:20:17,179 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 21:20:17,247 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 21:20:17,247 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 21:20:17,247 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 21:20:17,247 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 21:20:17,416 - performance_monitoring - INFO - Performance monitoring started
+2025-09-09 21:20:17,422 - __main__ - INFO - Application window created and displayed
+2025-09-09 21:20:17,422 - __main__ - INFO - Starting Qt event loop...
+2025-09-09 21:22:52,951 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-09 21:22:52,961 - __main__ - INFO - Application exited with code: 0
+2025-09-09 21:22:52,961 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:34:29,006 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:34:29,006 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:34:29,006 - __main__ - INFO - Platform: darwin
+2025-09-09 21:34:29,044 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:34:29,706 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:34:29,796 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:34:29,797 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:34:29,876 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:34:29,879 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:34:29,880 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:34:29,881 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:34:29,887 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:34:29,887 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:34:29,891 - __main__ - CRITICAL - Critical startup error: unexpected unindent (main_fixed_window.py, line 735)
+2025-09-09 21:34:29,891 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 735
+    def on_morph_slider_change(self, value):
+IndentationError: unexpected unindent
+2025-09-09 21:34:29,893 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:35:15,721 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:35:15,721 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:35:15,721 - __main__ - INFO - Platform: darwin
+2025-09-09 21:35:15,752 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:35:16,124 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:35:16,207 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:35:16,207 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:35:16,263 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:35:16,265 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:35:16,266 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:35:16,266 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:35:16,270 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:35:16,271 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:35:16,274 - __main__ - CRITICAL - Critical startup error: expected an indented block after function definition on line 735 (main_fixed_window.py, line 736)
+2025-09-09 21:35:16,274 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 736
+    """Handle morph slider - FIXED VERSION with proper morphing."""
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IndentationError: expected an indented block after function definition on line 735
+2025-09-09 21:35:16,275 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:38:54,354 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:38:54,354 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:38:54,354 - __main__ - INFO - Platform: darwin
+2025-09-09 21:38:54,385 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:38:54,755 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:38:54,837 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:38:54,838 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:38:54,896 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:38:54,898 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:38:54,899 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:38:54,899 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:38:54,903 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:38:54,904 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:38:55,005 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 21:38:55,006 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 21:38:55,012 - geometry - INFO - Target vertex count: 2402
+2025-09-09 21:38:55,012 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 21:38:55,013 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 21:38:55,013 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 21:38:55,013 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 21:38:55,081 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 21:38:55,081 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 21:38:55,081 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 21:38:55,081 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 21:38:55,192 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'
+2025-09-09 21:38:55,192 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 609, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.status_bar.showMessage("Ready - Enhanced multi-object scene with note range mapping active")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'. Did you mean: 'statusBar'?
+2025-09-09 21:38:55,195 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 21:41:36,764 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 21:41:36,764 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 21:41:36,764 - __main__ - INFO - Platform: darwin
+2025-09-09 21:41:36,795 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 21:41:37,172 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 21:41:37,255 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 21:41:37,255 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 21:41:37,311 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 21:41:37,312 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 21:41:37,313 - __main__ - INFO - ✓ Librosa available
+2025-09-09 21:41:37,313 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 21:41:37,318 - __main__ - INFO - ✓ psutil available
+2025-09-09 21:41:37,318 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 21:41:37,391 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 21:41:37,392 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 21:41:37,394 - geometry - INFO - Target vertex count: 2402
+2025-09-09 21:41:37,394 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 21:41:37,395 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 21:41:37,395 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 21:41:37,395 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 21:41:37,462 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 21:41:37,462 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 21:41:37,462 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 21:41:37,462 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 21:41:37,635 - performance_monitoring - INFO - Performance monitoring started
+2025-09-09 21:41:37,639 - __main__ - INFO - Application window created and displayed
+2025-09-09 21:41:37,639 - __main__ - INFO - Starting Qt event loop...
+2025-09-09 21:44:23,172 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-09 21:44:23,182 - __main__ - INFO - Application exited with code: 0
+2025-09-09 21:44:23,182 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:04:21,568 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:04:21,568 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:04:21,568 - __main__ - INFO - Platform: darwin
+2025-09-09 22:04:21,601 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:04:22,033 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:04:22,130 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:04:22,130 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:04:22,226 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:04:22,230 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:04:22,231 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:04:22,231 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:04:22,238 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:04:22,238 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:04:22,324 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:04:22,325 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 22:04:22,327 - geometry - INFO - Target vertex count: 2402
+2025-09-09 22:04:22,328 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 22:04:22,328 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 22:04:22,328 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 22:04:22,329 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 22:04:22,417 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 22:04:22,417 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 22:04:22,417 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 22:04:22,417 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 22:04:22,529 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'
+2025-09-09 22:04:22,529 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.status_bar.showMessage("Ready - Enhanced multi-object scene with note range mapping active")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'. Did you mean: 'statusBar'?
+2025-09-09 22:04:22,533 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:13:55,982 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:13:55,982 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:13:55,982 - __main__ - INFO - Platform: darwin
+2025-09-09 22:13:56,018 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:13:56,757 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:13:56,907 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:13:56,908 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:13:57,004 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:13:57,007 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:13:57,008 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:13:57,009 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:13:57,014 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:13:57,015 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:13:57,016 - __main__ - CRITICAL - Critical startup error: unindent does not match any outer indentation level (main_fixed_window.py, line 390)
+2025-09-09 22:13:57,016 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390
+    self.statusBar().showMessage("Ready - Enhanced multi-object scene with note range mapping active")  
+                                                                                                        ^
+IndentationError: unindent does not match any outer indentation level
+2025-09-09 22:13:57,019 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:22:08,846 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:22:08,846 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:22:08,846 - __main__ - INFO - Platform: darwin
+2025-09-09 22:22:08,881 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:22:09,620 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:22:09,777 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:22:09,777 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:22:09,875 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:22:09,879 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:22:09,880 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:22:09,880 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:22:09,886 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:22:09,886 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:22:09,889 - __main__ - CRITICAL - Critical startup error: unterminated string literal (detected at line 390) (main_fixed_window.py, line 390)
+2025-09-09 22:22:09,889 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390
+    self.status_bar.showMessag scene with note range mapping active")
+                                                                   ^
+SyntaxError: unterminated string literal (detected at line 390)
+2025-09-09 22:22:09,891 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:25:09,559 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:25:09,559 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:25:09,559 - __main__ - INFO - Platform: darwin
+2025-09-09 22:25:09,589 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:25:09,958 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:25:10,041 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:25:10,042 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:25:10,098 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:25:10,100 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:25:10,100 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:25:10,100 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:25:10,105 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:25:10,105 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:25:10,107 - __main__ - CRITICAL - Critical startup error: unterminated string literal (detected at line 391) (main_fixed_window.py, line 391)
+2025-09-09 22:25:10,107 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 391
+    self.status_bar.showMessag scene with note range mapping active")
+                                                                   ^
+SyntaxError: unterminated string literal (detected at line 391)
+2025-09-09 22:25:10,108 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:27:37,191 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:27:37,191 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:27:37,191 - __main__ - INFO - Platform: darwin
+2025-09-09 22:27:37,222 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:27:37,595 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:27:37,678 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:27:37,678 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:27:37,732 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:27:37,734 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:27:37,735 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:27:37,735 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:27:37,739 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:27:37,739 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:27:37,741 - __main__ - CRITICAL - Critical startup error: unmatched ')' (main_fixed_window.py, line 391)
+2025-09-09 22:27:37,741 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 391
+    self.status_bar.showMessag scene with note range mapping active)
+                                                                   ^
+SyntaxError: unmatched ')'
+2025-09-09 22:27:37,742 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:28:12,053 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:28:12,053 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:28:12,053 - __main__ - INFO - Platform: darwin
+2025-09-09 22:28:12,083 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:28:12,458 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:28:12,540 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:28:12,540 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:28:12,594 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:28:12,596 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:28:12,597 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:28:12,597 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:28:12,601 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:28:12,601 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:28:12,603 - __main__ - CRITICAL - Critical startup error: unterminated string literal (detected at line 391) (main_fixed_window.py, line 391)
+2025-09-09 22:28:12,603 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 391
+    self.status_bar.showMessag scene with note range mapping active")
+                                                                   ^
+SyntaxError: unterminated string literal (detected at line 391)
+2025-09-09 22:28:12,604 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:30:48,206 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:30:48,206 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:30:48,206 - __main__ - INFO - Platform: darwin
+2025-09-09 22:30:48,237 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:30:48,605 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:30:48,687 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:30:48,687 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:30:48,741 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:30:48,743 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:30:48,744 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:30:48,744 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:30:48,748 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:30:48,748 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:30:48,750 - __main__ - CRITICAL - Critical startup error: unmatched ')' (main_fixed_window.py, line 391)
+2025-09-09 22:30:48,750 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 391
+    self.status_bar.showMessage "scene with note range mapping active")
+                                                                      ^
+SyntaxError: unmatched ')'
+2025-09-09 22:30:48,751 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:31:34,578 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:31:34,578 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:31:34,578 - __main__ - INFO - Platform: darwin
+2025-09-09 22:31:34,609 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:31:34,980 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:31:35,062 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:31:35,062 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:31:35,116 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:31:35,118 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:31:35,118 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:31:35,118 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:31:35,123 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:31:35,123 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:31:35,224 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:31:35,228 - __main__ - ERROR - Failed to create application window: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:31:35,228 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 323, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 63, in __init__
+    self.status_bar = self.statusBar()
+                      ^^^^^^^^^^^^^^
+AttributeError: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:31:35,229 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:38:33,405 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:38:33,405 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:38:33,405 - __main__ - INFO - Platform: darwin
+2025-09-09 22:38:33,439 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:38:33,847 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:38:33,930 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:38:33,930 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:38:33,990 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:38:33,993 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:38:33,994 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:38:33,994 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:38:33,999 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:38:33,999 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:38:34,078 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:38:34,079 - __main__ - ERROR - Failed to create application window: AudioAnalyzer.__init__() missing 1 required positional argument: 'main_window'
+2025-09-09 22:38:34,079 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 324, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+TypeError: AudioAnalyzer.__init__() missing 1 required positional argument: 'main_window'
+2025-09-09 22:38:34,080 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:41:01,083 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:41:01,083 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:41:01,083 - __main__ - INFO - Platform: darwin
+2025-09-09 22:41:01,114 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:41:01,482 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:41:01,564 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:41:01,564 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:41:01,618 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:41:01,620 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:41:01,620 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:41:01,620 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:41:01,625 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:41:01,625 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:41:01,696 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:41:01,697 - __main__ - ERROR - Failed to create application window: AudioAnalyzer.__init__() missing 1 required positional argument: 'status_bar'
+2025-09-09 22:41:01,697 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 324, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+TypeError: AudioAnalyzer.__init__() missing 1 required positional argument: 'status_bar'
+2025-09-09 22:41:01,698 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:41:45,364 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:41:45,364 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:41:45,364 - __main__ - INFO - Platform: darwin
+2025-09-09 22:41:45,395 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:41:45,763 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:41:45,846 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:41:45,846 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:41:45,901 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:41:45,903 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:41:45,904 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:41:45,904 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:41:45,908 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:41:45,908 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:41:45,993 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:41:45,995 - __main__ - ERROR - Failed to create application window: AudioAnalyzer.__init__() missing 1 required positional argument: 'statusbar'
+2025-09-09 22:41:45,995 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 324, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+TypeError: AudioAnalyzer.__init__() missing 1 required positional argument: 'statusbar'
+2025-09-09 22:41:45,996 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:44:39,641 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:44:39,641 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:44:39,641 - __main__ - INFO - Platform: darwin
+2025-09-09 22:44:39,672 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:44:40,040 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:44:40,122 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:44:40,122 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:44:40,179 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:44:40,181 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:44:40,181 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:44:40,181 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:44:40,186 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:44:40,186 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:44:40,277 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:44:40,336 - __main__ - ERROR - Failed to create application window: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:44:40,336 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 325, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config, status_bar) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 64, in __init__
+    self.status_bar = self.statusBar()
+                      ^^^^^^^^^^^^^^
+AttributeError: 'AudioAnalyzer' object has no attribute 'statusBar'. Did you mean: 'status_bar'?
+2025-09-09 22:44:40,337 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:45:27,794 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:45:27,794 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:45:27,794 - __main__ - INFO - Platform: darwin
+2025-09-09 22:45:27,825 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:45:28,199 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:45:28,281 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:45:28,281 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:45:28,339 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:45:28,340 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:45:28,341 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:45:28,341 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:45:28,345 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:45:28,346 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:45:28,443 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:45:28,498 - __main__ - ERROR - Failed to create application window: 'AudioAnalyzer' object has no attribute 'status_Bar'
+2025-09-09 22:45:28,498 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 325, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config, status_bar) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 64, in __init__
+    self.status_bar = self.status_Bar()
+                      ^^^^^^^^^^^^^^^
+AttributeError: 'AudioAnalyzer' object has no attribute 'status_Bar'. Did you mean: 'status_bar'?
+2025-09-09 22:45:28,500 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:46:38,908 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:46:38,908 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:46:38,908 - __main__ - INFO - Platform: darwin
+2025-09-09 22:46:38,939 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:46:39,308 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:46:39,391 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:46:39,391 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:46:39,446 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:46:39,448 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:46:39,448 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:46:39,448 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:46:39,453 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:46:39,453 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:46:39,544 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:46:39,545 - __main__ - ERROR - Failed to create application window: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:46:39,545 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 323, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 63, in __init__
+    self.status_bar = self.statusBar()
+                      ^^^^^^^^^^^^^^
+AttributeError: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:46:39,546 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:49:14,209 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:49:14,209 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:49:14,210 - __main__ - INFO - Platform: darwin
+2025-09-09 22:49:14,240 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:49:14,608 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:49:14,690 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:49:14,690 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:49:14,745 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:49:14,746 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:49:14,747 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:49:14,747 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:49:14,752 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:49:14,752 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:49:14,828 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:49:14,829 - __main__ - ERROR - Failed to create application window: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:49:14,829 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 323, in __init__
+    self.audio_analyzer = AudioAnalyzer(self.config) if AUDIO_AVAILABLE else None
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 63, in __init__
+    self.status_bar = self.statusBar()
+                      ^^^^^^^^^^^^^^
+AttributeError: 'AudioAnalyzer' object has no attribute 'statusBar'
+2025-09-09 22:49:14,830 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:49:59,044 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:49:59,044 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:49:59,044 - __main__ - INFO - Platform: darwin
+2025-09-09 22:49:59,076 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:49:59,452 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:49:59,534 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:49:59,534 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:49:59,588 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:49:59,590 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:49:59,590 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:49:59,590 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:49:59,595 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:49:59,595 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:49:59,674 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:49:59,675 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 22:49:59,682 - geometry - INFO - Target vertex count: 2402
+2025-09-09 22:49:59,682 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 22:49:59,683 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 22:49:59,683 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 22:49:59,683 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 22:49:59,751 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 22:49:59,751 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 22:49:59,752 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 22:49:59,752 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 22:49:59,865 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'
+2025-09-09 22:49:59,865 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.statusbar.showMessage ("scene with note range mapping active")
+    ^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'. Did you mean: 'statusBar'?
+2025-09-09 22:49:59,868 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:53:59,761 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:53:59,762 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:53:59,762 - __main__ - INFO - Platform: darwin
+2025-09-09 22:53:59,793 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:54:00,166 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:54:00,250 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:54:00,250 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:54:00,309 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:54:00,311 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:54:00,311 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:54:00,311 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:54:00,316 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:54:00,316 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:54:00,406 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:54:00,407 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 22:54:00,410 - geometry - INFO - Target vertex count: 2402
+2025-09-09 22:54:00,410 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 22:54:00,410 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 22:54:00,410 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 22:54:00,411 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 22:54:00,477 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 22:54:00,477 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 22:54:00,477 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 22:54:00,477 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 22:54:00,579 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'
+2025-09-09 22:54:00,579 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.statusbar.showMessage ("scene with note range mapping active")
+    ^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'. Did you mean: 'statusBar'?
+2025-09-09 22:54:00,584 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:55:41,615 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:55:41,615 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:55:41,615 - __main__ - INFO - Platform: darwin
+2025-09-09 22:55:41,646 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:55:42,012 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:55:42,094 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:55:42,094 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:55:42,152 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:55:42,153 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:55:42,154 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:55:42,154 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:55:42,159 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:55:42,159 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:55:42,236 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:55:42,237 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 22:55:42,239 - geometry - INFO - Target vertex count: 2402
+2025-09-09 22:55:42,239 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 22:55:42,240 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 22:55:42,240 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 22:55:42,241 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 22:55:42,309 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 22:55:42,309 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 22:55:42,309 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 22:55:42,310 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 22:55:42,403 - __main__ - ERROR - Failed to create application window: 'builtin_function_or_method' object has no attribute 'showMessage'
+2025-09-09 22:55:42,403 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.statusBar.showMessage ("scene with note range mapping active")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtin_function_or_method' object has no attribute 'showMessage'
+2025-09-09 22:55:42,408 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-09 22:56:43,946 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-09 22:56:43,946 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-09 22:56:43,946 - __main__ - INFO - Platform: darwin
+2025-09-09 22:56:43,977 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-09 22:56:44,346 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-09 22:56:44,427 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-09 22:56:44,427 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-09 22:56:44,486 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-09 22:56:44,488 - __main__ - INFO - ✓ PyAudio available
+2025-09-09 22:56:44,488 - __main__ - INFO - ✓ Librosa available
+2025-09-09 22:56:44,488 - __main__ - INFO - ✓ Python OSC available
+2025-09-09 22:56:44,493 - __main__ - INFO - ✓ psutil available
+2025-09-09 22:56:44,493 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-09 22:56:44,569 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-09 22:56:44,571 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-09 22:56:44,573 - geometry - INFO - Target vertex count: 2402
+2025-09-09 22:56:44,573 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-09 22:56:44,573 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-09 22:56:44,573 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-09 22:56:44,574 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-09 22:56:44,641 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-09 22:56:44,641 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-09 22:56:44,641 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-09 22:56:44,642 - main_fixed_window - INFO - Created 5 meshes
+2025-09-09 22:56:44,744 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'
+2025-09-09 22:56:44,745 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.statusbar.showMessage ("scene with note range mapping active")
+    ^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'statusbar'. Did you mean: 'statusBar'?
+2025-09-09 22:56:44,749 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 02:51:55,912 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 02:51:55,913 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 02:51:55,913 - __main__ - INFO - Platform: darwin
+2025-09-10 02:51:56,010 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 02:52:00,648 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 02:52:01,671 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 02:52:01,671 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 02:52:02,345 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 02:52:02,357 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 02:52:02,359 - __main__ - INFO - ✓ Librosa available
+2025-09-10 02:52:02,359 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 02:52:02,367 - __main__ - INFO - ✓ psutil available
+2025-09-10 02:52:02,367 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 02:52:02,535 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 02:52:02,536 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 02:52:02,539 - geometry - INFO - Target vertex count: 2402
+2025-09-10 02:52:02,539 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 02:52:02,539 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 02:52:02,540 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 02:52:02,540 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 02:52:02,606 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 02:52:02,606 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 02:52:02,606 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 02:52:02,606 - main_fixed_window - INFO - Created 5 meshes
+2025-09-10 02:52:02,737 - __main__ - ERROR - Failed to create application window: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'
+2025-09-10 02:52:02,737 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 333, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/performance_monitoring.py", line 28, in wrapper
+    result = func(self, *args, **kwargs)
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 616, in _setup_ui
+    self._finalize_visualization_setup()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 390, in _finalize_visualization_setup
+    self.status_bar.showMessage("Ready - Enhanced multi-object scene with note range mapping active")
+    ^^^^^^^^^^^^^^^
+AttributeError: 'PerformanceAwareMainWindow' object has no attribute 'status_bar'. Did you mean: 'statusBar'?
+2025-09-10 02:52:02,741 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:00:04,130 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:00:04,130 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:00:04,130 - __main__ - INFO - Platform: darwin
+2025-09-10 03:00:04,164 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:00:04,560 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:00:04,641 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:00:04,641 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:00:04,694 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:00:04,696 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:00:04,696 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:00:04,697 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:00:04,701 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:00:04,701 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:00:04,703 - __main__ - CRITICAL - Critical startup error: expected an indented block after 'if' statement on line 377 (main_fixed_window.py, line 378)
+2025-09-10 03:00:04,703 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 378
+    self.status_bar = QStatusBar()
+    ^^^^
+IndentationError: expected an indented block after 'if' statement on line 377
+2025-09-10 03:00:04,704 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:03:13,174 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:03:13,175 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:03:13,175 - __main__ - INFO - Platform: darwin
+2025-09-10 03:03:13,205 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:03:13,567 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:03:13,649 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:03:13,649 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:03:13,702 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:03:13,704 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:03:13,705 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:03:13,705 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:03:13,709 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:03:13,709 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:03:13,711 - __main__ - CRITICAL - Critical startup error: expected an indented block after function definition on line 375 (main_fixed_window.py, line 376)
+2025-09-10 03:03:13,711 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 376
+    """Finalize visualization setup after UI is ready."""
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IndentationError: expected an indented block after function definition on line 375
+2025-09-10 03:03:13,712 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:08:24,256 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:08:24,257 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:08:24,257 - __main__ - INFO - Platform: darwin
+2025-09-10 03:08:24,294 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:08:25,075 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:08:25,218 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:08:25,218 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:08:25,334 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:08:25,338 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:08:25,340 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:08:25,340 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:08:25,347 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:08:25,347 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:08:25,446 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 03:08:25,449 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 03:08:25,452 - geometry - INFO - Target vertex count: 2402
+2025-09-10 03:08:25,452 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 03:08:25,452 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 03:08:25,453 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 03:08:25,453 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 03:08:25,521 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 03:08:25,521 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 03:08:25,521 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 03:08:25,521 - main_fixed_window - INFO - Created 5 meshes
+2025-09-10 03:08:25,704 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 03:08:25,724 - __main__ - INFO - Application window created and displayed
+2025-09-10 03:08:25,724 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 03:08:53,795 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 03:08:53,817 - __main__ - INFO - Application exited with code: 0
+2025-09-10 03:08:53,817 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:08:56,799 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:08:56,799 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:08:56,799 - __main__ - INFO - Platform: darwin
+2025-09-10 03:08:56,833 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:08:57,234 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:08:57,317 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:08:57,318 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:08:57,374 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:08:57,375 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:08:57,376 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:08:57,376 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:08:57,380 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:08:57,381 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:08:57,460 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 03:08:57,462 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 03:08:57,464 - geometry - INFO - Target vertex count: 2402
+2025-09-10 03:08:57,464 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 03:08:57,465 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 03:08:57,465 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 03:08:57,465 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 03:08:57,533 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 03:08:57,533 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 03:08:57,533 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 03:08:57,533 - main_fixed_window - INFO - Created 5 meshes
+2025-09-10 03:08:57,709 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 03:08:57,723 - __main__ - INFO - Application window created and displayed
+2025-09-10 03:08:57,723 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 03:09:04,728 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 03:09:04,756 - __main__ - INFO - Application exited with code: 0
+2025-09-10 03:09:04,756 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:16:21,867 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:16:21,867 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:16:21,867 - __main__ - INFO - Platform: darwin
+2025-09-10 03:16:21,905 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:16:22,710 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:16:22,861 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:16:22,862 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:16:22,975 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:16:22,979 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:16:22,980 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:16:22,980 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:16:22,986 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:16:22,987 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:16:22,989 - __main__ - CRITICAL - Critical startup error: expected 'except' or 'finally' block (main_fixed_window.py, line 387)
+2025-09-10 03:16:22,989 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 387
+    complete_particle_integration_fixed(self)
+SyntaxError: expected 'except' or 'finally' block
+2025-09-10 03:16:22,992 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:20:47,277 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:20:47,277 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:20:47,277 - __main__ - INFO - Platform: darwin
+2025-09-10 03:20:47,313 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:20:47,813 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:20:47,899 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:20:47,899 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:20:47,964 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:20:47,967 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:20:47,968 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:20:47,968 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:20:47,974 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:20:47,974 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:20:47,977 - __main__ - CRITICAL - Critical startup error: expected an indented block after 'try' statement on line 385 (main_fixed_window.py, line 386)
+2025-09-10 03:20:47,977 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 386
+    print("🎆 Attempting particle integration...")
+IndentationError: expected an indented block after 'try' statement on line 385
+2025-09-10 03:20:47,980 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:21:31,126 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:21:31,126 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:21:31,126 - __main__ - INFO - Platform: darwin
+2025-09-10 03:21:31,156 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:21:31,522 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:21:31,603 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:21:31,603 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:21:31,657 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:21:31,658 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:21:31,659 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:21:31,659 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:21:31,663 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:21:31,663 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:21:31,665 - __main__ - CRITICAL - Critical startup error: expected an indented block after 'try' statement on line 385 (main_fixed_window.py, line 386)
+2025-09-10 03:21:31,665 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 386
+    print("🎆 Attempting particle integration...")
+IndentationError: expected an indented block after 'try' statement on line 385
+2025-09-10 03:21:31,666 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:22:35,016 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:22:35,016 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:22:35,016 - __main__ - INFO - Platform: darwin
+2025-09-10 03:22:35,046 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:22:35,409 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:22:35,490 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:22:35,490 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:22:35,544 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:22:35,545 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:22:35,546 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:22:35,546 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:22:35,551 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:22:35,551 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:22:35,553 - __main__ - CRITICAL - Critical startup error: expected an indented block after 'try' statement on line 385 (main_fixed_window.py, line 386)
+2025-09-10 03:22:35,553 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 386
+    print("🎆 Attempting particle integration...")
+IndentationError: expected an indented block after 'try' statement on line 385
+2025-09-10 03:22:35,553 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 03:24:30,677 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 03:24:30,677 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 03:24:30,677 - __main__ - INFO - Platform: darwin
+2025-09-10 03:24:30,712 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 03:24:31,260 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 03:24:31,347 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 03:24:31,347 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 03:24:31,412 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 03:24:31,415 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 03:24:31,416 - __main__ - INFO - ✓ Librosa available
+2025-09-10 03:24:31,417 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 03:24:31,422 - __main__ - INFO - ✓ psutil available
+2025-09-10 03:24:31,422 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 03:24:31,523 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 03:24:31,526 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 03:24:31,529 - geometry - INFO - Target vertex count: 2402
+2025-09-10 03:24:31,529 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 03:24:31,530 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 03:24:31,531 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 03:24:31,531 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 03:24:31,599 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 03:24:31,599 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 03:24:31,599 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 03:24:31,600 - main_fixed_window - INFO - Created 5 meshes
+2025-09-10 03:24:31,803 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 03:24:31,817 - __main__ - INFO - Application window created and displayed
+2025-09-10 03:24:31,817 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 03:24:45,848 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 03:24:45,872 - __main__ - INFO - Application exited with code: 0
+2025-09-10 03:24:45,872 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 04:12:52,206 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 04:12:52,206 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 04:12:52,206 - __main__ - INFO - Platform: darwin
+2025-09-10 04:12:52,243 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 04:12:52,990 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 04:12:53,146 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 04:12:53,147 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 04:12:53,259 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 04:12:53,263 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 04:12:53,264 - __main__ - INFO - ✓ Librosa available
+2025-09-10 04:12:53,265 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 04:12:53,271 - __main__ - INFO - ✓ psutil available
+2025-09-10 04:12:53,271 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 04:12:53,366 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 04:12:53,368 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 04:12:53,565 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 04:12:53,568 - geometry - INFO - Target vertex count: 2402
+2025-09-10 04:12:53,568 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 04:12:53,568 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 04:12:53,568 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 04:12:53,569 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 04:12:53,636 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 04:12:53,637 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 04:12:53,637 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 04:12:53,780 - __main__ - ERROR - Failed to create application window: 'Config' object has no attribute 'AUDIO_BUFFER_SIZE'
+2025-09-10 04:12:53,780 - __main__ - ERROR - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 388, in main
+    window = PerformanceAwareMainWindow()
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 277, in __init__
+    self._setup_audio()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 475, in _setup_audio
+    self.audio_analyzer = AudioAnalyzer(self.config)
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 60, in __init__
+    self.audio_buffer = np.zeros(config.AUDIO_BUFFER_SIZE)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Config' object has no attribute 'AUDIO_BUFFER_SIZE'. Did you mean: 'AUDIO_FFT_SIZE'?
+2025-09-10 04:12:53,786 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 04:44:09,007 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 04:44:09,008 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 04:44:09,008 - __main__ - INFO - Platform: darwin
+2025-09-10 04:44:09,048 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 04:44:09,816 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 04:44:09,957 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 04:44:09,957 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 04:44:10,070 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 04:44:10,074 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 04:44:10,075 - __main__ - INFO - ✓ Librosa available
+2025-09-10 04:44:10,076 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 04:44:10,082 - __main__ - INFO - ✓ psutil available
+2025-09-10 04:44:10,082 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 04:44:10,083 - __main__ - CRITICAL - Critical startup error: expected an indented block after 'if' statement on line 60 (main_fixed_window.py, line 61)
+2025-09-10 04:44:10,083 - __main__ - CRITICAL - Traceback:
+Traceback (most recent call last):
+  File "/Users/ticegunther/morphing_interface/main.py", line 363, in main
+    from main_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_window.py", line 9, in <module>
+    from main_fixed_window import PerformanceAwareMainWindow
+  File "/Users/ticegunther/morphing_interface/main_fixed_window.py", line 61
+    self.buffer_size = config.AUDIO_FFT_SIZE
+IndentationError: expected an indented block after 'if' statement on line 60
+2025-09-10 04:44:10,086 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 04:51:39,359 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 04:51:39,359 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 04:51:39,359 - __main__ - INFO - Platform: darwin
+2025-09-10 04:51:39,393 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 04:51:40,109 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 04:51:40,267 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 04:51:40,267 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 04:51:40,364 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 04:51:40,367 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 04:51:40,369 - __main__ - INFO - ✓ Librosa available
+2025-09-10 04:51:40,369 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 04:51:40,375 - __main__ - INFO - ✓ psutil available
+2025-09-10 04:51:40,375 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 04:51:40,477 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 04:51:40,479 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 04:51:40,674 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 04:51:40,679 - geometry - INFO - Target vertex count: 2402
+2025-09-10 04:51:40,679 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 04:51:40,680 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 04:51:40,680 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 04:51:40,680 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 04:51:40,748 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 04:51:40,748 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 04:51:40,748 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 04:51:40,884 - __main__ - INFO - Application window created and displayed
+2025-09-10 04:51:40,885 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 04:56:52,567 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 04:56:52,586 - __main__ - INFO - Application exited with code: 0
+2025-09-10 04:56:52,586 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 06:25:31,621 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 06:25:31,621 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 06:25:31,621 - __main__ - INFO - Platform: darwin
+2025-09-10 06:25:31,658 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 06:25:32,415 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 06:25:32,556 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 06:25:32,557 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 06:25:32,661 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 06:25:32,664 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 06:25:32,666 - __main__ - INFO - ✓ Librosa available
+2025-09-10 06:25:32,666 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 06:25:32,672 - __main__ - INFO - ✓ psutil available
+2025-09-10 06:25:32,672 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 06:25:32,764 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 06:25:32,766 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 06:25:32,928 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 06:25:32,930 - geometry - INFO - Target vertex count: 2402
+2025-09-10 06:25:32,930 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 06:25:32,931 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 06:25:32,931 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 06:25:32,931 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 06:25:32,997 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 06:25:32,997 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 06:25:32,997 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 06:25:33,132 - __main__ - INFO - Application window created and displayed
+2025-09-10 06:25:33,133 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 06:35:34,851 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 06:35:34,869 - __main__ - INFO - Application exited with code: 0
+2025-09-10 06:35:34,869 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 06:35:37,660 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 06:35:37,660 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 06:35:37,660 - __main__ - INFO - Platform: darwin
+2025-09-10 06:35:37,696 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 06:35:38,151 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 06:35:38,239 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 06:35:38,240 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 06:35:38,320 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 06:35:38,322 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 06:35:38,324 - __main__ - INFO - ✓ Librosa available
+2025-09-10 06:35:38,324 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 06:35:38,330 - __main__ - INFO - ✓ psutil available
+2025-09-10 06:35:38,330 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 06:35:38,419 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 06:35:38,420 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 06:35:38,566 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 06:35:38,569 - geometry - INFO - Target vertex count: 2402
+2025-09-10 06:35:38,569 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 06:35:38,569 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 06:35:38,569 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 06:35:38,570 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 06:35:38,637 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 06:35:38,637 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 06:35:38,637 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 06:35:38,762 - __main__ - INFO - Application window created and displayed
+2025-09-10 06:35:38,763 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 06:35:44,445 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 06:35:44,467 - __main__ - INFO - Application exited with code: 0
+2025-09-10 06:35:44,467 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 07:38:13,324 - __main__ - INFO - === MIDI Morphing Visualizer Starting ===
+2025-09-10 07:38:13,325 - __main__ - INFO - Python version: 3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]
+2025-09-10 07:38:13,325 - __main__ - INFO - Platform: darwin
+2025-09-10 07:38:13,362 - __main__ - INFO - ✓ PySide6 6.9.2 available
+2025-09-10 07:38:14,229 - __main__ - INFO - ✓ PyVista 0.46.3 available
+2025-09-10 07:38:14,384 - __main__ - INFO - ✓ PyVistaQt available
+2025-09-10 07:38:14,385 - __main__ - INFO - ✓ NumPy 2.2.6 available
+2025-09-10 07:38:14,492 - __main__ - INFO - ✓ Pygame MIDI support available
+2025-09-10 07:38:14,496 - __main__ - INFO - ✓ PyAudio available
+2025-09-10 07:38:14,497 - __main__ - INFO - ✓ Librosa available
+2025-09-10 07:38:14,498 - __main__ - INFO - ✓ Python OSC available
+2025-09-10 07:38:14,504 - __main__ - INFO - ✓ psutil available
+2025-09-10 07:38:14,504 - __main__ - INFO - Application directories created in: /Users/ticegunther/.morphing_visualizer
+2025-09-10 07:38:14,610 - __main__ - INFO - OSC output: 127.0.0.1:5005
+2025-09-10 07:38:14,612 - performance_monitoring - INFO - Performance monitoring started
+2025-09-10 07:38:14,819 - geometry - INFO - Creating initial meshes with resolution 50
+2025-09-10 07:38:14,823 - geometry - INFO - Target vertex count: 2402
+2025-09-10 07:38:14,824 - geometry - INFO - ✓ Created sphere mesh: 2402 vertices
+2025-09-10 07:38:14,824 - geometry - INFO - ✓ Created cube mesh: 2402 vertices
+2025-09-10 07:38:14,825 - geometry - INFO - ✓ Created cone mesh: 2402 vertices
+2025-09-10 07:38:14,825 - geometry - INFO - ✓ Created torus mesh: 2402 vertices
+2025-09-10 07:38:14,893 - geometry - INFO - ✓ Created icosahedron mesh: 2402 vertices
+2025-09-10 07:38:14,894 - geometry - INFO - Final vertex counts: {'sphere': 2402, 'cube': 2402, 'cone': 2402, 'torus': 2402, 'icosahedron': 2402}
+2025-09-10 07:38:14,894 - geometry - INFO - ✓ All meshes have compatible vertex counts!
+2025-09-10 07:38:15,036 - __main__ - INFO - Application window created and displayed
+2025-09-10 07:38:15,036 - __main__ - INFO - Starting Qt event loop...
+2025-09-10 07:38:25,656 - performance_monitoring - INFO - Performance monitoring stopped
+2025-09-10 07:38:25,683 - __main__ - INFO - Application exited with code: 0
+2025-09-10 07:38:25,683 - __main__ - INFO - === MIDI Morphing Visualizer Shutdown ===
+2025-09-10 12:54:43,755 - __main__ - INFO - Starting MIDI Morphing Visualizer...
+2025-09-10 12:54:43,850 - __main__ - INFO - ✓ Qt framework loaded
+2025-09-10 12:54:44,830 - __main__ - WARNING - Could not import main_fixed_window: cannot import name 'blend_meshes' from 'geometry' (/Users/ticegunther/morphing_interface/geometry.py)
+2025-09-10 12:54:44,956 - __main__ - INFO - ✓ Using MainWindow from main_window
+2025-09-10 12:54:44,957 - __main__ - INFO - ✓ Plotter fix module loaded
+2025-09-10 12:54:44,962 - __main__ - INFO - ✓ Main window created
+2025-09-10 12:54:44,962 - plotter_attribute_fix - INFO - ✓ Plotter attribute fixes applied
+2025-09-10 12:54:44,962 - plotter_attribute_fix - INFO - ✓ All plotter fixes applied successfully
+2025-09-10 12:54:44,962 - __main__ - INFO - ✓ Plotter fixes applied successfully
+2025-09-10 12:54:45,056 - __main__ - INFO - ✓ Application ready
+2025-09-10 13:27:18,835 - __main__ - INFO - Starting MIDI Morphing Visualizer...
+2025-09-10 13:27:18,931 - __main__ - INFO - ✓ Qt framework loaded
+2025-09-10 13:27:19,859 - __main__ - WARNING - Could not import main_fixed_window: cannot import name 'blend_meshes' from 'geometry' (/Users/ticegunther/morphing_interface/geometry.py)
+2025-09-10 13:27:19,978 - __main__ - INFO - ✓ Using MainWindow from main_window
+2025-09-10 13:27:19,979 - __main__ - INFO - ✓ Plotter fix module loaded
+2025-09-10 13:27:19,983 - __main__ - INFO - ✓ Main window created
+2025-09-10 13:27:19,983 - plotter_attribute_fix - INFO - ✓ Plotter attribute fixes applied
+2025-09-10 13:27:19,983 - plotter_attribute_fix - INFO - ✓ All plotter fixes applied successfully
+2025-09-10 13:27:19,983 - __main__ - INFO - ✓ Plotter fixes applied successfully
+2025-09-10 13:27:20,080 - __main__ - INFO - ✓ Application ready

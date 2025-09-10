@@ -1,0 +1,27 @@
+# Core GUI and visualization
+PySide6>=6.5.0
+pyvista>=0.42.0
+pyvistaqt>=0.11.0
+
+# Audio processing
+pyaudio>=0.2.11
+librosa>=0.10.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# MIDI and OSC
+rtmidi>=1.4.9
+python-osc>=1.8.0
+
+# System monitoring and performance
+psutil>=5.9.0
+
+# Optional: Enhanced audio features (uncomment if needed)
+# soundfile>=0.12.0
+# resampy>=0.4.0
+
+# Development and testing (optional)
+# pytest>=7.0.0
+# pytest-qt>=4.2.0
+# black>=23.0.0
+# flake8>=6.0.0

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced MIDI Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        #canvas {
+            display: block;
+            cursor: grab;
+        }
+        
+        #canvas:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .controls.hidden {
+            transform: translateX(-320px);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-group:last-child {
+            border-bottom: none;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        select:hover, button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+        }
+        
+        .status.connected {
+            border: 1px solid #0f0;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .status.disconnected {
+            border: 1px solid #f00;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            left: 340px;
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .fps-counter {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .preset-btn {
+            padding: 5px;
+            font-size: 10px;
+        }
+        
+        h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #0ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls" id="controls">
+        <h3>MIDI Visualizer</h3>
+        
+        <div class="control-group">
+            <label>MIDI Device</label>
+            <select id="midiSelect">
+                <option value="">Select MIDI Device</option>
+            </select>
+            <button id="refreshMidi">Refresh MIDI</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Visualization Mode</label>
+            <select id="vizMode">
+                <option value="sphere">Morphing Sphere</option>
+                <option value="torus">Dynamic Torus</option>
+                <option value="cube">Reactive Cube</option>
+                <option value="dna">DNA Helix</option>
+                <option value="galaxy">Galaxy</option>
+                <option value="terrain">Terrain</option>
+                <option value="fluid">Fluid</option>
+                <option value="crystal">Crystal</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label>Particle Intensity: <span id="particleValue">50</span>%</label>
+            <input type="range" id="particleIntensity" min="0" max="100" value="50">
+            
+            <label>Morph Amount: <span id="morphValue">50</span>%</label>
+            <input type="range" id="morphAmount" min="0" max="100" value="50">
+            
+            <label>Color Shift: <span id="colorValue">0</span>°</label>
+            <input type="range" id="colorShift" min="0" max="360" value="0">
+        </div>
+        
+        <div class="control-group">
+            <label>Effects</label>
+            <button id="toggleBloom">Toggle Bloom</button>
+            <button id="toggleParticles">Toggle Particles</button>
+            <button id="toggleWireframe">Toggle Wireframe</button>
+            <button id="togglePhysics">Toggle Physics</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Presets</label>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-preset="ambient">Ambient</button>
+                <button class="preset-btn" data-preset="aggressive">Aggressive</button>
+                <button class="preset-btn" data-preset="psychedelic">Psychedelic</button>
+                <button class="preset-btn" data-preset="minimal">Minimal</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Camera</label>
+            <button id="resetCamera">Reset Camera</button>
+            <button id="autoRotate">Auto Rotate</button>
+        </div>
+    </div>
+    
+    <button class="toggle-btn" id="toggleControls">☰</button>
+    
+    <div class="status disconnected" id="status">
+        MIDI: Disconnected
+    </div>
+    
+    <div class="fps-counter" id="fps">
+        FPS: 0
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Global variables
+        let scene, camera, renderer, composer;
+        let geometry, material, mesh;
+        let particles, particleSystem;
+        let midiAccess, selectedInput;
+        let noteData = new Map();
+        let morphTargets = [];
+        let clock = new THREE.Clock();
+        let controls;
+        
+        // Settings
+        const settings = {
+            particlesEnabled: true,
+            bloomEnabled: true,
+            wireframeEnabled: false,
+            physicsEnabled: true,
+            autoRotate: false,
+            particleIntensity: 0.5,
+            morphAmount: 0.5,
+            colorShift: 0,
+            vizMode: 'sphere'
+        };
+        
+        // Particle System Manager
+        class ParticleSystemManager {
+            constructor() {
+                this.particles = [];
+                this.geometry = new THREE.BufferGeometry();
+                this.positions = new Float32Array(3000 * 3);
+                this.colors = new Float32Array(3000 * 3);
+                this.sizes = new Float32Array(3000);
+                this.velocities = [];
+                this.lifetimes = [];
+                this.maxParticles = 3000;
+                this.particleIndex = 0;
+                
+                for (let i = 0; i < this.maxParticles; i++) {
+                    this.positions[i * 3] = 0;
+                    this.positions[i * 3 + 1] = 0;
+                    this.positions[i * 3 + 2] = 0;
+                    this.colors[i * 3] = 1;
+                    this.colors[i * 3 + 1] = 1;
+                    this.colors[i * 3 + 2] = 1;
+                    this.sizes[i] = 0;
+                    this.velocities.push(new THREE.Vector3());
+                    this.lifetimes.push(0);
+                }
+                
+                this.geometry.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+                this.geometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+                this.geometry.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
+                
+                const vertexShader = `
+                    attribute float size;
+                    varying vec3 vColor;
+                    void main() {
+                        vColor = color;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = size * (300.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `;
+                
+                const fragmentShader = `
+                    varying vec3 vColor;
+                    void main() {
+                        float r = distance(gl_PointCoord, vec2(0.5, 0.5));
+                        if (r > 0.5) discard;
+                        float alpha = 1.0 - smoothstep(0.0, 0.5, r);
+                        gl_FragColor = vec4(vColor, alpha);
+                    }
+                `;
+                
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {},
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    blending: THREE.AdditiveBlending,
+                    depthTest: false,
+                    transparent: true,
+                    vertexColors: true
+                });
+                
+                this.mesh = new THREE.Points(this.geometry, this.material);
+                scene.add(this.mesh);
+            }
+            
+            emit(position, velocity, color, size, lifetime) {
+                if (!settings.particlesEnabled) return;
+                
+                const i = this.particleIndex;
+                this.positions[i * 3] = position.x;
+                this.positions[i * 3 + 1] = position.y;
+                this.positions[i * 3 + 2] = position.z;
+                
+                this.colors[i * 3] = color.r;
+                this.colors[i * 3 + 1] = color.g;
+                this.colors[i * 3 + 2] = color.b;
+                
+                this.sizes[i] = size * settings.particleIntensity;
+                this.velocities[i].copy(velocity);
+                this.lifetimes[i] = lifetime;
+                
+                this.particleIndex = (this.particleIndex + 1) % this.maxParticles;
+            }
+            
+            createNoteParticles(note, velocity, position) {
+                const count = Math.floor(velocity * 20 * settings.particleIntensity);
+                const hue = (note % 12) / 12;
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.5 + Math.random() * 2;
+                    const vel = new THREE.Vector3(
+                        Math.cos(angle) * speed,
+                        Math.random() * 2 - 1,
+                        Math.sin(angle) * speed
+                    );
+                    
+                    const color = new THREE.Color();
+                    color.setHSL(hue + settings.colorShift / 360, 1, 0.5 + velocity * 0.5);
+                    
+                    this.emit(
+                        position || new THREE.Vector3(
+                            (Math.random() - 0.5) * 10,
+                            (Math.random() - 0.5) * 10,
+                            (Math.random() - 0.5) * 10
+                        ),
+                        vel,
+                        color,
+                        5 + velocity * 10,
+                        1 + Math.random()
+                    );
+                }
+            }
+            
+            update(deltaTime) {
+                for (let i = 0; i < this.maxParticles; i++) {
+                    if (this.lifetimes[i] > 0) {
+                        this.lifetimes[i] -= deltaTime;
+                        
+                        if (settings.physicsEnabled) {
+                            // Apply physics
+                            this.velocities[i].y -= 9.8 * deltaTime * 0.1;
+                            
+                            this.positions[i * 3] += this.velocities[i].x * deltaTime;
+                            this.positions[i * 3 + 1] += this.velocities[i].y * deltaTime;
+                            this.positions[i * 3 + 2] += this.velocities[i].z * deltaTime;
+                        }
+                        
+                        // Fade out
+                        const alpha = Math.max(0, this.lifetimes[i]);
+                        this.sizes[i] = this.sizes[i] * alpha;
+                    } else {
+                        this.sizes[i] = 0;
+                    }
+                }
+                
+                this.geometry.attributes.position.needsUpdate = true;
+                this.geometry.attributes.color.needsUpdate = true;
+                this.geometry.attributes.size.needsUpdate = true;
+            }
+        }
+        
+        // Visualization Geometries
+        function createVisualizationGeometry(mode) {
+            let geo;
+            
+            switch(mode) {
+                case 'sphere':
+                    geo = new THREE.SphereGeometry(5, 64, 64);
+                    break;
+                case 'torus':
+                    geo = new THREE.TorusGeometry(5, 2, 32, 100);
+                    break;
+                case 'cube':
+                    geo = new THREE.BoxGeometry(8, 8, 8, 10, 10, 10);
+                    break;
+                case 'dna':
+                    geo = createDNAGeometry();
+                    break;
+                case 'galaxy':
+                    geo = createGalaxyGeometry();
+                    break;
+                case 'terrain':
+                    geo = createTerrainGeometry();
+                    break;
+                case 'fluid':
+                    geo = createFluidGeometry();
+                    break;
+                case 'crystal':
+                    geo = createCrystalGeometry();
+                    break;
+                default:
+                    geo = new THREE.SphereGeometry(5, 64, 64);
+            }
+            
+            // Store original positions for morphing
+            const positions = geo.attributes.position.array;
+            morphTargets = [];
+            for (let i = 0; i < positions.length; i += 3) {
+                morphTargets.push({
+                    original: new THREE.Vector3(positions[i], positions[i+1], positions[i+2]),
+                    current: new THREE.Vector3(positions[i], positions[i+1], positions[i+2]),
+                    target: new THREE.Vector3(positions[i], positions[i+1], positions[i+2])
+                });
+            }
+            
+            return geo;
+        }
+        
+        function createDNAGeometry() {
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            
+            for (let i = 0; i < 200; i++) {
+                const t = i / 50;
+                const angle = t * Math.PI * 2;
+                
+                // Double helix
+                positions.push(
+                    Math.cos(angle) * 3, t * 10 - 10, Math.sin(angle) * 3,
+                    Math.cos(angle + Math.PI) * 3, t * 10 - 10, Math.sin(angle + Math.PI) * 3
+                );
+                
+                const hue = t;
+                colors.push(hue, 1, 0.5, hue, 0.5, 1);
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            
+            return geometry;
+        }
+        
+        function createGalaxyGeometry() {
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const count = 10000;
+            
+            for (let i = 0; i < count; i++) {
+                const radius = Math.random() * 15;
+                const spinAngle = radius * 0.3;
+                const branchAngle = (i % 3) * Math.PI * 2 / 3;
+                
+                const randomX = (Math.random() - 0.5) * 0.3;
+                const randomY = (Math.random() - 0.5) * 0.3;
+                const randomZ = (Math.random() - 0.5) * 0.3;
+                
+                positions.push(
+                    Math.cos(branchAngle + spinAngle) * radius + randomX,
+                    randomY,
+                    Math.sin(branchAngle + spinAngle) * radius + randomZ
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            return geometry;
+        }
+        
+        function createTerrainGeometry() {
+            return new THREE.PlaneGeometry(20, 20, 100, 100);
+        }
+        
+        function createFluidGeometry() {
+            const geometry = new THREE.SphereGeometry(5, 32, 32);
+            return geometry;
+        }
+        
+        function createCrystalGeometry() {
+            return new THREE.OctahedronGeometry(5, 2);
+        }
+        
+        // Initialize Three.js
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000000, 1, 100);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 20;
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('canvas'),
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Main mesh
+            geometry = createVisualizationGeometry('sphere');
+            
+            // Shader material
+            const vertexShader = `
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                
+                void main() {
+                    vUv = uv;
+                    vNormal = normalize(normalMatrix * normal);
+                    vPosition = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `;
+            
+            const fragmentShader = `
+                uniform float time;
+                uniform float morphAmount;
+                uniform float colorShift;
+                uniform vec3 noteColors[128];
+                uniform float noteIntensities[128];
+                
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                
+                vec3 hsv2rgb(vec3 c) {
+                    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+                }
+                
+                void main() {
+                    vec3 color = vec3(0.0);
+                    float intensity = 0.0;
+                    
+                    // Accumulate note colors
+                    for (int i = 0; i < 128; i++) {
+                        color += noteColors[i] * noteIntensities[i];
+                        intensity += noteIntensities[i];
+                    }
+                    
+                    if (intensity > 0.0) {
+                        color /= intensity;
+                    } else {
+                        // Default color
+                        float hue = colorShift + sin(time * 0.5 + vPosition.x * 0.1) * 0.1;
+                        color = hsv2rgb(vec3(hue, 0.8, 0.9));
+                    }
+                    
+                    // Lighting
+                    vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+                    float diffuse = max(dot(vNormal, light), 0.0);
+                    
+                    // Rim lighting
+                    vec3 viewDir = normalize(cameraPosition - vPosition);
+                    float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
+                    rim = pow(rim, 2.0);
+                    
+                    color = color * (0.5 + diffuse * 0.5) + vec3(rim) * 0.3;
+                    
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `;
+            
+            // Initialize uniforms
+            const noteColors = [];
+            const noteIntensities = [];
+            for (let i = 0; i < 128; i++) {
+                noteColors.push(new THREE.Vector3(0, 0, 0));
+                noteIntensities.push(0);
+            }
+            
+            material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    morphAmount: { value: 0.5 },
+                    colorShift: { value: 0 },
+                    noteColors: { value: noteColors },
+                    noteIntensities: { value: noteIntensities }
+                },
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                wireframe: settings.wireframeEnabled
+            });
+            
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+            
+            // Particle system
+            particleSystem = new ParticleSystemManager();
+            
+            // Mouse controls
+            setupMouseControls();
+            
+            // Window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+        
+        function setupMouseControls() {
+            let mouseX = 0, mouseY = 0;
+            let targetRotationX = 0, targetRotationY = 0;
+            let mouseDown = false;
+            
+            document.addEventListener('mousedown', (e) => {
+                if (e.target.id === 'canvas') {
+                    mouseDown = true;
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                mouseDown = false;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (mouseDown) {
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    targetRotationY += deltaX * 0.01;
+                    targetRotationX += deltaY * 0.01;
+                    
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                }
+            });
+            
+            // Smooth rotation in animation loop
+            controls = {
+                update: function() {
+                    if (mesh) {
+                        mesh.rotation.x += (targetRotationX - mesh.rotation.x) * 0.05;
+                        mesh.rotation.y += (targetRotationY - mesh.rotation.y) * 0.05;
+                        
+                        if (settings.autoRotate) {
+                            targetRotationY += 0.005;
+                        }
+                    }
+                }
+            };
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // MIDI handling
+        async function initMIDI() {
+            try {
+                midiAccess = await navigator.requestMIDIAccess();
+                updateMIDIDevices();
+                
+                midiAccess.onstatechange = updateMIDIDevices;
+            } catch (error) {
+                console.error('MIDI access failed:', error);
+                updateStatus('MIDI not supported', false);
+            }
+        }
+        
+        function updateMIDIDevices() {
+            const select = document.getElementById('midiSelect');
+            select.innerHTML = '<option value="">Select MIDI Device</option>';
+            
+            for (let input of midiAccess.inputs.values()) {
+                const option = document.createElement('option');
+                option.value = input.id;
+                option.textContent = input.name || 'Unknown Device';
+                select.appendChild(option);
+            }
+            
+            if (midiAccess.inputs.size > 0) {
+                updateStatus('MIDI devices found', false);
+            }
+        }
+        
+        function connectMIDIDevice(deviceId) {
+            if (selectedInput) {
+                selectedInput.onmidimessage = null;
+            }
+            
+            if (deviceId && midiAccess) {
+                selectedInput = midiAccess.inputs.get(deviceId);
+                if (selectedInput) {
+                    selectedInput.onmidimessage = handleMIDIMessage;
+                    updateStatus(`Connected: ${selectedInput.name}`, true);
+                }
+            } else {
+                updateStatus('MIDI: Disconnected', false);
+            }
+        }
+        
+        function handleMIDIMessage(message) {
+            const [status, note, velocity] = message.data;
+            const channel = status & 0x0F;
+            const command = status & 0xF0;
+            
+            if (command === 0x90 && velocity > 0) {
+                // Note on
+                noteOn(note, velocity / 127);
+            } else if (command === 0x80 || (command === 0x90 && velocity === 0)) {
+                // Note off
+                noteOff(note);
+            }
+        }
+        
+        function noteOn(note, velocity) {
+            noteData.set(note, {
+                velocity: velocity,
+                time: Date.now(),
+                active: true
+            });
+            
+            // Update shader uniforms
+            const hue = (note % 12) / 12;
+            const color = new THREE.Color();
+            color.setHSL(hue + settings.colorShift / 360, 1, 0.5 + velocity * 0.5);
+            
+            material.uniforms.noteColors.value[note] = new THREE.Vector3(color.r, color.g, color.b);
+            material.uniforms.noteIntensities.value[note] = velocity;
+            
+            // Create particles
+            particleSystem.createNoteParticles(note, velocity);
+            
+            // Morph geometry
+            if (settings.morphAmount > 0 && morphTargets.length > 0) {
+                const morphStrength = velocity * settings.morphAmount;
+                const positions = geometry.attributes.position.array;
+                
+                for (let i = 0; i < morphTargets.length; i++) {
+                    const vertex = morphTargets[i];
+                    const offset = Math.sin(note * 0.1 + i * 0.01) * morphStrength * 2;
+                    
+                    vertex.target.x = vertex.original.x * (1 + offset);
+                    vertex.target.y = vertex.original.y * (1 + Math.cos(note * 0.2) * morphStrength);
+                    vertex.target.z = vertex.original.z * (1 + offset);
+                }
+            }
+        }
+        
+        function noteOff(note) {
+            const data = noteData.get(note);
+            if (data) {
+                data.active = false;
+                material.uniforms.noteIntensities.value[note] = 0;
+            }
+        }
+        
+        function updateStatus(text, connected) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = connected ? 'status connected' : 'status disconnected';
+        }
+        
+        // Animation
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = clock.getDelta();
+            const elapsedTime = clock.getElapsedTime();
+            
+            // Update FPS
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                document.getElementById('fps').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            // Update shader time
+            if (material) {
+                material.uniforms.time.value = elapsedTime;
+                material.uniforms.morphAmount.value = settings.morphAmount;
+                material.uniforms.colorShift.value = settings.colorShift / 360;
+            }
+            
+            // Update morphing
+            if (morphTargets.length > 0 && geometry) {
+                const positions = geometry.attributes.position.array;
+                
+                for (let i = 0; i < morphTargets.length; i++) {
+                    const vertex = morphTargets[i];
+                    
+                    // Smooth interpolation
+                    vertex.current.lerp(vertex.target, deltaTime * 5);
+                    
+                    // Apply wave effect
+                    const wave = Math.sin(elapsedTime * 2 + i * 0.01) * 0.1;
+                    
+                    positions[i * 3] = vertex.current.x + wave * settings.morphAmount;
+                    positions[i * 3 + 1] = vertex.current.y;
+                    positions[i * 3 + 2] = vertex.current.z;
+                }
+                
+                geometry.attributes.position.needsUpdate = true;
+                geometry.computeVertexNormals();
+            }
+            
+            // Decay note intensities
+            for (let i = 0; i < 128; i++) {
+                if (material.uniforms.noteIntensities.value[i] > 0) {
+                    material.uniforms.noteIntensities.value[i] *= 0.95;
+                    if (material.uniforms.noteIntensities.value[i] < 0.01) {
+                        material.uniforms.noteIntensities.value[i] = 0;
+                    }
+                }
+            }
+            
+            // Reset morph targets gradually
+            for (let vertex of morphTargets) {
+                vertex.target.lerp(vertex.original, deltaTime * 0.5);
+            }
+            
+            // Update particles
+            if (particleSystem) {
+                particleSystem.update(deltaTime);
+            }
+            
+            // Update controls
+            if (controls) {
+                controls.update();
+            }
+            
+            // Render
+            renderer.render(scene, camera);
+        }
+        
+        // UI Controls
+        function setupUI() {
+            // MIDI select
+            document.getElementById('midiSelect').addEventListener('change', (e) => {
+                connectMIDIDevice(e.target.value);
+            });
+            
+            // Refresh MIDI
+            document.getElementById('refreshMidi').addEventListener('click', () => {
+                initMIDI();
+            });
+            
+            // Visualization mode
+            document.getElementById('vizMode').addEventListener('change', (e) => {
+                settings.vizMode = e.target.value;
+                
+                // Remove old mesh
+                scene.remove(mesh);
+                
+                // Create new geometry
+                geometry.dispose();
+                geometry = createVisualizationGeometry(settings.vizMode);
+                
+                // Create new mesh with existing material
+                mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+            });
+            
+            // Sliders
+            document.getElementById('particleIntensity').addEventListener('input', (e) => {
+                settings.particleIntensity = e.target.value / 100;
+                document.getElementById('particleValue').textContent = e.target.value;
+            });
+            
+            document.getElementById('morphAmount').addEventListener('input', (e) => {
+                settings.morphAmount = e.target.value / 100;
+                document.getElementById('morphValue').textContent = e.target.value;
+            });
+            
+            document.getElementById('colorShift').addEventListener('input', (e) => {
+                settings.colorShift = parseFloat(e.target.value);
+                document.getElementById('colorValue').textContent = e.target.value;
+            });
+            
+            // Effect toggles
+            document.getElementById('toggleBloom').addEventListener('click', () => {
+                settings.bloomEnabled = !settings.bloomEnabled;
+                // Bloom would require post-processing setup
+            });
+            
+            document.getElementById('toggleParticles').addEventListener('click', () => {
+                settings.particlesEnabled = !settings.particlesEnabled;
+                if (particleSystem && particleSystem.mesh) {
+                    particleSystem.mesh.visible = settings.particlesEnabled;
+                }
+            });
+            
+            document.getElementById('toggleWireframe').addEventListener('click', () => {
+                settings.wireframeEnabled = !settings.wireframeEnabled;
+                if (material) {
+                    material.wireframe = settings.wireframeEnabled;
+                }
+            });
+            
+            document.getElementById('togglePhysics').addEventListener('click', () => {
+                settings.physicsEnabled = !settings.physicsEnabled;
+            });
+            
+            // Camera controls
+            document.getElementById('resetCamera').addEventListener('click', () => {
+                camera.position.set(0, 0, 20);
+                camera.lookAt(0, 0, 0);
+                if (mesh) {
+                    mesh.rotation.set(0, 0, 0);
+                }
+            });
+            
+            document.getElementById('autoRotate').addEventListener('click', () => {
+                settings.autoRotate = !settings.autoRotate;
+            });
+            
+            // Presets
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const preset = e.target.dataset.preset;
+                    applyPreset(preset);
+                });
+            });
+            
+            // Toggle controls
+            document.getElementById('toggleControls').addEventListener('click', () => {
+                const controls = document.getElementById('controls');
+                controls.classList.toggle('hidden');
+            });
+        }
+        
+        function applyPreset(preset) {
+            switch(preset) {
+                case 'ambient':
+                    settings.particleIntensity = 0.3;
+                    settings.morphAmount = 0.2;
+                    settings.colorShift = 180;
+                    settings.autoRotate = true;
+                    document.getElementById('vizMode').value = 'sphere';
+                    break;
+                    
+                case 'aggressive':
+                    settings.particleIntensity = 1;
+                    settings.morphAmount = 0.8;
+                    settings.colorShift = 0;
+                    settings.autoRotate = false;
+                    document.getElementById('vizMode').value = 'crystal';
+                    break;
+                    
+                case 'psychedelic':
+                    settings.particleIntensity = 0.7;
+                    settings.morphAmount = 0.6;
+                    settings.colorShift = 270;
+                    settings.autoRotate = true;
+                    document.getElementById('vizMode').value = 'fluid';
+                    break;
+                    
+                case 'minimal':
+                    settings.particleIntensity = 0.1;
+                    settings.morphAmount = 0.1;
+                    settings.colorShift = 90;
+                    settings.autoRotate = false;
+                    document.getElementById('vizMode').value = 'cube';
+                    break;
+            }
+            
+            // Update UI
+            document.getElementById('particleIntensity').value = settings.particleIntensity * 100;
+            document.getElementById('particleValue').textContent = Math.round(settings.particleIntensity * 100);
+            document.getElementById('morphAmount').value = settings.morphAmount * 100;
+            document.getElementById('morphValue').textContent = Math.round(settings.morphAmount * 100);
+            document.getElementById('colorShift').value = settings.colorShift;
+            document.getElementById('colorValue').textContent = Math.round(settings.colorShift);
+            
+            // Trigger visualization change
+            document.getElementById('vizMode').dispatchEvent(new Event('change'));
+        }
+        
+        // Keyboard testing (for development without MIDI)
+        function setupKeyboardTesting() {
+            const keyToNote = {
+                'a': 60, // C4
+                'w': 61, // C#4
+                's': 62, // D4
+                'e': 63, // D#4
+                'd': 64, // E4
+                'f': 65, // F4
+                't': 66, // F#4
+                'g': 67, // G4
+                'y': 68, // G#4
+                'h': 69, // A4
+                'u': 70, // A#4
+                'j': 71, // B4
+                'k': 72, // C5
+            };
+            
+            document.addEventListener('keydown', (e) => {
+                if (keyToNote[e.key] && !e.repeat) {
+                    noteOn(keyToNote[e.key], 0.5 + Math.random() * 0.5);
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (keyToNote[e.key]) {
+                    noteOff(keyToNote[e.key]);
+                }
+            });
+        }
+        
+        // Initialize everything
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            initMIDI();
+            setupUI();
+            setupKeyboardTesting();
+            animate();
+            
+            // Show instructions
+            console.log('MIDI Visualizer Ready!');
+            console.log('Connect a MIDI device or use keyboard keys A-K to test');
+        });
+    </script>
+</body>
+</html>

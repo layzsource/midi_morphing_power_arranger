@@ -1,0 +1,505 @@
+import time
+import numpy as np
+import colorsys
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+from enum import Enum
+import json
+
+# FIXED: Import the safe color utilities
+from color_utils import safe_hsv_to_rgb, safe_color_array, blend_colors_safe
+
+class LayerBlendMode(Enum):
+    """Blending modes for layered compositions."""
+    NORMAL = "normal"
+    ADDITIVE = "additive"
+    MULTIPLY = "multiply"
+    OVERLAY = "overlay"
+    SCREEN = "screen"
+
+class CompositionRule(Enum):
+    """Rules for object composition and interaction."""
+    INDEPENDENT = "independent"  # Objects don't interact
+    HARMONIC = "harmonic"       # Objects respond to harmonic relationships
+    RHYTHMIC = "rhythmic"       # Objects sync to rhythm
+    SPATIAL = "spatial"         # Objects affect each other spatially
+
+@dataclass
+class NoteRange:
+    """Defines a MIDI note range with optional properties."""
+    min_note: int
+    max_note: int
+    name: str = ""
+    channel: Optional[int] = None  # None = all channels
+    
+    def contains(self, note: int, channel: int = None) -> bool:
+        """Check if note falls within this range."""
+        note_in_range = self.min_note <= note <= self.max_note
+        channel_match = self.channel is None or self.channel == channel
+        return note_in_range and channel_match
+    
+    def __post_init__(self):
+        if not self.name:
+            self.name = f"Notes {self.min_note}-{self.max_note}"
+
+@dataclass
+class VisualObject:
+    """Represents a single visual object in the scene."""
+    id: str
+    shape_type: str
+    note_range: NoteRange
+    position: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, 0.0]))
+    scale: float = 1.0
+    color: np.ndarray = field(default_factory=lambda: np.array([0.8, 0.8, 0.8]))
+    opacity: float = 1.0
+    rotation: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, 0.0]))
+    
+    # Morphing properties
+    current_morph_target: str = ""
+    morph_amount: float = 0.0
+    
+    # Animation properties
+    velocity: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, 0.0]))
+    angular_velocity: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, 0.0]))
+    
+    # MIDI state
+    active_notes: Dict[int, dict] = field(default_factory=dict)
+    last_activity: float = field(default_factory=time.time)
+    
+    # Visual properties
+    blend_mode: LayerBlendMode = LayerBlendMode.NORMAL
+    depth_layer: int = 0  # Higher numbers render on top
+    
+    def update_from_midi(self, note: int, velocity: float, note_on: bool = True):
+        """Update object state from MIDI input - FIXED with safe color handling."""
+        if note_on:
+            # Calculate color for this note within the range
+            range_span = self.note_range.max_note - self.note_range.min_note
+            if range_span > 0:
+                normalized_note = (note - self.note_range.min_note) / range_span
+            else:
+                normalized_note = 0.5
+            
+            hue = normalized_note
+            # FIXED: Clamp saturation and brightness to valid range
+            saturation = np.clip(0.8 + (velocity * 0.2), 0.0, 1.0)
+            brightness = np.clip(0.6 + (velocity * 0.4), 0.0, 1.0)
+            
+            # FIXED: Use safe conversion
+            color = safe_hsv_to_rgb(hue, saturation, brightness)
+            
+            self.active_notes[note] = {
+                'color': color,
+                'velocity': velocity,
+                'timestamp': time.time()
+            }
+        else:
+            if note in self.active_notes:
+                del self.active_notes[note]
+        
+        self.last_activity = time.time()
+        self._update_composite_properties()
+    
+    def _update_composite_properties(self):
+        """Update object properties based on active notes - FIXED with safe color handling."""
+        if not self.active_notes:
+            # Fade to default when no notes active
+            self.color = safe_color_array([0.5, 0.5, 0.5])
+            self.opacity = 0.3
+            return
+        
+        # Blend colors from all active notes
+        if len(self.active_notes) == 1:
+            note_info = next(iter(self.active_notes.values()))
+            self.color = safe_color_array(note_info['color'])
+            self.opacity = np.clip(0.7 + (note_info['velocity'] * 0.3), 0.0, 1.0)
+        else:
+            # FIXED: Multi-note blending using safe color blending
+            colors = [note_info['color'] for note_info in self.active_notes.values()]
+            weights = [note_info['velocity'] for note_info in self.active_notes.values()]
+            
+            self.color = blend_colors_safe(colors, weights)
+            
+            # Calculate opacity safely
+            total_weight = sum(weights)
+            avg_velocity = total_weight / len(self.active_notes) if len(self.active_notes) > 0 else 0.0
+            self.opacity = np.clip(0.7 + (avg_velocity * 0.3), 0.0, 1.0)
+    
+    def cleanup_expired_notes(self, timeout: float = 60.0):
+        """Remove notes that haven't been updated recently."""
+        current_time = time.time()
+        expired_notes = [
+            note for note, info in self.active_notes.items()
+            if current_time - info['timestamp'] > timeout
+        ]
+        
+        for note in expired_notes:
+            del self.active_notes[note]
+        
+        if expired_notes:
+            self._update_composite_properties()
+
+class SceneManager:
+    """Manages multiple visual objects with note range mapping and layered composition."""
+    
+    def __init__(self, initial_meshes, plotter_widget):
+        self.initial_meshes = initial_meshes
+        self.plotter_widget = plotter_widget
+        self.objects: Dict[str, VisualObject] = {}
+        self.actors: Dict[str, object] = {}  # PyVista actors
+        self.meshes: Dict[str, object] = {}  # PyVista meshes
+        
+        # Composition settings
+        self.composition_rules: List[CompositionRule] = [CompositionRule.INDEPENDENT]
+        self.global_blend_mode = LayerBlendMode.NORMAL
+        self.depth_sorting = True
+        
+        # Animation settings
+        self.physics_enabled = False
+        self.gravity = np.array([0.0, -0.1, 0.0])
+        self.damping = 0.95
+        
+        # Default note range mappings
+        self._setup_default_mappings()
+    
+    def _setup_default_mappings(self):
+        """Setup default note range mappings for different octaves."""
+        default_ranges = [
+            ("Bass", 24, 47, "sphere", [-2, 0, 0]),
+            ("Mid-Low", 48, 59, "cube", [-1, 0, 0]),
+            ("Mid", 60, 71, "cone", [0, 0, 0]),
+            ("Mid-High", 72, 83, "icosahedron", [1, 0, 0]),
+            ("Treble", 84, 108, "torus", [2, 0, 0])
+        ]
+        
+        for name, min_note, max_note, shape, pos in default_ranges:
+            if shape in self.initial_meshes:
+                note_range = NoteRange(min_note, max_note, name)
+                self.add_object(
+                    id=name.lower().replace("-", "_"),
+                    note_range=note_range,
+                    shape_type=shape,
+                    position=np.array(pos),
+                    scale=0.8
+                )
+    
+    def add_object(self, id: str, note_range: NoteRange, shape_type: str, 
+                   position: np.ndarray = None, scale: float = 1.0, 
+                   depth_layer: int = 0, blend_mode: LayerBlendMode = LayerBlendMode.NORMAL):
+        """Add a visual object to the scene."""
+        if position is None:
+            position = np.array([0.0, 0.0, 0.0])
+        
+        # Create visual object
+        visual_obj = VisualObject(
+            id=id,
+            shape_type=shape_type,
+            note_range=note_range,
+            position=position,
+            scale=scale,
+            depth_layer=depth_layer,
+            blend_mode=blend_mode
+        )
+        
+        # Store the visual object first
+        self.objects[id] = visual_obj
+        
+        # Only create mesh and actor if plotter is available
+        if self.plotter_widget is not None and shape_type in self.initial_meshes:
+            mesh = self.initial_meshes[shape_type].copy()
+            
+            # Apply transformations
+            mesh.points = mesh.points * scale + position
+            
+            # Create actor with appropriate properties
+            actor_props = {
+                'color': visual_obj.color,
+                'opacity': visual_obj.opacity,
+                'smooth_shading': True
+            }
+            
+            # Apply blend mode effects
+            if blend_mode == LayerBlendMode.ADDITIVE:
+                actor_props['opacity'] = 0.7
+            elif blend_mode == LayerBlendMode.MULTIPLY:
+                actor_props['color'] = visual_obj.color * 0.5
+            
+            actor = self.plotter_widget.add_mesh(mesh, **actor_props)
+            
+            # Store references
+            self.actors[id] = actor
+            self.meshes[id] = mesh
+            
+            print(f"Added object '{id}' for notes {note_range.min_note}-{note_range.max_note}")
+        else:
+            if self.plotter_widget is None:
+                print(f"Object '{id}' added but not visualized (no plotter)")
+            else:
+                raise ValueError(f"Shape type '{shape_type}' not available")
+        
+        return visual_obj
+    
+    def remove_object(self, id: str):
+        """Remove an object from the scene."""
+        if id in self.objects:
+            # Remove from plotter
+            if id in self.actors:
+                self.plotter_widget.remove_actor(self.actors[id])
+                del self.actors[id]
+            
+            # Remove references
+            del self.objects[id]
+            if id in self.meshes:
+                del self.meshes[id]
+            
+            print(f"Removed object '{id}'")
+    
+    def handle_midi_note(self, note: int, velocity: float, note_on: bool = True, channel: int = 0):
+        """Handle MIDI note input and route to appropriate objects."""
+        affected_objects = []
+        
+        for obj_id, visual_obj in self.objects.items():
+            if visual_obj.note_range.contains(note, channel):
+                visual_obj.update_from_midi(note, velocity, note_on)
+                affected_objects.append(obj_id)
+        
+        # Update visual representation for affected objects
+        for obj_id in affected_objects:
+            self._update_object_visual(obj_id)
+        
+        # Apply composition rules
+        if len(affected_objects) > 1:
+            self._apply_composition_rules(affected_objects, note, velocity)
+        
+        return affected_objects
+    
+    def _update_object_visual(self, obj_id: str):
+        """Update the visual representation of an object - FIXED with safe colors."""
+        if obj_id not in self.objects or obj_id not in self.actors:
+            return
+        
+        visual_obj = self.objects[obj_id]
+        actor = self.actors[obj_id]
+        mesh = self.meshes[obj_id]
+        
+        # Remove old actor
+        self.plotter_widget.remove_actor(actor)
+        
+        # FIXED: Ensure color is safe before using
+        safe_color = safe_color_array(visual_obj.color)
+        
+        # Create new actor with updated properties
+        actor_props = {
+            'color': safe_color,
+            'opacity': np.clip(visual_obj.opacity, 0.0, 1.0),
+            'smooth_shading': True
+        }
+        
+        # Apply blend mode effects
+        if visual_obj.blend_mode == LayerBlendMode.ADDITIVE:
+            actor_props['opacity'] *= 0.8
+        elif visual_obj.blend_mode == LayerBlendMode.MULTIPLY:
+            actor_props['color'] = safe_color * 0.7
+        
+        # Add updated actor
+        new_actor = self.plotter_widget.add_mesh(mesh, **actor_props)
+        self.actors[obj_id] = new_actor
+    
+    def _apply_composition_rules(self, affected_objects: List[str], note: int, velocity: float):
+        """Apply composition rules when multiple objects are affected."""
+        if CompositionRule.HARMONIC in self.composition_rules:
+            self._apply_harmonic_interaction(affected_objects, note)
+        
+        if CompositionRule.SPATIAL in self.composition_rules:
+            self._apply_spatial_interaction(affected_objects, velocity)
+        
+        if CompositionRule.RHYTHMIC in self.composition_rules:
+            self._apply_rhythmic_interaction(affected_objects)
+    
+    def _apply_harmonic_interaction(self, objects: List[str], note: int):
+        """Apply harmonic relationships between objects - FIXED with safe color handling."""
+        # Simple harmonic interaction: objects in harmonic intervals get similar colors
+        base_hue = (note % 12) / 12.0  # Convert to chromatic hue
+        
+        for obj_id in objects:
+            visual_obj = self.objects[obj_id]
+            # Modify colors based on harmonic relationships
+            harmonic_shift = 0.08  # Small color shift for harmony
+            if len(visual_obj.active_notes) > 0:
+                current_color = safe_color_array(visual_obj.color)
+                # FIXED: Use safe RGB to HSV conversion
+                hsv = colorsys.rgb_to_hsv(*current_color)
+                # Shift hue slightly towards harmonic base
+                new_hue = (hsv[0] + base_hue * harmonic_shift) % 1.0
+                # FIXED: Use safe HSV to RGB conversion
+                visual_obj.color = safe_color_array(
+                    safe_hsv_to_rgb(new_hue, hsv[1], hsv[2])
+                )
+    
+    def _apply_spatial_interaction(self, objects: List[str], velocity: float):
+        """Apply spatial interactions between objects."""
+        # Objects influence each other's position slightly
+        center = np.mean([self.objects[obj_id].position for obj_id in objects], axis=0)
+        
+        for obj_id in objects:
+            visual_obj = self.objects[obj_id]
+            # Small movement towards group center
+            direction = center - visual_obj.position
+            movement = direction * velocity * 0.01  # Very subtle movement
+            visual_obj.velocity += movement
+    
+    def _apply_rhythmic_interaction(self, objects: List[str]):
+        """Apply rhythmic synchronization between objects."""
+        # Sync timing of visual changes
+        current_time = time.time()
+        for obj_id in objects:
+            visual_obj = self.objects[obj_id]
+            # Could implement beat-synced effects here
+            pass
+    
+    def update_physics(self):
+        """Update physics simulation for all objects."""
+        if not self.physics_enabled:
+            return
+        
+        for visual_obj in self.objects.values():
+            # Apply gravity
+            visual_obj.velocity += self.gravity
+            
+            # Apply damping
+            visual_obj.velocity *= self.damping
+            visual_obj.angular_velocity *= self.damping
+            
+            # Update positions
+            visual_obj.position += visual_obj.velocity
+            visual_obj.rotation += visual_obj.angular_velocity
+            
+            # Simple boundary checking
+            for i in range(3):
+                if abs(visual_obj.position[i]) > 5.0:
+                    visual_obj.position[i] = np.sign(visual_obj.position[i]) * 5.0
+                    visual_obj.velocity[i] *= -0.5  # Bounce with energy loss
+    
+    def cleanup_expired_notes(self, timeout: float = 60.0):
+        """Clean up expired notes from all objects."""
+        for visual_obj in self.objects.values():
+            visual_obj.cleanup_expired_notes(timeout)
+        
+        # Update visuals for objects that had expired notes
+        for obj_id in self.objects.keys():
+            self._update_object_visual(obj_id)
+    
+    def clear_all_notes(self):
+        """Clear all active notes from all objects."""
+        for visual_obj in self.objects.values():
+            visual_obj.active_notes.clear()
+            visual_obj._update_composite_properties()
+        
+        # Update all visuals
+        for obj_id in self.objects.keys():
+            self._update_object_visual(obj_id)
+    
+    def get_scene_summary(self) -> Dict:
+        """Get a summary of the current scene state."""
+        summary = {
+            'total_objects': len(self.objects),
+            'active_objects': sum(1 for obj in self.objects.values() if obj.active_notes),
+            'total_active_notes': sum(len(obj.active_notes) for obj in self.objects.values()),
+            'objects': {}
+        }
+        
+        for obj_id, visual_obj in self.objects.items():
+            summary['objects'][obj_id] = {
+                'note_range': f"{visual_obj.note_range.min_note}-{visual_obj.note_range.max_note}",
+                'active_notes': len(visual_obj.active_notes),
+                'shape_type': visual_obj.shape_type,
+                'blend_mode': visual_obj.blend_mode.value,
+                'depth_layer': visual_obj.depth_layer
+            }
+        
+        return summary
+    
+    def save_configuration(self, filename: str):
+        """Save the current scene configuration to a file."""
+        config = {
+            'objects': {},
+            'composition_rules': [rule.value for rule in self.composition_rules],
+            'global_blend_mode': self.global_blend_mode.value,
+            'physics_enabled': self.physics_enabled
+        }
+        
+        for obj_id, visual_obj in self.objects.items():
+            config['objects'][obj_id] = {
+                'shape_type': visual_obj.shape_type,
+                'note_range': {
+                    'min_note': visual_obj.note_range.min_note,
+                    'max_note': visual_obj.note_range.max_note,
+                    'name': visual_obj.note_range.name,
+                    'channel': visual_obj.note_range.channel
+                },
+                'position': visual_obj.position.tolist(),
+                'scale': visual_obj.scale,
+                'depth_layer': visual_obj.depth_layer,
+                'blend_mode': visual_obj.blend_mode.value
+            }
+        
+        with open(filename, 'w') as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"Scene configuration saved to {filename}")
+    
+    def load_configuration(self, filename: str):
+        """Load scene configuration from a file."""
+        with open(filename, 'r') as f:
+            config = json.load(f)
+        
+        # Clear current scene
+        for obj_id in list(self.objects.keys()):
+            self.remove_object(obj_id)
+        
+        # Load global settings
+        self.composition_rules = [CompositionRule(rule) for rule in config.get('composition_rules', [])]
+        self.global_blend_mode = LayerBlendMode(config.get('global_blend_mode', LayerBlendMode.NORMAL.value))
+        self.physics_enabled = config.get('physics_enabled', False)
+        
+        # Load objects
+        for obj_id, obj_config in config['objects'].items():
+            note_range_config = obj_config['note_range']
+            note_range = NoteRange(
+                min_note=note_range_config['min_note'],
+                max_note=note_range_config['max_note'],
+                name=note_range_config.get('name', ''),
+                channel=note_range_config.get('channel')
+            )
+            
+            self.add_object(
+                id=obj_id,
+                note_range=note_range,
+                shape_type=obj_config['shape_type'],
+                position=np.array(obj_config['position']),
+                scale=obj_config['scale'],
+                depth_layer=obj_config['depth_layer'],
+                blend_mode=LayerBlendMode(obj_config['blend_mode'])
+            )
+        
+        print(f"Scene configuration loaded from {filename}")
+    
+    def render_frame(self):
+        """Render a single frame with all current object states."""
+        # Update physics if enabled
+        if self.physics_enabled:
+            self.update_physics()
+        
+        # Sort objects by depth layer for proper rendering order
+        if self.depth_sorting:
+            sorted_objects = sorted(
+                self.objects.items(),
+                key=lambda x: x[1].depth_layer
+            )
+            
+            # Re-render in depth order if needed
+            # This would require more complex rendering pipeline
+            pass
+        
+        # Trigger plotter update
+        self.plotter_widget.render()

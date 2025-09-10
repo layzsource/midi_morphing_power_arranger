@@ -1,0 +1,497 @@
+    def _remove_oldest_light(self):
+        """Remove the oldest light to prevent performance issues."""
+        try:
+            if self.note_lights:
+                oldest_note = min(self.note_lights.keys())
+                light_to_remove = self.note_lights.pop(oldest_note)
+                self.plotter_widget.remove_light(light_to_remove['light'])
+                logger.debug(f"Removed oldest light (note {oldest_note})")
+        except Exception as e:
+            logger.error(f"Failed to remove oldest light: {e}")
+
+    @profile_function("cleanup_expired_lights")
+    def _cleanup_expired_lights(self):
+        """Remove lights that have been active too long."""
+        try:
+            current_time = time.time()
+            expired_notes = []
+            
+            for note, light_info in self.note_lights.items():
+                if isinstance(light_info, dict) and 'timestamp' in light_info:
+                    # Light has been active for more than configured expire time
+                    if current_time - light_info['timestamp'] > self.config.LIGHT_EXPIRE_TIME:
+                        expired_notes.append(note)
+            
+            for note in expired_notes:
+                self._remove_light_by_note(note)
+                logger.debug(f"Removed expired light (note {note})")
+                
+        except Exception as e:
+            logger.error(f"Failed to cleanup expired lights: {e}")
+
+    def _remove_light_by_note(self, note_number: int):
+        """Remove a specific light by note number."""
+        try:
+            if note_number in self.note_lights:
+                light_info = self.note_lights.pop(note_number)
+                # Handle both old format (direct light) and new format (dict with light)
+                light = light_info['light'] if isinstance(light_info, dict) else light_info
+                self.plotter_widget.remove_light(light)
+                logger.debug(f"Removed light for note {note_number}")
+        except Exception as e:
+            logger.error(f"Failed to remove light for note {note_number}: {e}")
+
+    def _get_light_management_strategy(self) -> str:
+        """Get the configured light removal strategy."""
+        return self.config.LIGHT_REMOVAL_STRATEGY
+
+    def _remove_light_by_strategy(self, strategy: str = 'oldest'):
+        """Remove a light using the specified strategy."""
+        try:
+            if not self.note_lights:
+                return
+                
+            note_to_remove = None
+            
+            if strategy == 'oldest':
+                note_to_remove = min(self.note_lights.keys())
+            elif strategy == 'random':
+                import random
+                note_to_remove = random.choice(list(self.note_lights.keys()))
+            elif strategy == 'lowest_intensity':
+                # Find light with lowest intensity
+                min_intensity = float('inf')
+                for note, light_info in self.note_lights.items():
+                    light = light_info['light'] if isinstance(light_info, dict) else light_info
+                    if hasattr(light, 'intensity') and light.intensity < min_intensity:
+                        min_intensity = light.intensity
+                        note_to_remove = note
+            elif strategy == 'highest_note':
+                note_to_remove = max(self.note_lights.keys())
+            
+            if note_to_remove is not None:
+                self._remove_light_by_note(note_to_remove)
+                
+        except Exception as e:
+            logger.error(f"Failed to remove light using strategy '{strategy}': {e}")
+
+    @profile_function("update_mesh")
+    def _update_mesh(self, alpha: float):
+        """Update mesh geometry with error handling and profiling."""
+        try:
+            blended_points = blend_meshes(
+                self.initial_meshes, 
+                self.current_mesh_key, 
+                self.target_mesh_key, 
+                alpha
+            )
+            self.current_mesh.points = blended_points
+            
+            # Profile render time
+            self.profiler.start_timer('render')
+            self.plotter_widget.render()
+            self.profiler.end_timer('render')
+            
+        except Exception as e:
+            logger.error(f"Mesh update failed: {e}")
+
+    def _update_profiling(self):
+        """Update performance profiling metrics."""
+        try:
+            self.profiler.record_system_metrics()
+            
+            # Record light count
+            self.profiler.record_metric('active_lights', len(self.note_lights))
+            
+            # Record audio metrics if available
+            if self.current_audio_features:
+                self.profiler.record_metric('audio_rms', self.current_audio_features.get('rms', 0))
+                self.profiler.record_metric('audio_centroid', self.current_audio_features.get('spectral_centroid', 0))
+            
+            # Check for performance warnings
+            warnings = self.profiler.check_performance_warnings()
+            if warnings:
+                # Show warning in status bar
+                warning_text = "; ".join(warnings[:2])  # Show first 2 warnings
+                self.status_bar.showMessage(f"⚠ Performance: {warning_text}", 5000)
+                
+        except Exception as e:
+            logger.error(f"Profiling update failed: {e}")
+
+    @Slot()
+    def _open_performance_monitor(self):
+        """Open the performance monitoring dialog."""
+        try:
+            if self.performance_dialog is None:
+                self.performance_dialog = PerformanceDialog(self.profiler, self)
+            
+            self.performance_dialog.show()
+            self.performance_dialog.raise_()
+            self.performance_dialog.activateWindow()
+            
+        except Exception as e:
+            logger.error(f"Failed to open performance monitor: {e}")
+            self._show_error("Performance Monitor Error", f"Could not open monitor: {e}")
+
+    @profile_function("handle_note_on")
+    def _handle_note_on(self, note_number: int, velocity: float):
+        """Handle MIDI note on with intelligent light management and profiling."""
+        try:
+            # If note is already active, update its properties
+            if note_number in self.note_lights:
+                self._update_existing_light(note_number, velocity)
+                return
+            
+            # Check if we need to make room for new light
+            if len(self.note_lights) >= self.config.MAX_LIGHTS:
+                strategy = self._get_light_management_strategy()
+                self._remove_light_by_strategy(strategy)
+                logger.info(f"Removed light using '{strategy}' strategy to make room")
+            
+            # Create new light
+            self.profiler.start_timer('light_creation')
+            new_light = self._create_note_light(note_number, velocity)
+            self.profiler.end_timer('light_creation')
+            
+            if new_light:
+                self.plotter_widget.add_light(new_light)
+                self.note_lights[note_number] = {
+                    'light': new_light,
+                    'timestamp': time.time(),
+                    'velocity': velocity,
+                    'note': note_number,
+                    'source': 'midi'
+                }
+                logger.debug(f"Added light for note {note_number} (velocity: {velocity:.2f})")
+                self.profiler.increment_counter('lights_created')
+                
+        except Exception as e:
+            logger.error(f"Failed to handle note on for {note_number}: {e}")
+            self.profiler.increment_counter('light_creation_errors')
+
+    @profile_function("handle_note_off")
+    def _handle_note_off(self, note_number: int):
+        """Handle MIDI note off with profiling."""
+        try:
+            if note_number in self.note_lights:
+                self._remove_light_by_note(note_number)
+                logger.debug(f"Note off: removed light for note {note_number}")
+                self.profiler.increment_counter('lights_removed')
+        except Exception as e:
+            logger.error(f"Failed to handle note off for {note_number}: {e}")
+
+    def _update_existing_light(self, note_number: int, velocity: float):
+        """Update properties of an existing light."""
+        try:
+            if note_number in self.note_lights:
+                light_info = self.note_lights[note_number]
+                light = light_info['light']
+                
+                # Update light intensity based on new velocity
+                new_intensity = velocity * self.config.LIGHT_INTENSITY_SCALE
+                if hasattr(light, 'intensity'):
+                    light.intensity = new_intensity
+                
+                # Update timestamp and velocity
+                light_info['timestamp'] = time.time()
+                light_info['velocity'] = velocity
+                
+                logger.debug(f"Updated existing light for note {note_number}")
+                
+        except Exception as e:
+            logger.error(f"Failed to update light for note {note_number}: {e}")
+
+    @Slot(int)
+    def on_morph_slider_change(self, value):
+        """Handle morph slider changes with debouncing."""
+        try:
+            alpha = value / 100.0
+            
+            # Skip if no actual change
+            if alpha == self._last_alpha:
+                return
+            self._last_alpha = alpha
+            
+            # Debounce rapid slider movements
+            if self._render_timer:
+                self._render_timer.stop()
+            
+            self._render_timer = QTimer()
+            self._render_timer.timeout.connect(lambda: self._update_mesh(alpha))
+            self._render_timer.setSingleShot(True)
+            self._render_timer.start(self.config.RENDER_DEBOUNCE_MS)
+        except Exception as e:
+            logger.error(f"Slider change handling failed: {e}")
+    
+    @Slot(str)
+    def on_target_shape_change(self, target_key):
+        """Handle target shape changes with validation."""
+        try:
+            if target_key in self.initial_meshes:
+                self.target_mesh_key = target_key
+                self.on_morph_slider_change(self.morph_slider.value())
+            else:
+                logger.error(f"Invalid target shape: {target_key}")
+        except Exception as e:
+            logger.error(f"Target shape change failed: {e}")
+
+    @profile_function("osc_message_processing")
+    @Slot(str, list)
+    def on_osc_message(self, address, args):
+        """Handle OSC messages with comprehensive error handling, light limiting, and profiling."""
+        try:
+            if address == "/midi/cc/1" and args:
+                alpha = float(args[0])
+                self.morph_slider.setValue(int(alpha * 100))
+                self.profiler.increment_counter('cc_messages')
+                
+            elif address.startswith("/midi/note/") and args:
+                note_number = int(address.split("/")[-1])
+                velocity = float(args[0])
+
+                if velocity > 0:
+                    # Note On: Handle new note
+                    self._handle_note_on(note_number, velocity)
+                elif velocity == 0 and note_number in self.note_lights:
+                    # Note Off: Remove light
+                    self._handle_note_off(note_number)
+
+                # Profile render time
+                self.profiler.start_timer('render')
+                self.plotter_widget.render()
+                self.profiler.end_timer('render')
+                
+                self.profiler.increment_counter('note_messages')
+                
+        except (ValueError, IndexError, KeyError) as e:
+            logger.error(f"OSC message parsing error: {e}")
+            self.profiler.increment_counter('osc_parse_errors')
+        except Exception as e:
+            logger.error(f"OSC message handling failed: {e}")
+            self.profiler.increment_counter('osc_handling_errors')
+
+    @Slot()
+    def _open_settings(self):
+        """Open the configuration dialog."""
+        try:
+            dialog = ConfigDialog(self.config, self)
+            dialog.config_changed.connect(self._on_config_changed)
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Failed to open settings dialog: {e}")
+            self._show_error("Settings Error", f"Could not open settings: {e}")
+
+    @Slot(Config)
+    def _on_config_changed(self, new_config: Config):
+        """Handle configuration changes."""
+        try:
+            old_config = self.config
+            self.config = new_config
+            
+            # Save new configuration
+            self.config.save_to_settings(self.settings)
+            
+            # Apply changes that require immediate updates
+            self._apply_config_changes(old_config, new_config)
+            
+            logger.info("Configuration updated successfully")
+            self.status_bar.showMessage("Configuration updated", 3000)
+            
+        except Exception as e:
+            logger.error(f"Failed to apply configuration changes: {e}")
+            self._show_error("Configuration Error", f"Could not apply changes: {e}")
+
+    def _apply_config_changes(self, old_config: Config, new_config: Config):
+        """Apply configuration changes that require immediate updates."""
+        try:
+            # Update timer intervals
+            if old_config.CLEANUP_INTERVAL_MS != new_config.CLEANUP_INTERVAL_MS:
+                self._light_cleanup_timer.setInterval(new_config.CLEANUP_INTERVAL_MS)
+                logger.info(f"Updated cleanup interval to {new_config.CLEANUP_INTERVAL_MS}ms")
+            
+            if old_config.UI_UPDATE_INTERVAL_MS != new_config.UI_UPDATE_INTERVAL_MS:
+                self._ui_update_timer.setInterval(new_config.UI_UPDATE_INTERVAL_MS)
+                logger.info(f"Updated UI update interval to {new_config.UI_UPDATE_INTERVAL_MS}ms")
+            
+            # Update profiling settings
+            if old_config.PROFILING_ENABLED != new_config.PROFILING_ENABLED:
+                if new_config.PROFILING_ENABLED:
+                    self._profiling_timer = QTimer()
+                    self._profiling_timer.timeout.connect(self._update_profiling)
+                    self._profiling_timer.start(new_config.PROFILING_INTERVAL_MS)
+                    logger.info("Enabled performance profiling")
+                else:
+                    if hasattr(self, '_profiling_timer'):
+                        self._profiling_timer.stop()
+                        delattr(self, '_profiling_timer')
+                    logger.info("Disabled performance profiling")
+                    
+            elif (new_config.PROFILING_ENABLED and 
+                  old_config.PROFILING_INTERVAL_MS != new_config.PROFILING_INTERVAL_MS):
+                if hasattr(self, '_profiling_timer'):
+                    self._profiling_timer.setInterval(new_config.PROFILING_INTERVAL_MS)
+                    logger.info(f"Updated profiling interval to {new_config.PROFILING_INTERVAL_MS}ms")
+            
+            # Update audio settings
+            if (old_config.AUDIO_ENABLED != new_config.AUDIO_ENABLED or
+                old_config.AUDIO_SAMPLE_RATE != new_config.AUDIO_SAMPLE_RATE or
+                old_config.AUDIO_CHUNK_SIZE != new_config.AUDIO_CHUNK_SIZE):
+                self._restart_audio_thread()
+                logger.info("Restarting audio with new settings")
+            
+            # Update light count display if max lights changed
+            if old_config.MAX_LIGHTS != new_config.MAX_LIGHTS:
+                self._update_light_display()
+                # Remove excess lights if new limit is lower
+                if len(self.note_lights) > new_config.MAX_LIGHTS:
+                    excess_count = len(self.note_lights) - new_config.MAX_LIGHTS
+                    for _ in range(excess_count):
+                        strategy = new_config.LIGHT_REMOVAL_STRATEGY
+                        self._remove_light_by_strategy(strategy)
+                logger.info(f"Updated max lights to {new_config.MAX_LIGHTS}")
+            
+            # Update mesh appearance if visual settings changed
+            if (old_config.MESH_COLOR != new_config.MESH_COLOR or 
+                old_config.METALLIC != new_config.METALLIC or 
+                old_config.ROUGHNESS != new_config.ROUGHNESS):
+                self._update_mesh_appearance()
+                logger.info("Updated mesh appearance")
+            
+            # Restart MIDI/OSC if connection settings changed
+            if (old_config.MIDI_PORT != new_config.MIDI_PORT or 
+                old_config.OSC_IP != new_config.OSC_IP or 
+                old_config.OSC_PORT != new_config.OSC_PORT):
+                self._restart_midi_osc_thread()
+                logger.info("Restarting MIDI/OSC with new settings")
+                
+        except Exception as e:
+            logger.error(f"Failed to apply specific config changes: {e}")
+
+    def _update_mesh_appearance(self):
+        """Update the mesh appearance with new visual settings."""
+        try:
+            if self.actor and self.current_mesh:
+                # Remove old actor
+                self.plotter_widget.remove_actor(self.actor)
+                
+                # Add with new settings
+                self.actor = self.plotter_widget.add_mesh(
+                    self.current_mesh,
+                    color=self.config.MESH_COLOR,
+                    smooth_shading=True,
+                    pbr=True,
+                    metallic=self.config.METALLIC,
+                    roughness=self.config.ROUGHNESS
+                )
+                self.plotter_widget.render()
+                
+        except Exception as e:
+            logger.error(f"Failed to update mesh appearance: {e}")
+
+    def _restart_midi_osc_thread(self):
+        """Restart the MIDI/OSC thread with new settings."""
+        try:
+            # Stop existing thread
+            if self.integrated_thread:
+                self.integrated_thread.stop()
+                self.integrated_thread.wait(3000)
+            
+            # Start new thread with updated config
+            self._start_midi_osc_thread()
+            
+        except Exception as e:
+            logger.error(f"Failed to restart MIDI/OSC thread: {e}")
+            self._show_error("Connection Error", f"Could not restart MIDI/OSC: {e}")
+
+    def _restart_audio_thread(self):
+        """Restart the audio analysis thread with new settings."""
+        try:
+            # Stop existing thread
+            if self.audio_thread:
+                self.audio_thread.stop()
+                self.audio_thread.wait(3000)
+            
+            # Start new thread with updated config
+            self._start_audio_thread()
+            
+        except Exception as e:
+            logger.error(f"Failed to restart audio thread: {e}")
+            self._show_error("Audio Error", f"Could not restart audio: {e}")
+
+    @Slot()
+    def _clear_all_lights(self):
+        """Remove all active lights."""
+        try:
+            for note_number in list(self.note_lights.keys()):
+                self._remove_light_by_note(note_number)
+            logger.info("Cleared all lights")
+            self.plotter_widget.render()
+        except Exception as e:
+            logger.error(f"Failed to clear all lights: {e}")
+
+    def _update_light_display(self):
+        """Update the light count display in the UI."""
+        try:
+            active_count = len(self.note_lights)
+            max_count = self.config.MAX_LIGHTS
+            self.light_count_label.setText(f"Active Lights: {active_count}/{max_count}")
+            
+            # Change color based on usage
+            if active_count >= max_count * 0.8:  # 80% or more
+                self.light_count_label.setStyleSheet("color: red; font-weight: bold;")
+            elif active_count >= max_count * 0.6:  # 60% or more
+                self.light_count_label.setStyleSheet("color: orange; font-weight: bold;")
+            else:
+                self.light_count_label.setStyleSheet("color: green;")
+                
+        except Exception as e:
+            logger.error(f"Failed to update light display: {e}")
+
+    def closeEvent(self, event):
+        """Clean shutdown with error handling and performance report."""
+        try:
+            logger.info("Shutting down application...")
+            
+            # Generate final performance report
+            if self.config.PROFILING_ENABLED:
+                try:
+                    final_report = self.profiler.generate_report()
+                    logger.info("Final Performance Report:")
+                    for line in final_report.split('\n')[:20]:  # Log first 20 lines
+                        logger.info(line)
+                except Exception as e:
+                    logger.error(f"Failed to generate final performance report: {e}")
+            
+            # Save current settings
+            self.config.save_to_settings(self.settings)
+            
+            # Stop timers
+            if hasattr(self, '_light_cleanup_timer'):
+                self._light_cleanup_timer.stop()
+            if hasattr(self, '_ui_update_timer'):
+                self._ui_update_timer.stop()
+            if hasattr(self, '_render_timer') and self._render_timer:
+                self._render_timer.stop()
+            if hasattr(self, '_profiling_timer'):
+                self._profiling_timer.stop()
+            
+            # Close performance dialog
+            if self.performance_dialog:
+                self.performance_dialog.close()
+            
+            # Clear all lights
+            self._clear_all_lights()
+            
+            # Stop threads
+            if self.integrated_thread:
+                self.integrated_thread.stop()
+                self.integrated_thread.wait(3000)
+                
+            if self.audio_thread:
+                self.audio_thread.stop()
+                self.audio_thread.wait(3000)
+            
+            event.accept()
+        except Exception as e:
+            logger.error(f"Shutdown error: {e}")
+            event.accept()  # Accept anyway to prevent hanging

@@ -1,0 +1,236 @@
+import numpy as np
+import pyvista as pv
+import logging
+
+logger = logging.getLogger(__name__)
+
+def create_initial_meshes(resolution=50):
+    """
+    Create high-quality meshes with compatible vertex counts using resampling.
+    Compatible with newer PyVista versions.
+    """
+    meshes = {}
+    
+    logger.info(f"Creating initial meshes with resolution {resolution}")
+    
+    try:
+        # Create high-quality base shapes first
+        sphere = pv.Sphere(radius=1.0, phi_resolution=resolution, theta_resolution=resolution)
+        
+        # Create other shapes with high quality
+        # Fix 1: Use keyword arguments for smooth()
+        cube = pv.Cube().triangulate().subdivide(4).smooth(n_iter=1000)
+        cone = pv.Cone(height=2.0, radius=1.0, resolution=resolution*2).triangulate()
+        
+        # Fix 2: Handle Torus - try different approaches for compatibility
+        try:
+            # Try the new way (if Torus is in a different location)
+            torus = pv.ParametricTorus(ringradius=0.7, crosssectionradius=0.3)
+            # Resample to get desired resolution
+            torus = torus.subdivide(2)
+        except AttributeError:
+            try:
+                # Try legacy Torus if available
+                torus = pv.Torus(r_minor=0.3, r_major=0.7, u_res=resolution, v_res=resolution//2)
+            except AttributeError:
+                # Fallback: Create torus from sphere deformation
+                logger.warning("Torus not available in PyVista, using sphere deformation")
+                torus = create_shape_from_sphere(sphere, 'torus')
+        
+        icosahedron = pv.Icosahedron().subdivide(3).smooth(n_iter=500)
+        
+        # Use the sphere as our reference for vertex count
+        target_count = sphere.n_points
+        logger.info(f"Target vertex count: {target_count}")
+        
+        # Store original sphere
+        meshes['sphere'] = sphere
+        logger.info(f"✓ Created sphere mesh: {sphere.n_points} vertices")
+        
+        # Resample all other shapes to match sphere vertex count
+        shapes = {
+            'cube': cube,
+            'cone': cone, 
+            'torus': torus,
+            'icosahedron': icosahedron
+        }
+        
+        for name, original_mesh in shapes.items():
+            try:
+                # Method 1: Try direct resampling
+                resampled = sphere.sample(original_mesh.clean())
+                if resampled.n_points == target_count:
+                    meshes[name] = resampled
+                    logger.info(f"✓ Created {name} mesh via resampling: {resampled.n_points} vertices")
+                else:
+                    # Method 2: Use interpolation-based resampling
+                    resampled = resample_to_target_count(original_mesh, target_count)
+                    meshes[name] = resampled
+                    logger.info(f"✓ Created {name} mesh via interpolation: {resampled.n_points} vertices")
+                    
+            except Exception as e:
+                logger.warning(f"Failed to resample {name}: {e}")
+                # Fallback: Create a distorted sphere
+                meshes[name] = create_shape_from_sphere(sphere, name)
+                logger.info(f"✓ Created {name} mesh via sphere distortion: {meshes[name].n_points} vertices")
+        
+        # Final verification
+        vertex_counts = {name: mesh.n_points for name, mesh in meshes.items()}
+        logger.info(f"Final vertex counts: {vertex_counts}")
+        
+        if len(set(vertex_counts.values())) == 1:
+            logger.info("✓ All meshes have compatible vertex counts!")
+        else:
+            logger.error("✗ Vertex count mismatch detected!")
+        
+        return meshes
+        
+    except Exception as e:
+        logger.error(f"Error creating meshes: {e}")
+        # Return basic compatible meshes as fallback
+        return create_fallback_meshes(resolution)
+
+def resample_to_target_count(mesh, target_count):
+    """Resample mesh to specific vertex count using decimation or subdivision."""
+    current_count = mesh.n_points
+    
+    if current_count > target_count:
+        # Decimate to reduce vertices
+        ratio = target_count / current_count
+        decimated = mesh.decimate(1 - ratio)
+        return decimated
+    elif current_count < target_count:
+        # Subdivide to increase vertices
+        subdivided = mesh.copy()
+        while subdivided.n_points < target_count * 0.8:  # Get close to target
+            subdivided = subdivided.subdivide(1)
+        
+        # Fine-tune with decimation if needed
+        if subdivided.n_points > target_count:
+            ratio = target_count / subdivided.n_points
+            subdivided = subdivided.decimate(1 - ratio)
+        
+        return subdivided
+    else:
+        return mesh.copy()
+
+def create_shape_from_sphere(sphere, shape_name):
+    """Create shapes by deforming a sphere."""
+    points = sphere.points.copy()
+    
+    if shape_name == 'cube':
+        # Project to cube faces
+        max_coords = np.max(np.abs(points), axis=1)
+        cube_points = points / max_coords[:, np.newaxis]
+        new_mesh = sphere.copy()
+        new_mesh.points = cube_points
+        return new_mesh
+        
+    elif shape_name == 'cone':
+        # Create cone by scaling radius based on height
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        # Normalize z to [0, 1] range
+        z_norm = (z + 1) / 2
+        # Scale x, y based on height (wider at bottom)
+        scale_factor = z_norm
+        cone_points = np.column_stack([x * scale_factor, y * scale_factor, z])
+        new_mesh = sphere.copy()
+        new_mesh.points = cone_points
+        return new_mesh
+        
+    elif shape_name == 'torus':
+        # Convert to torus coordinates
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        phi = np.arctan2(z, r - 0.6)
+        
+        R, r_minor = 0.7, 0.3
+        torus_x = (R + r_minor * np.cos(phi)) * np.cos(theta)
+        torus_y = (R + r_minor * np.cos(phi)) * np.sin(theta)
+        torus_z = r_minor * np.sin(phi)
+        
+        torus_points = np.column_stack([torus_x, torus_y, torus_z])
+        new_mesh = sphere.copy()
+        new_mesh.points = torus_points
+        return new_mesh
+        
+    elif shape_name == 'icosahedron':
+        # Project to icosahedron approximation
+        # Simplified: create faceted sphere
+        normals = points / np.linalg.norm(points, axis=1)[:, np.newaxis]
+        # Quantize directions to create faceted appearance
+        quantized = np.round(normals * 3) / 3
+        quantized = quantized / np.linalg.norm(quantized, axis=1)[:, np.newaxis]
+        new_mesh = sphere.copy()
+        new_mesh.points = quantized
+        return new_mesh
+    
+    return sphere.copy()
+
+def create_fallback_meshes(resolution):
+    """Create basic fallback meshes if advanced methods fail."""
+    meshes = {}
+    
+    # Create simple sphere
+    sphere = pv.Sphere(radius=1.0, phi_resolution=resolution, theta_resolution=resolution)
+    meshes['sphere'] = sphere
+    
+    # Create other shapes by deforming the sphere
+    for shape_name in ['cube', 'cone', 'torus', 'icosahedron']:
+        meshes[shape_name] = create_shape_from_sphere(sphere, shape_name)
+    
+    logger.info("Created fallback meshes with sphere deformation")
+    return meshes
+
+def blend_meshes(meshes, source_key, target_key, alpha):
+    """Blend between two meshes with compatible vertex counts."""
+    if source_key not in meshes or target_key not in meshes:
+        raise ValueError(f"Mesh keys not found: {source_key}, {target_key}")
+    
+    source_mesh = meshes[source_key]
+    target_mesh = meshes[target_key]
+    
+    if source_mesh.n_points != target_mesh.n_points:
+        raise ValueError(
+            f"Vertex count mismatch: {source_key}({source_mesh.n_points}) "
+            f"vs {target_key}({target_mesh.n_points})"
+        )
+    
+    # Linear interpolation between vertex positions
+    source_points = source_mesh.points
+    target_points = target_mesh.points
+    
+    blended_points = (1 - alpha) * source_points + alpha * target_points
+    
+    return blended_points
+
+def test_morphing_capability():
+    """Test actual morphing functionality."""
+    print("Testing morphing capability...")
+    
+    meshes = create_initial_meshes(30)
+    
+    # Test blending
+    try:
+        blended = blend_meshes(meshes, 'sphere', 'cube', 0.5)
+        print(f"✓ Morphing test successful: {len(blended)} blended vertices")
+        
+        # Test all combinations
+        shapes = list(meshes.keys())
+        for i, shape1 in enumerate(shapes):
+            for shape2 in shapes[i+1:]:
+                try:
+                    blend_meshes(meshes, shape1, shape2, 0.5)
+                    print(f"✓ {shape1} ↔ {shape2}")
+                except Exception as e:
+                    print(f"✗ {shape1} ↔ {shape2}: {e}")
+        
+        return True
+    except Exception as e:
+        print(f"✗ Morphing test failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    test_morphing_capability()

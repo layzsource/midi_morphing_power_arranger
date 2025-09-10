@@ -1,0 +1,31 @@
+[emitter]
+  type = BoxEmitter
+  min_x = -0.1
+  max_x = 0.1
+  min_y = -0.1
+  max_y = 0.1
+  min_z = -0.1
+  max_z = 0.1
+  
+[factory]
+  type = PointParticleFactory
+  pool_size = 50
+  birth_rate = 0.01
+  litter_size = 5
+  litter_spread = 0
+  
+[renderer]
+  type = SpriteParticleRenderer
+  color_interpolation = False
+  color_a = 1,1,1,1
+  color_b = 1,1,1,0
+  alpha_mode = ALPHA_ADD
+  
+[system]
+  system_grows_older = True
+  lifespan = 0.5
+  
+[integrator]
+  type = EulerIntegrator
+  
+[forces]
