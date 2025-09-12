@@ -1,0 +1,654 @@
+#!/usr/bin/env python3
+"""
+Morphing Visualizer - Complete visualization engine
+Handles mesh morphing, color mapping, effects, and rendering.
+"""
+
+import numpy as np
+import pyvista as pv
+import colorsys
+import time
+from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass, field
+from collections import deque
+from enum import Enum
+
+
+class MorphMode(Enum):
+    """Morphing interpolation modes."""
+    LINEAR = "linear"
+    SMOOTH = "smooth"
+    ELASTIC = "elastic"
+    BOUNCE = "bounce"
+    EXPONENTIAL = "exponential"
+    SINUSOIDAL = "sinusoidal"
+
+
+class ColorMode(Enum):
+    """Color mapping modes."""
+    VELOCITY = "velocity"
+    PITCH = "pitch"
+    RAINBOW = "rainbow"
+    GRADIENT = "gradient"
+    SPECTRAL = "spectral"
+    CHROMATIC = "chromatic"
+
+
+@dataclass
+class NoteVisualization:
+    """Visual representation of an active MIDI note."""
+    note: int
+    velocity: float
+    start_time: float
+    position: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    color: np.ndarray = field(default_factory=lambda: np.array([1.0, 1.0, 1.0]))
+    size: float = 1.0
+    morph_influence: float = 0.0
+    decay_rate: float = 0.95
+    active: bool = True
+    
+    def update(self, delta_time: float):
+        """Update note visualization over time."""
+        # Decay velocity influence
+        self.velocity *= self.decay_rate
+        
+        # Update morph influence
+        age = time.time() - self.start_time
+        self.morph_influence = min(1.0, age * 2.0) * self.velocity
+        
+        # Check if still active
+        if self.velocity < 0.01:
+            self.active = False
+        
+        return self.active
+
+
+class MorphingVisualizer:
+    """Complete morphing visualization system."""
+    
+    def __init__(self, mesh_manager, plotter, config):
+        self.mesh_manager = mesh_manager
+        self.plotter = plotter
+        self.config = config
+        
+        # Current state
+        self.current_mesh_name = "sphere"
+        self.target_mesh_name = "cube"
+        self.current_mesh = None
+        self.target_mesh = None
+        self.morphed_mesh = None
+        self.actor = None
+        
+        # Morphing parameters
+        self.morph_amount = 0.0
+        self.morph_speed = 0.1
+        self.morph_mode = MorphMode.SMOOTH
+        self.auto_morph = False
+        self.morph_direction = 1
+        
+        # Color parameters
+        self.color_mode = ColorMode.PITCH
+        self.base_color = np.array([0.8, 0.8, 0.8])
+        self.current_color = self.base_color.copy()
+        self.color_speed = 0.1
+        
+        # Active notes tracking
+        self.active_notes: Dict[int, NoteVisualization] = {}
+        self.note_history = deque(maxlen=100)
+        
+        # Visual effects
+        self.trail_enabled = False
+        self.trail_meshes = deque(maxlen=10)
+        self.glow_enabled = False
+        self.wireframe_enabled = False
+        self.edge_visibility = False
+        
+        # Performance optimization
+        self.update_frequency = 60  # Hz
+        self.last_update_time = time.time()
+        self.mesh_cache = {}
+        
+        # Statistics
+        self.total_notes_played = 0
+        self.morph_cycles_completed = 0
+        
+        # Initialize meshes
+        self._initialize_meshes()
+    
+    def _initialize_meshes(self):
+        """Initialize current and target meshes."""
+        self.current_mesh = self.mesh_manager.get_mesh(self.current_mesh_name)
+        self.target_mesh = self.mesh_manager.get_mesh(self.target_mesh_name)
+        self.morphed_mesh = self.current_mesh.copy()
+    
+    def set_current_mesh(self, mesh_name: str):
+        """Set the current (base) mesh."""
+        if mesh_name != self.current_mesh_name:
+            self.current_mesh_name = mesh_name
+            self.current_mesh = self.mesh_manager.get_mesh(mesh_name)
+            self._clear_mesh_cache()
+    
+    def set_target_mesh(self, mesh_name: str):
+        """Set the target (morph to) mesh."""
+        if mesh_name != self.target_mesh_name:
+            self.target_mesh_name = mesh_name
+            self.target_mesh = self.mesh_manager.get_mesh(mesh_name)
+            self._clear_mesh_cache()
+    
+    def handle_note_on(self, note: int, velocity: int):
+        """Handle MIDI note on event."""
+        # Normalize velocity
+        velocity_norm = velocity / 127.0
+        
+        # Create note visualization
+        note_vis = NoteVisualization(
+            note=note,
+            velocity=velocity_norm,
+            start_time=time.time(),
+            color=self._note_to_color(note, velocity_norm),
+            morph_influence=velocity_norm * 0.5
+        )
+        
+        self.active_notes[note] = note_vis
+        self.note_history.append((note, velocity_norm, time.time()))
+        self.total_notes_played += 1
+        
+        # Trigger visual response
+        self._trigger_note_effect(note, velocity_norm)
+        
+        # Update morph amount based on velocity
+        self._update_morph_from_note(note, velocity_norm)
+        
+        # Update mesh
+        self.update()
+    
+    def handle_note_off(self, note: int):
+        """Handle MIDI note off event."""
+        if note in self.active_notes:
+            # Don't remove immediately, let it decay
+            self.active_notes[note].active = False
+    
+    def handle_control_change(self, control: int, value: int):
+        """Handle MIDI control change."""
+        value_norm = value / 127.0
+        
+        # Map common controls
+        if control == 1:  # Modulation wheel
+            self.set_morph_amount(value_norm)
+        elif control == 7:  # Volume
+            self._set_global_brightness(value_norm)
+        elif control == 10:  # Pan
+            self._set_rotation_speed(value_norm)
+        elif control == 64:  # Sustain pedal
+            self._set_sustain(value > 63)
+    
+    def set_morph_amount(self, amount: float):
+        """Set the morph amount (0-1)."""
+        self.morph_amount = np.clip(amount, 0.0, 1.0)
+        self.update()
+    
+    def update(self):
+        """Update the visualization."""
+        current_time = time.time()
+        delta_time = current_time - self.last_update_time
+        
+        # Throttle updates
+        if delta_time < 1.0 / self.update_frequency:
+            return
+        
+        # Update active notes
+        self._update_active_notes(delta_time)
+        
+        # Auto-morph if enabled
+        if self.auto_morph:
+            self._update_auto_morph(delta_time)
+        
+        # Calculate morph amount from all influences
+        total_morph = self._calculate_total_morph()
+        
+        # Perform morphing
+        self._morph_meshes(total_morph)
+        
+        # Update colors
+        self._update_colors(delta_time)
+        
+        # Update visual effects
+        if self.trail_enabled:
+            self._update_trails()
+        
+        # Update the display
+        self._update_display()
+        
+        self.last_update_time = current_time
+    
+    def _update_active_notes(self, delta_time: float):
+        """Update all active note visualizations."""
+        notes_to_remove = []
+        
+        for note, vis in self.active_notes.items():
+            if not vis.update(delta_time):
+                notes_to_remove.append(note)
+        
+        # Remove inactive notes
+        for note in notes_to_remove:
+            del self.active_notes[note]
+    
+    def _update_auto_morph(self, delta_time: float):
+        """Update automatic morphing."""
+        self.morph_amount += self.morph_speed * delta_time * self.morph_direction
+        
+        if self.morph_amount >= 1.0:
+            self.morph_amount = 1.0
+            self.morph_direction = -1
+            self.morph_cycles_completed += 1
+        elif self.morph_amount <= 0.0:
+            self.morph_amount = 0.0
+            self.morph_direction = 1
+    
+    def _calculate_total_morph(self) -> float:
+        """Calculate total morph amount from all influences."""
+        base_morph = self.morph_amount
+        
+        # Add influence from active notes
+        if self.active_notes:
+            note_influence = np.mean([
+                vis.morph_influence for vis in self.active_notes.values()
+            ])
+            base_morph = min(1.0, base_morph + note_influence * 0.3)
+        
+        # Apply morphing mode
+        return self._apply_morph_mode(base_morph)
+    
+    def _apply_morph_mode(self, t: float) -> float:
+        """Apply morphing interpolation mode."""
+        if self.morph_mode == MorphMode.LINEAR:
+            return t
+        elif self.morph_mode == MorphMode.SMOOTH:
+            return t * t * (3 - 2 * t)  # Smoothstep
+        elif self.morph_mode == MorphMode.ELASTIC:
+            return t * t * t * (t * (6 * t - 15) + 10)  # Smootherstep
+        elif self.morph_mode == MorphMode.BOUNCE:
+            if t < 0.5:
+                return 8 * t * t * t * t
+            else:
+                t = t - 1
+                return 1 + 8 * t * t * t * t
+        elif self.morph_mode == MorphMode.EXPONENTIAL:
+            return t * t
+        elif self.morph_mode == MorphMode.SINUSOIDAL:
+            return 0.5 * (1 - np.cos(np.pi * t))
+        else:
+            return t
+    
+    def _morph_meshes(self, morph_factor: float):
+        """Morph between current and target meshes."""
+        # Check cache first
+        cache_key = f"{self.current_mesh_name}_{self.target_mesh_name}_{morph_factor:.3f}"
+        if cache_key in self.mesh_cache:
+            self.morphed_mesh = self.mesh_cache[cache_key]
+            return
+        
+        # Ensure meshes have same number of points
+        if self.current_mesh.n_points != self.target_mesh.n_points:
+            target_resampled = self._resample_mesh_to_match(
+                self.target_mesh, self.current_mesh
+            )
+        else:
+            target_resampled = self.target_mesh
+        
+        # Interpolate points
+        current_points = self.current_mesh.points
+        target_points = target_resampled.points
+        
+        morphed_points = current_points * (1 - morph_factor) + target_points * morph_factor
+        
+        # Add note-based deformations
+        if self.active_notes:
+            morphed_points = self._apply_note_deformations(morphed_points)
+        
+        # Update morphed mesh
+        self.morphed_mesh = self.current_mesh.copy()
+        self.morphed_mesh.points = morphed_points
+        
+        # Cache the result
+        if len(self.mesh_cache) < 100:  # Limit cache size
+            self.mesh_cache[cache_key] = self.morphed_mesh.copy()
+    
+    def _resample_mesh_to_match(self, mesh_to_resample: pv.PolyData, reference_mesh: pv.PolyData) -> pv.PolyData:
+        """Resample a mesh to match another mesh's point count."""
+        target_points = reference_mesh.n_points
+        current_points = mesh_to_resample.n_points
+        
+        if current_points == target_points:
+            return mesh_to_resample
+        
+        # Use decimation or subdivision
+        if current_points > target_points:
+            # Decimate
+            reduction = 1.0 - (target_points / current_points)
+            return mesh_to_resample.decimate(reduction)
+        else:
+            # Subdivide
+            subdivisions = int(np.log2(target_points / current_points)) + 1
+            return mesh_to_resample.subdivide(subdivisions)
+    
+    def _apply_note_deformations(self, points: np.ndarray) -> np.ndarray:
+        """Apply deformations based on active notes."""
+        deformed = points.copy()
+        
+        for note, vis in self.active_notes.items():
+            # Calculate deformation based on note properties
+            frequency = 440 * (2 ** ((note - 69) / 12))  # Note to frequency
+            
+            # Sinusoidal deformation
+            wave = np.sin(frequency * 0.01 + time.time() * 2)
+            deformation = wave * vis.velocity * 0.1
+            
+            # Apply to points based on note range
+            octave = note // 12
+            if octave < 4:  # Bass notes affect bottom
+                mask = points[:, 2] < 0
+            elif octave > 6:  # High notes affect top
+                mask = points[:, 2] > 0
+            else:  # Mid notes affect middle
+                mask = np.abs(points[:, 2]) < 1
+            
+            deformed[mask] += deformation * np.array([0, 0, 1])
+        
+        return deformed
+    
+    def _update_colors(self, delta_time: float):
+        """Update mesh colors based on active notes and settings."""
+        if self.color_mode == ColorMode.VELOCITY:
+            self._update_velocity_colors()
+        elif self.color_mode == ColorMode.PITCH:
+            self._update_pitch_colors()
+        elif self.color_mode == ColorMode.RAINBOW:
+            self._update_rainbow_colors(delta_time)
+        elif self.color_mode == ColorMode.GRADIENT:
+            self._update_gradient_colors()
+        elif self.color_mode == ColorMode.SPECTRAL:
+            self._update_spectral_colors()
+        elif self.color_mode == ColorMode.CHROMATIC:
+            self._update_chromatic_colors()
+    
+    def _update_pitch_colors(self):
+        """Update colors based on note pitch."""
+        if not self.active_notes:
+            # Fade to base color
+            self.current_color = self.current_color * 0.95 + self.base_color * 0.05
+        else:
+            # Average color from all active notes
+            colors = []
+            for note, vis in self.active_notes.items():
+                colors.append(vis.color * vis.velocity)
+            
+            if colors:
+                avg_color = np.mean(colors, axis=0)
+                self.current_color = self.current_color * 0.7 + avg_color * 0.3
+    
+    def _update_velocity_colors(self):
+        """Update colors based on note velocity."""
+        if self.active_notes:
+            max_velocity = max(vis.velocity for vis in self.active_notes.values())
+            # Map velocity to color temperature
+            if max_velocity > 0.7:
+                color = np.array([1.0, 0.3, 0.1])  # Hot red
+            elif max_velocity > 0.4:
+                color = np.array([1.0, 0.8, 0.2])  # Warm yellow
+            else:
+                color = np.array([0.3, 0.5, 1.0])  # Cool blue
+            
+            self.current_color = self.current_color * 0.8 + color * 0.2
+    
+    def _update_rainbow_colors(self, delta_time: float):
+        """Cycle through rainbow colors."""
+        hue = (time.time() * self.color_speed) % 1.0
+        rgb = colorsys.hsv_to_rgb(hue, 0.8, 1.0)
+        self.current_color = np.array(rgb)
+    
+    def _update_gradient_colors(self):
+        """Update colors with gradient based on morph amount."""
+        color1 = np.array([0.2, 0.4, 1.0])  # Blue
+        color2 = np.array([1.0, 0.4, 0.2])  # Orange
+        self.current_color = color1 * (1 - self.morph_amount) + color2 * self.morph_amount
+    
+    def _update_spectral_colors(self):
+        """Update colors based on frequency spectrum."""
+        if self.active_notes:
+            # Map notes to spectrum
+            min_note = min(self.active_notes.keys())
+            max_note = max(self.active_notes.keys())
+            
+            if max_note > min_note:
+                avg_note = np.mean(list(self.active_notes.keys()))
+                normalized = (avg_note - min_note) / (max_note - min_note)
+                
+                # Spectral color mapping
+                if normalized < 0.2:
+                    color = np.array([1, 0, 0])  # Red
+                elif normalized < 0.4:
+                    color = np.array([1, 1, 0])  # Yellow
+                elif normalized < 0.6:
+                    color = np.array([0, 1, 0])  # Green
+                elif normalized < 0.8:
+                    color = np.array([0, 1, 1])  # Cyan
+                else:
+                    color = np.array([0, 0, 1])  # Blue
+                
+                self.current_color = color
+    
+    def _update_chromatic_colors(self):
+        """Update colors chromatically based on note pitch class."""
+        if self.active_notes:
+            # Use pitch class (0-11) for chromatic coloring
+            pitch_classes = [note % 12 for note in self.active_notes.keys()]
+            avg_pitch_class = np.mean(pitch_classes)
+            
+            hue = avg_pitch_class / 12.0
+            rgb = colorsys.hsv_to_rgb(hue, 0.9, 1.0)
+            self.current_color = np.array(rgb)
+    
+    def _note_to_color(self, note: int, velocity: float) -> np.ndarray:
+        """Convert MIDI note to color."""
+        # Use note for hue, velocity for brightness
+        octave = note // 12
+        pitch_class = note % 12
+        
+        # Map pitch class to hue (chromatic circle)
+        hue = pitch_class / 12.0
+        
+        # Map octave to saturation (lower octaves more saturated)
+        saturation = 1.0 - (octave / 10.0)
+        
+        # Map velocity to value/brightness
+        value = 0.5 + velocity * 0.5
+        
+        rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+        return np.array(rgb)
+    
+    def _trigger_note_effect(self, note: int, velocity: float):
+        """Trigger visual effect for a note."""
+        # Could trigger particles, flashes, etc.
+        # This is a hook for external effect systems
+        pass
+    
+    def _update_morph_from_note(self, note: int, velocity: float):
+        """Update morph amount based on note."""
+        # Different octaves affect morphing differently
+        octave = note // 12
+        
+        if octave < 3:  # Bass notes
+            influence = velocity * 0.2
+        elif octave > 6:  # High notes
+            influence = velocity * 0.1
+        else:  # Mid range
+            influence = velocity * 0.15
+        
+        # Smooth transition
+        target_morph = min(1.0, self.morph_amount + influence)
+        self.morph_amount = self.morph_amount * 0.8 + target_morph * 0.2
+    
+    def _update_trails(self):
+        """Update mesh trails for motion blur effect."""
+        if len(self.trail_meshes) >= 10:
+            # Remove oldest trail
+            oldest = self.trail_meshes.popleft()
+            if hasattr(oldest, 'actor'):
+                self.plotter.remove_actor(oldest.actor)
+        
+        # Add current mesh as trail
+        trail = self.morphed_mesh.copy()
+        self.trail_meshes.append(trail)
+    
+    def _update_display(self):
+        """Update the display with current mesh and effects."""
+        if self.actor:
+            # Update existing actor
+            self.actor.mapper.SetInputData(self.morphed_mesh)
+            self.actor.GetProperty().SetColor(self.current_color)
+            
+            # Update material properties based on effects
+            if self.glow_enabled:
+                self.actor.GetProperty().SetAmbient(0.3)
+                self.actor.GetProperty().SetSpecular(0.8)
+                self.actor.GetProperty().SetSpecularPower(50)
+            
+            if self.wireframe_enabled:
+                self.actor.GetProperty().SetRepresentationToWireframe()
+            else:
+                self.actor.GetProperty().SetRepresentationToSurface()
+            
+            if self.edge_visibility:
+                self.actor.GetProperty().EdgeVisibilityOn()
+            else:
+                self.actor.GetProperty().EdgeVisibilityOff()
+    
+    def _set_global_brightness(self, brightness: float):
+        """Set global brightness level."""
+        # Adjust ambient lighting or color intensity
+        self.base_color = np.array([brightness] * 3)
+    
+    def _set_rotation_speed(self, speed: float):
+        """Set mesh rotation speed."""
+        # This would control auto-rotation if implemented
+        pass
+    
+    def _set_sustain(self, sustained: bool):
+        """Set sustain mode."""
+        # When sustained, notes don't decay
+        if sustained:
+            for vis in self.active_notes.values():
+                vis.decay_rate = 1.0
+        else:
+            for vis in self.active_notes.values():
+                vis.decay_rate = 0.95
+    
+    def _clear_mesh_cache(self):
+        """Clear the mesh cache."""
+        self.mesh_cache.clear()
+    
+    def enable_trail_effect(self, enabled: bool):
+        """Enable/disable trail effect."""
+        self.trail_enabled = enabled
+        if not enabled:
+            # Clear existing trails
+            for trail in self.trail_meshes:
+                if hasattr(trail, 'actor'):
+                    self.plotter.remove_actor(trail.actor)
+            self.trail_meshes.clear()
+    
+    def enable_glow_effect(self, enabled: bool):
+        """Enable/disable glow effect."""
+        self.glow_enabled = enabled
+        self.update()
+    
+    def enable_wireframe(self, enabled: bool):
+        """Enable/disable wireframe mode."""
+        self.wireframe_enabled = enabled
+        self.update()
+    
+    def set_morph_mode(self, mode: MorphMode):
+        """Set the morphing interpolation mode."""
+        self.morph_mode = mode
+    
+    def set_color_mode(self, mode: ColorMode):
+        """Set the color mapping mode."""
+        self.color_mode = mode
+    
+    def get_statistics(self) -> Dict:
+        """Get visualization statistics."""
+        return {
+            "total_notes_played": self.total_notes_played,
+            "active_notes": len(self.active_notes),
+            "morph_amount": self.morph_amount,
+            "morph_cycles": self.morph_cycles_completed,
+            "current_mesh": self.current_mesh_name,
+            "target_mesh": self.target_mesh_name,
+            "color_mode": self.color_mode.value,
+            "morph_mode": self.morph_mode.value,
+            "cache_size": len(self.mesh_cache)
+        }
+
+
+# Test function
+def test_visualizer():
+    """Test the morphing visualizer."""
+    print("Testing Morphing Visualizer")
+    print("=" * 50)
+    
+    # Mock components for testing
+    class MockMeshManager:
+        def get_mesh(self, name):
+            if name == "sphere":
+                return pv.Sphere()
+            elif name == "cube":
+                return pv.Cube()
+            else:
+                return pv.Icosahedron()
+    
+    class MockConfig:
+        pass
+    
+    # Create visualizer
+    mesh_manager = MockMeshManager()
+    plotter = None  # Would be actual plotter in real use
+    config = MockConfig()
+    
+    visualizer = MorphingVisualizer(mesh_manager, plotter, config)
+    
+    print("✓ Visualizer created")
+    
+    # Test note handling
+    visualizer.handle_note_on(60, 100)  # Middle C, forte
+    print(f"✓ Note on handled - Active notes: {len(visualizer.active_notes)}")
+    
+    visualizer.handle_note_on(64, 80)   # E, mezzo-forte
+    visualizer.handle_note_on(67, 60)   # G, piano
+    print(f"✓ Chord played - Active notes: {len(visualizer.active_notes)}")
+    
+    # Test morphing
+    visualizer.set_morph_amount(0.5)
+    print(f"✓ Morph set to: {visualizer.morph_amount}")
+    
+    # Test color modes
+    for mode in ColorMode:
+        visualizer.set_color_mode(mode)
+        print(f"✓ Color mode: {mode.value}")
+    
+    # Test morph modes
+    for mode in MorphMode:
+        visualizer.set_morph_mode(mode)
+        print(f"✓ Morph mode: {mode.value}")
+    
+    # Get statistics
+    stats = visualizer.get_statistics()
+    print("\n📊 Statistics:")
+    for key, value in stats.items():
+        print(f"  • {key}: {value}")
+    
+    print("\n✅ All visualizer tests passed!")
+
+
+if __name__ == "__main__":
+    test_visualizer()

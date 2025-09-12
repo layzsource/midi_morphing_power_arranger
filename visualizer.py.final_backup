@@ -1,0 +1,775 @@
+#!/usr/bin/env python3
+"""
+Morphing Visualizer - Complete visualization engine
+Handles mesh morphing, color mapping, effects, and rendering.
+"""
+
+import numpy as np
+import pyvista as pv
+import colorsys
+import time
+from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass, field
+from collections import deque
+from enum import Enum
+
+
+class MorphMode(Enum):
+    """Morphing interpolation modes."""
+    LINEAR = "linear"
+    SMOOTH = "smooth"
+    ELASTIC = "elastic"
+    BOUNCE = "bounce"
+    EXPONENTIAL = "exponential"
+    SINUSOIDAL = "sinusoidal"
+
+
+class ColorMode(Enum):
+    """Color mapping modes."""
+    VELOCITY = "velocity"
+    PITCH = "pitch"
+    RAINBOW = "rainbow"
+    GRADIENT = "gradient"
+    SPECTRAL = "spectral"
+    CHROMATIC = "chromatic"
+
+
+@dataclass
+class NoteVisualization:
+    """Visual representation of an active MIDI note."""
+    note: int
+    velocity: float
+    start_time: float
+    position: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    color: np.ndarray = field(default_factory=lambda: np.array([1.0, 1.0, 1.0]))
+    size: float = 1.0
+    morph_influence: float = 0.0
+    decay_rate: float = 0.95
+    active: bool = True
+    
+    def update(self, delta_time: float):
+        """Update note visualization over time."""
+        # Decay velocity influence
+        self.velocity *= self.decay_rate
+        
+        # Update morph influence
+        age = time.time() - self.start_time
+        self.morph_influence = min(1.0, age * 2.0) * self.velocity
+        
+        # Check if still active
+        if self.velocity < 0.01:
+            self.active = False
+        
+        return self.active
+
+
+class MorphingVisualizer:
+    """Complete morphing visualization system."""
+    
+    def __init__(self, mesh_manager, plotter, config):
+        self.mesh_manager = mesh_manager
+        self.plotter = plotter
+        self.config = config
+        
+        # Current state
+        self.current_mesh_name = "sphere"
+        self.target_mesh_name = "cube"
+        self.current_mesh = None
+        self.target_mesh = None
+        self.morphed_mesh = None
+        self.actor = None
+        
+        # Morphing parameters
+        self.morph_amount = 0.0
+        self.morph_speed = 0.1
+        self.morph_mode = MorphMode.SMOOTH
+        self.auto_morph = False
+        self.morph_direction = 1
+        
+        # Color parameters
+        self.color_mode = ColorMode.PITCH
+        self.base_color = np.array([0.8, 0.8, 0.8])
+        self.current_color = self.base_color.copy()
+        self.color_speed = 0.1
+        
+        # Active notes tracking
+        self.active_notes: Dict[int, NoteVisualization] = {}
+        self.note_history = deque(maxlen=100)
+        
+        # Visual effects
+        self.trail_enabled = False
+        self.trail_meshes = deque(maxlen=10)
+        self.glow_enabled = False
+        self.wireframe_enabled = False
+        self.edge_visibility = False
+        
+        # Performance optimization
+        self.update_frequency = 60  # Hz
+        self.last_update_time = time.time()
+        self.mesh_cache = {}
+        
+        # Statistics
+        self.total_notes_played = 0
+        self.morph_cycles_completed = 0
+        
+        # Initialize meshes
+        self._initialize_meshes()
+    
+    def _initialize_meshes(self):
+        """Initialize current and target meshes."""
+        self.current_mesh = self.mesh_manager.get_mesh(self.current_mesh_name)
+        self.target_mesh = self.mesh_manager.get_mesh(self.target_mesh_name)
+        self.morphed_mesh = self.current_mesh.copy()
+    
+    def set_current_mesh(self, mesh_name: str):
+        """Set the current (base) mesh."""
+        if mesh_name != self.current_mesh_name:
+            self.current_mesh_name = mesh_name
+            self.current_mesh = self.mesh_manager.get_mesh(mesh_name)
+            self._clear_mesh_cache()
+    
+    def set_target_mesh(self, mesh_name: str):
+        """Set the target (morph to) mesh."""
+        if mesh_name != self.target_mesh_name:
+            self.target_mesh_name = mesh_name
+            self.target_mesh = self.mesh_manager.get_mesh(mesh_name)
+            self._clear_mesh_cache()
+    
+    def handle_note_on(self, note: int, velocity: int):
+        """Handle MIDI note on event."""
+        # Normalize velocity
+        velocity_norm = velocity / 127.0
+        
+        # Create note visualization
+        note_vis = NoteVisualization(
+            note=note,
+            velocity=velocity_norm,
+            start_time=time.time(),
+            color=self._note_to_color(note, velocity_norm),
+            morph_influence=velocity_norm * 0.5
+        )
+        
+        self.active_notes[note] = note_vis
+        self.note_history.append((note, velocity_norm, time.time()))
+        self.total_notes_played += 1
+        
+        # Trigger visual response
+        self._trigger_note_effect(note, velocity_norm)
+        
+        # Update morph amount based on velocity
+        self._update_morph_from_note(note, velocity_norm)
+        
+        # Update mesh
+        self.update()
+    
+    def handle_note_off(self, note: int):
+        """Handle MIDI note off event."""
+        if note in self.active_notes:
+            # Don't remove immediately, let it decay
+            self.active_notes[note].active = False
+    
+    def handle_control_change(self, control: int, value: int):
+        """Handle MIDI control change."""
+        value_norm = value / 127.0
+        
+        # Map common controls
+        if control == 1:  # Modulation wheel
+            self.set_morph_amount(value_norm)
+        elif control == 7:  # Volume
+            self._set_global_brightness(value_norm)
+        elif control == 10:  # Pan
+            self._set_rotation_speed(value_norm)
+        elif control == 64:  # Sustain pedal
+            self._set_sustain(value > 63)
+    
+    def set_morph_amount(self, amount: float):
+        """Set the morph amount (0-1)."""
+        self.morph_amount = np.clip(amount, 0.0, 1.0)
+        self.update()
+    
+    def update(self):
+        """Update the visualization."""
+        current_time = time.time()
+        delta_time = current_time - self.last_update_time
+        
+        # Throttle updates
+        if delta_time < 1.0 / self.update_frequency:
+            return
+        
+        # Update active notes
+        self._update_active_notes(delta_time)
+        
+        # Auto-morph if enabled
+        if self.auto_morph:
+            self._update_auto_morph(delta_time)
+        
+        # Calculate morph amount from all influences
+        total_morph = self._calculate_total_morph()
+        
+        # Perform morphing
+        self._morph_meshes(total_morph)
+        
+        # Update colors
+        self._update_colors(delta_time)
+        
+        # Update visual effects
+        if self.trail_enabled:
+            self._update_trails()
+        
+        # Update the display
+        self._update_display()
+        
+        self.last_update_time = current_time
+    
+    def _update_active_notes(self, delta_time: float):
+        """Update all active note visualizations."""
+        notes_to_remove = []
+        
+        for note, vis in self.active_notes.items():
+            if not vis.update(delta_time):
+                notes_to_remove.append(note)
+        
+        # Remove inactive notes
+        for note in notes_to_remove:
+            del self.active_notes[note]
+    
+    def _update_auto_morph(self, delta_time: float):
+        """Update automatic morphing."""
+        self.morph_amount += self.morph_speed * delta_time * self.morph_direction
+        
+        if self.morph_amount >= 1.0:
+            self.morph_amount = 1.0
+            self.morph_direction = -1
+            self.morph_cycles_completed += 1
+        elif self.morph_amount <= 0.0:
+            self.morph_amount = 0.0
+            self.morph_direction = 1
+    
+    def _calculate_total_morph(self) -> float:
+        """Calculate total morph amount from all influences."""
+        base_morph = self.morph_amount
+        
+        # Add influence from active notes
+        if self.active_notes:
+            note_influence = np.mean([
+                vis.morph_influence for vis in self.active_notes.values()
+            ])
+            base_morph = min(1.0, base_morph + note_influence * 0.3)
+        
+        # Apply morphing mode
+        return self._apply_morph_mode(base_morph)
+    
+    def _apply_morph_mode(self, t: float) -> float:
+        """Apply morphing interpolation mode."""
+        if self.morph_mode == MorphMode.LINEAR:
+            return t
+        elif self.morph_mode == MorphMode.SMOOTH:
+            return t * t * (3 - 2 * t)  # Smoothstep
+        elif self.morph_mode == MorphMode.ELASTIC:
+            return t * t * t * (t * (6 * t - 15) + 10)  # Smootherstep
+        elif self.morph_mode == MorphMode.BOUNCE:
+            if t < 0.5:
+                return 8 * t * t * t * t
+            else:
+                t = t - 1
+                return 1 + 8 * t * t * t * t
+        elif self.morph_mode == MorphMode.EXPONENTIAL:
+            return t * t
+        elif self.morph_mode == MorphMode.SINUSOIDAL:
+            return 0.5 * (1 - np.cos(np.pi * t))
+        else:
+            return t
+    
+    def _create_initial_meshes(self):
+        """Create initial meshes with guaranteed matching vertex counts."""
+        print("Creating meshes with matched vertex counts...")
+        
+        # Create reference sphere
+        resolution = getattr(self, 'resolution', 25)
+        sphere = pv.Sphere(radius=1.0, phi_resolution=resolution, theta_resolution=resolution)
+        target_count = sphere.n_points
+        
+        print(f"Target vertex count: {target_count}")
+        
+        # Store sphere as reference
+        self.meshes = {'sphere': sphere}
+        
+        # Create other shapes by deforming the sphere (guaranteed same vertex count)
+        self.meshes['cube'] = self._create_cube_from_sphere(sphere)
+        self.meshes['cone'] = self._create_cone_from_sphere(sphere)  
+        self.meshes['cylinder'] = self._create_cylinder_from_sphere(sphere)
+        self.meshes['torus'] = self._create_torus_from_sphere(sphere)
+        
+        # Verify all have same vertex count
+        counts = {name: mesh.n_points for name, mesh in self.meshes.items()}
+        print(f"Final vertex counts: {counts}")
+        
+        if len(set(counts.values())) == 1:
+            print(f"✅ SUCCESS: All meshes have {target_count} vertices")
+        else:
+            print(f"❌ ERROR: Mismatched vertex counts: {counts}")
+            # Fallback: all meshes become sphere variants
+            for name in self.meshes:
+                if self.meshes[name].n_points != target_count:
+                    self.meshes[name] = sphere.copy()
+    
+    def _create_cube_from_sphere(self, sphere):
+        """Create cube by deforming sphere points."""
+        points = sphere.points.copy()
+        
+        # Normalize to cube shape by scaling each coordinate independently
+        max_vals = np.max(np.abs(points), axis=0)
+        normalized = points / max_vals
+        
+        # Create cube by taking sign and scaling
+        cube_points = np.sign(normalized) * 0.8
+        
+        # Smooth transition from sphere to cube
+        alpha = 0.7  # How "cube-like" vs "sphere-like"
+        final_points = alpha * cube_points + (1 - alpha) * points * 0.8
+        
+        cube = sphere.copy()
+        cube.points = final_points
+        return cube
+    
+    def _create_cone_from_sphere(self, sphere):
+        """Create cone by deforming sphere points."""
+        points = sphere.points.copy()
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        
+        # Convert to cylindrical coordinates
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        
+        # Create cone shape: radius decreases with height
+        height_factor = (z + 1) / 2  # Normalize z from [-1,1] to [0,1]
+        cone_radius = (1 - height_factor) * 0.8  # Radius decreases to 0 at top
+        
+        cone_points = np.column_stack([
+            cone_radius * np.cos(theta),
+            cone_radius * np.sin(theta),
+            z
+        ])
+        
+        cone = sphere.copy()
+        cone.points = cone_points
+        return cone
+    
+    def _create_cylinder_from_sphere(self, sphere):
+        """Create cylinder by deforming sphere points."""
+        points = sphere.points.copy()
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        
+        # Convert to cylindrical coordinates
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        
+        # Create cylinder: constant radius, keep z
+        cylinder_radius = 0.8
+        
+        cylinder_points = np.column_stack([
+            cylinder_radius * np.cos(theta),
+            cylinder_radius * np.sin(theta),
+            z
+        ])
+        
+        cylinder = sphere.copy()
+        cylinder.points = cylinder_points
+        return cylinder
+    
+    def _create_torus_from_sphere(self, sphere):
+        """Create torus by deforming sphere points."""
+        points = sphere.points.copy()
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        
+        # Convert to cylindrical coordinates
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        
+        # Create torus
+        major_radius = 0.7
+        minor_radius = 0.3
+        
+        # Map sphere surface to torus surface
+        new_r = major_radius + minor_radius * np.cos(z * np.pi * 2)
+        new_z = minor_radius * np.sin(z * np.pi * 2)
+        
+        torus_points = np.column_stack([
+            new_r * np.cos(theta),
+            new_r * np.sin(theta),
+            new_z
+        ])
+        
+        torus = sphere.copy()
+        torus.points = torus_points
+        return torus
+    
+    def _resample_mesh_to_match(self, mesh_to_resample, reference_mesh):
+        """
+        FIXED VERSION: Always returns mesh with exact vertex count match.
+        Uses deformation approach instead of subdivision/decimation.
+        """
+        target_count = reference_mesh.n_points
+        current_count = mesh_to_resample.n_points
+        
+        if current_count == target_count:
+            return mesh_to_resample.copy()
+        
+        # For mismatched counts, use the reference mesh structure
+        # and deform it to approximate the target shape
+        try:
+            # Get bounding boxes
+            ref_bounds = reference_mesh.bounds
+            target_bounds = mesh_to_resample.bounds
+            
+            # Calculate scale factors
+            ref_size = [ref_bounds[1] - ref_bounds[0], 
+                       ref_bounds[3] - ref_bounds[2], 
+                       ref_bounds[5] - ref_bounds[4]]
+            target_size = [target_bounds[1] - target_bounds[0],
+                          target_bounds[3] - target_bounds[2], 
+                          target_bounds[5] - target_bounds[4]]
+            
+            # Avoid division by zero
+            scale = [t/r if r > 0.001 else 1.0 for t, r in zip(target_size, ref_size)]
+            
+            # Apply scaling to reference mesh points
+            scaled_points = reference_mesh.points.copy()
+            scaled_points[:, 0] *= scale[0]
+            scaled_points[:, 1] *= scale[1] 
+            scaled_points[:, 2] *= scale[2]
+            
+            # Create result mesh with reference topology
+            result = reference_mesh.copy()
+            result.points = scaled_points
+            
+            print(f"Resampled mesh: {current_count} -> {result.n_points} vertices (target: {target_count})")
+            return result
+            
+        except Exception as e:
+            print(f"Resampling failed: {e}, returning reference mesh")
+            return reference_mesh.copy()
+    
+    def _morph_meshes(self, morph_factor):
+        """
+        FIXED VERSION: Safe morphing with vertex count validation.
+        """
+        if not hasattr(self, 'meshes') or not self.meshes:
+            return
+        
+        current_key = getattr(self, 'current_mesh_key', 'sphere')
+        target_key = getattr(self, 'target_mesh_key', 'cube')
+        
+        # Ensure keys exist
+        if current_key not in self.meshes:
+            current_key = list(self.meshes.keys())[0]
+        if target_key not in self.meshes:
+            target_key = list(self.meshes.keys())[0]
+        
+        current_mesh = self.meshes[current_key]
+        target_mesh = self.meshes[target_key]
+        
+        # CRITICAL: Verify vertex counts match
+        if current_mesh.n_points != target_mesh.n_points:
+            print(f"ERROR: Vertex count mismatch in morphing!")
+            print(f"Current ({current_key}): {current_mesh.n_points}")
+            print(f"Target ({target_key}): {target_mesh.n_points}")
+            
+            # Emergency fix: resample target to match current
+            target_mesh = self._resample_mesh_to_match(target_mesh, current_mesh)
+            self.meshes[target_key] = target_mesh
+            
+            # Verify fix worked
+            if current_mesh.n_points != target_mesh.n_points:
+                print("Emergency resampling failed, skipping morph")
+                return
+        
+        # Safe morphing
+        try:
+            current_points = current_mesh.points
+            target_points = target_mesh.points
+            
+            # Linear interpolation
+            morphed_points = current_points * (1 - morph_factor) + target_points * morph_factor
+            
+            # Update mesh
+            if hasattr(self, 'current_mesh') and self.current_mesh is not None:
+                self.current_mesh.points = morphed_points
+                
+        except Exception as e:
+            print(f"Morphing failed: {e}")
+
+    def _note_to_color(self, note, velocity):
+        """Convert MIDI note and velocity to RGB color."""
+        try:
+            import colorsys
+            
+            # Map note to hue (0-1) using chromatic scale
+            hue = (note % 12) / 12.0
+            
+            # Velocity affects saturation and brightness
+            saturation = 0.8 + (velocity * 0.2)
+            brightness = 0.6 + (velocity * 0.4)
+            
+            # Convert HSV to RGB
+            r, g, b = colorsys.hsv_to_rgb(hue, saturation, brightness)
+            
+            return (r, g, b)
+            
+        except Exception as e:
+            print(f"Error in _note_to_color: {e}")
+            # Return a default color
+            return (0.8, 0.8, 0.8)
+
+
+    def _note_to_color(self, note, velocity):
+        """Convert MIDI note and velocity to RGB color."""
+        try:
+            import colorsys
+            # Map note to hue using chromatic scale
+            hue = (note % 12) / 12.0
+            # Velocity affects saturation and brightness
+            saturation = 0.8 + (velocity * 0.2)
+            brightness = 0.6 + (velocity * 0.4)
+            # Convert HSV to RGB
+            r, g, b = colorsys.hsv_to_rgb(hue, saturation, brightness)
+            return (r, g, b)
+        except Exception as e:
+            print(f"Error in _note_to_color: {e}")
+            return (0.8, 0.8, 0.8)  # Default white-ish color
+    
+    def _trigger_note_effect(self, note, velocity):
+        """Trigger visual effects for a MIDI note."""
+        try:
+            # Get color for this note
+            color = self._note_to_color(note, velocity)
+            
+            # Create position based on note (spread notes across space)
+            import numpy as np
+            # Map note to position - spread across X axis
+            x_pos = ((note - 60) / 60.0) * 4.0  # Center around middle C
+            y_pos = (velocity - 0.5) * 2.0  # Velocity affects Y position
+            z_pos = 0.0
+            position = np.array([x_pos, y_pos, z_pos])
+            
+            # Add a light at this position
+            light_id = f"note_{note}_{int(velocity*100)}"
+            self._add_light(position, color, velocity, light_id)
+            
+            # Store note info for cleanup
+            if not hasattr(self, 'active_note_effects'):
+                self.active_note_effects = {}
+            
+            import time
+            self.active_note_effects[note] = {
+                'light_id': light_id,
+                'timestamp': time.time(),
+                'velocity': velocity,
+                'color': color
+            }
+            
+        except Exception as e:
+            print(f"Error in _trigger_note_effect: {e}")
+    
+    def _add_light(self, position, color, intensity=1.0, light_id=None):
+        """Add a light to the scene."""
+        try:
+            if not hasattr(self, 'plotter') or not self.plotter:
+                return None
+            
+            if not hasattr(self, 'lights'):
+                self.lights = {}
+            
+            if light_id is None:
+                light_id = f"light_{len(self.lights)}"
+            
+            # Create a small glowing sphere to represent the light
+            import pyvista as pv
+            light_sphere = pv.Sphere(radius=0.1, center=position)
+            
+            # Add to plotter with emissive-like properties
+            actor = self.plotter.add_mesh(
+                light_sphere,
+                color=color,
+                opacity=min(0.8 + intensity * 0.2, 1.0),
+                name=light_id,
+                smooth_shading=True
+            )
+            
+            # Store light info
+            import time
+            self.lights[light_id] = {
+                'position': position,
+                'color': color,
+                'intensity': intensity,
+                'actor': actor,
+                'timestamp': time.time()
+            }
+            
+            return light_id
+            
+        except Exception as e:
+            print(f"Error adding light: {e}")
+            return None
+    
+    def _cleanup_expired_lights(self):
+        """Remove lights that have expired."""
+        if not hasattr(self, 'lights'):
+            self.lights = {}
+            return
+        
+        try:
+            import time
+            current_time = time.time()
+            timeout = 10.0  # 10 second timeout for lights
+            
+            expired_lights = []
+            for light_id, light_info in self.lights.items():
+                if current_time - light_info.get('timestamp', 0) > timeout:
+                    expired_lights.append(light_id)
+            
+            for light_id in expired_lights:
+                try:
+                    if hasattr(self, 'plotter') and self.plotter:
+                        self.plotter.remove_actor(light_id)
+                    del self.lights[light_id]
+                except Exception as e:
+                    print(f"Error removing light {light_id}: {e}")
+                    
+        except Exception as e:
+            print(f"Error in cleanup_expired_lights: {e}")
+    
+    def _cleanup_expired_note_effects(self):
+        """Clean up expired note effects."""
+        if not hasattr(self, 'active_note_effects'):
+            self.active_note_effects = {}
+            return
+        
+        try:
+            import time
+            current_time = time.time()
+            timeout = 5.0  # 5 second timeout for note effects
+            
+            expired_notes = []
+            for note, effect_info in self.active_note_effects.items():
+                if current_time - effect_info.get('timestamp', 0) > timeout:
+                    expired_notes.append(note)
+            
+            for note in expired_notes:
+                try:
+                    effect_info = self.active_note_effects[note]
+                    light_id = effect_info.get('light_id')
+                    
+                    # Remove the associated light
+                    if light_id and hasattr(self, 'lights') and light_id in self.lights:
+                        if hasattr(self, 'plotter') and self.plotter:
+                            self.plotter.remove_actor(light_id)
+                        del self.lights[light_id]
+                    
+                    del self.active_note_effects[note]
+                    
+                except Exception as e:
+                    print(f"Error removing note effect {note}: {e}")
+                    
+        except Exception as e:
+            print(f"Error in cleanup_expired_note_effects: {e}")
+    
+    def handle_note_off(self, note, velocity=0.0):
+        """Handle MIDI note off events."""
+        try:
+            # Remove from active notes if tracked
+            if hasattr(self, 'active_notes') and note in self.active_notes:
+                del self.active_notes[note]
+            
+            # Remove note effect and associated light
+            if hasattr(self, 'active_note_effects') and note in self.active_note_effects:
+                effect_info = self.active_note_effects[note]
+                light_id = effect_info.get('light_id')
+                
+                # Remove the light
+                if light_id and hasattr(self, 'lights') and light_id in self.lights:
+                    try:
+                        if hasattr(self, 'plotter') and self.plotter:
+                            self.plotter.remove_actor(light_id)
+                        del self.lights[light_id]
+                    except:
+                        pass
+                
+                del self.active_note_effects[note]
+            
+            # Update display
+            self.update()
+            
+        except Exception as e:
+            print(f"Error handling note off {note}: {e}")
+    
+    def _update_lighting(self):
+        """Update the lighting in the scene."""
+        try:
+            # Clean up expired effects
+            self._cleanup_expired_lights()
+            self._cleanup_expired_note_effects()
+            
+            # Update any dynamic lighting effects here
+            if hasattr(self, 'lights') and self.lights:
+                # Could add pulsing, fading, or other dynamic effects
+                pass
+                
+        except Exception as e:
+            print(f"Error updating lighting: {e}")
+    
+    def _position_from_note(self, note, velocity):
+        """Calculate 3D position from MIDI note and velocity."""
+        try:
+            import numpy as np
+            
+            # Map note to X position (spread across keyboard)
+            x_pos = ((note - 60) / 60.0) * 4.0  # Center around middle C
+            
+            # Map velocity to Y position (louder = higher)
+            y_pos = (velocity - 0.5) * 3.0
+            
+            # Add some Z variation based on note
+            z_pos = np.sin(note * 0.1) * 0.5
+            
+            return np.array([x_pos, y_pos, z_pos])
+            
+        except Exception as e:
+            print(f"Error calculating position: {e}")
+            return np.array([0.0, 0.0, 0.0])
+
+    def _morph_meshes(self, morph_factor: float):
+        """Morph between current and target meshes."""
+        # Check cache first
+        cache_key = f"{self.current_mesh_name}_{self.target_mesh_name}_{morph_factor:.3f}"
+        if cache_key in self.mesh_cache:
+            self.morphed_mesh = self.mesh_cache[cache_key]
+            return
+        
+        # Ensure meshes have same number of points
+        if self.current_mesh.n_points != self.target_mesh.n_points:
+            target_resampled = self._resample_mesh_to_match(
+                self.target_mesh, self.current_mesh
+            )
+        else:
+            target_resampled = self.target_mesh
+        
+        # Interpolate points
+        current_points = self.current_mesh.points
+        target_points = target_resampled.points
+        
+        morphed_points = current_points * (1 - morph_factor) + target_points * morph_factor
+        
+        # Add note-based deformations
+        if self.active_notes:
+            morphed_points = self._apply_note_deformations(morphed_points)
+        
+        # Update morphed mesh
+        self.morphed_mesh = self.current_mesh.copy()
+        self.morphed_mesh.points = morphed_points
+        
+        # Cache the result
+        if len(self.mesh_cache) < 100:  # Limit cache size
+            self.mesh_cache[cache_key] = self.morphed_mesh.copy()
+    
+    

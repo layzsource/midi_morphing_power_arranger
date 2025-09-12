@@ -1,0 +1,1263 @@
+#!/usr/bin/env python3
+"""
+Enhanced MIDI Morphing Visualizer - Step 5: Advanced Multi-Target Morphing
+Date: September 11, 2025
+
+INSTALLATION:
+pip install pyvistaqt PySide6 pyvista numpy librosa sounddevice pygame psutil
+
+This builds on the fully working Step 3 version and adds:
+- Multi-target morphing (morph to combinations of shapes)
+- Advanced animation sequences with keyframes
+- Audio-reactive morphing using spectral analysis
+- Session save/load functionality
+"""
+
+import sys
+import os
+import json
+import time
+import traceback
+import numpy as np
+import pyvista as pv
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+import sounddevice as sd
+import pygame.midi
+from collections import deque
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional, Tuple
+import psutil
+
+# Handle PyVista Qt integration
+try:
+    from pyvistaqt import QtInteractor
+    print("✅ Using pyvistaqt.QtInteractor")
+except ImportError:
+    try:
+        from pyvista.plotting.qt_plotting import QtInteractor
+        print("✅ Using legacy pyvista QtInteractor")
+    except ImportError:
+        print("❌ QtInteractor not available, using fallback")
+        QtInteractor = None
+
+# QtInteractor Compatibility Wrapper
+class QtInteractorWrapper:
+    """Compatibility wrapper for QtInteractor across PyVista versions"""
+    
+    def __init__(self, parent=None):
+        self.parent = parent
+        self.plotter = None
+        self.widget = None
+        self._setup_interactor()
+    
+    def _setup_interactor(self):
+        """Setup QtInteractor with compatibility fallbacks"""
+        try:
+            if QtInteractor is not None:
+                self.widget = QtInteractor(parent=self.parent)
+                self.plotter = self.widget
+                print("✅ QtInteractor wrapper initialized successfully")
+            else:
+                self.widget = QLabel("3D Visualization Unavailable\nInstall: pip install pyvistaqt")
+                self.widget.setStyleSheet("background-color: black; color: red; font-size: 16px;")
+                self.widget.setAlignment(Qt.AlignCenter)
+                self.plotter = None
+                print("⚠️ Using fallback widget - no 3D visualization")
+        except Exception as e:
+            print(f"QtInteractor setup error: {e}")
+            self.widget = QLabel(f"3D Error: {str(e)}")
+            self.widget.setStyleSheet("background-color: black; color: red; font-size: 14px;")
+            self.widget.setAlignment(Qt.AlignCenter)
+            self.plotter = None
+    
+    def __getattr__(self, name):
+        """Delegate attribute access to the underlying plotter"""
+        if self.plotter and hasattr(self.plotter, name):
+            return getattr(self.plotter, name)
+        else:
+            return lambda *args, **kwargs: None
+
+# Performance Monitor
+class CleanPerformanceMonitor(QObject):
+    """Clean performance monitoring without recursion issues"""
+    
+    performance_update = Signal(dict)
+    
+    def __init__(self):
+        super().__init__()
+        self.start_time = time.time()
+        self.frame_count = 0
+        self.last_fps_time = time.time()
+        self.current_fps = 0
+        
+        # Performance thresholds
+        self.fps_warning_threshold = 20
+        self.fps_good_threshold = 30
+        
+        # Update timer
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self._update_performance)
+        self.update_timer.start(1000)
+    
+    def register_frame(self):
+        """Register a frame for FPS calculation"""
+        self.frame_count += 1
+        current_time = time.time()
+        
+        if current_time - self.last_fps_time >= 1.0:
+            self.current_fps = self.frame_count
+            self.frame_count = 0
+            self.last_fps_time = current_time
+    
+    def _update_performance(self):
+        """Update performance metrics"""
+        try:
+            memory_percent = psutil.virtual_memory().percent
+            cpu_percent = psutil.cpu_percent()
+            
+            fps_status = "good" if self.current_fps >= self.fps_good_threshold else \
+                        "warning" if self.current_fps >= self.fps_warning_threshold else "critical"
+            
+            perf_data = {
+                'fps': self.current_fps,
+                'fps_status': fps_status,
+                'memory_percent': memory_percent,
+                'cpu_percent': cpu_percent
+            }
+            
+            self.performance_update.emit(perf_data)
+        except Exception as e:
+            print(f"Performance monitoring error: {e}")
+
+# Morphing System
+class MorphTarget:
+    """Represents a morphing target"""
+    def __init__(self, name: str, vertices: np.ndarray):
+        self.name = name
+        self.vertices = vertices
+        self.weight = 0.0
+        self.keyframes = []
+    
+    def add_keyframe(self, time: float, weight: float):
+        """Add a keyframe for animation"""
+        self.keyframes.append((time, weight))
+        self.keyframes.sort(key=lambda x: x[0])
+    
+    def get_weight_at_time(self, time: float) -> float:
+        """Get interpolated weight at given time"""
+        if not self.keyframes:
+            return self.weight
+        
+        for i, (kf_time, kf_weight) in enumerate(self.keyframes):
+            if kf_time >= time:
+                if i == 0:
+                    return kf_weight
+                prev_time, prev_weight = self.keyframes[i-1]
+                t = (time - prev_time) / (kf_time - prev_time)
+                return prev_weight + (kf_weight - prev_weight) * t
+        
+        return self.keyframes[-1][1]
+
+class AdvancedMorphingSystem:
+    """Advanced morphing system with multi-target support"""
+    
+    def __init__(self):
+        self.targets = {}
+        self.base_shape = None
+        self.animation_time = 0.0
+        self.is_animating = False
+        self.animation_speed = 1.0
+        self.audio_morph_sensitivity = 0.5
+        self.frequency_bands = 4
+        self._create_basic_shapes()
+    
+    def _create_basic_shapes(self):
+        """Create basic geometric shapes for morphing"""
+        try:
+            # Sphere
+            sphere_mesh = pv.Sphere(radius=1.0, theta_resolution=10, phi_resolution=10)
+            self.add_morph_target('sphere', sphere_mesh.points)
+            
+            # Cube  
+            cube_mesh = pv.Box(bounds=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5])
+            self.add_morph_target('cube', cube_mesh.points)
+            
+            # Cone
+            cone_mesh = pv.Cone(radius=1.0, height=2.0, resolution=10)
+            self.add_morph_target('cone', cone_mesh.points)
+            
+            # Cylinder
+            cylinder_mesh = pv.Cylinder(radius=1.0, height=2.0, resolution=10)
+            self.add_morph_target('cylinder', cylinder_mesh.points)
+            
+            self.base_shape = 'sphere'
+        except Exception as e:
+            print(f"Error creating basic shapes: {e}")
+            self._create_fallback_shapes()
+    
+    def _create_fallback_shapes(self):
+        """Create fallback shapes if PyVista fails"""
+        sphere_points = []
+        for i in range(20):
+            theta = (i / 20) * 2 * np.pi
+            for j in range(10):
+                phi = (j / 10) * np.pi
+                x = np.sin(phi) * np.cos(theta)
+                y = np.sin(phi) * np.sin(theta) 
+                z = np.cos(phi)
+                sphere_points.append([x, y, z])
+        
+        self.add_morph_target('sphere', np.array(sphere_points))
+        self.base_shape = 'sphere'
+    
+    def add_morph_target(self, name: str, vertices: np.ndarray):
+        """Add a new morphing target"""
+        self.targets[name] = MorphTarget(name, vertices)
+        if self.base_shape is None:
+            self.base_shape = name
+    
+    def compute_morph(self) -> np.ndarray:
+        """Compute morphed geometry based on current target weights"""
+        if not self.targets or self.base_shape not in self.targets:
+            return np.array([])
+        
+        base_target = self.targets[self.base_shape]
+        result_vertices = base_target.vertices.copy()
+        
+        for name, target in self.targets.items():
+            if name == self.base_shape or target.weight == 0.0:
+                continue
+            
+            if len(target.vertices) == len(result_vertices):
+                weight = target.weight
+                result_vertices = (1 - weight) * result_vertices + weight * target.vertices
+        
+        return result_vertices
+    
+    def update_animation(self, dt: float):
+        """Update animation keyframes"""
+        if not self.is_animating:
+            return
+        
+        self.animation_time += dt * self.animation_speed
+        
+        for target in self.targets.values():
+            target.weight = target.get_weight_at_time(self.animation_time)
+    
+    def setup_audio_reactive_morphing(self, spectral_data: np.ndarray):
+        """Update morphing based on audio spectral analysis"""
+        if len(spectral_data) == 0:
+            return
+        
+        band_size = len(spectral_data) // self.frequency_bands
+        target_names = list(self.targets.keys())
+        
+        for i in range(min(self.frequency_bands, len(target_names))):
+            start_idx = i * band_size
+            end_idx = min((i + 1) * band_size, len(spectral_data))
+            
+            band_energy = np.mean(spectral_data[start_idx:end_idx])
+            
+            if i < len(target_names):
+                target_name = target_names[i]
+                if target_name in self.targets:
+                    weight = min(1.0, band_energy * self.audio_morph_sensitivity)
+                    self.targets[target_name].weight = weight
+
+# Enhanced Scene Object
+class EnhancedSceneObject:
+    """Enhanced scene object with morphing capabilities"""
+    
+    def __init__(self, name, obj_type, position, note_range, color):
+        self.name = name
+        self.obj_type = obj_type
+        self.position = np.array(position)
+        self.note_range = note_range
+        self.base_color = np.array(color)
+        self.current_color = self.base_color.copy()
+        
+        self.active_notes = set()
+        self.velocity = 0.0
+        self.opacity = 0.8
+        
+        # Morphing system
+        self.morphing_system = AdvancedMorphingSystem()
+        self.morph_factor = 0.0
+        
+        self.mesh = None
+        self.actor = None
+        
+        self._create_base_mesh()
+    
+    def _create_base_mesh(self):
+        """Create base mesh for the object"""
+        try:
+            if self.obj_type == "sphere":
+                self.mesh = pv.Sphere(radius=1.0, theta_resolution=10, phi_resolution=10)
+            elif self.obj_type == "cube":
+                self.mesh = pv.Box(bounds=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5])
+            elif self.obj_type == "cone":
+                self.mesh = pv.Cone(radius=1.0, height=2.0, resolution=10)
+            elif self.obj_type == "cylinder":
+                self.mesh = pv.Cylinder(radius=1.0, height=2.0, resolution=10)
+            elif self.obj_type == "icosahedron":
+                self.mesh = pv.Icosahedron(radius=1.0)
+            else:
+                self.mesh = pv.Sphere(radius=1.0, theta_resolution=10, phi_resolution=10)
+            
+            self.mesh.translate(self.position)
+        except Exception as e:
+            print(f"Error creating mesh for {self.name}: {e}")
+            self.mesh = pv.PolyData([self.position])
+    
+    def add_note(self, note, velocity):
+        """Add a MIDI note to this object"""
+        self.active_notes.add(note)
+        self.velocity = max(self.velocity, velocity / 127.0)
+        self._update_visual_properties()
+    
+    def remove_note(self, note):
+        """Remove a MIDI note from this object"""
+        if note in self.active_notes:
+            self.active_notes.remove(note)
+        
+        if not self.active_notes:
+            self.velocity = 0.0
+        
+        self._update_visual_properties()
+    
+    def set_global_morph_factor(self, factor):
+        """Set global morphing factor"""
+        self.morph_factor = factor
+        self._update_morphing()
+    
+    def _update_morphing(self):
+        """Update morphing based on current factor"""
+        if not hasattr(self, 'morphing_system'):
+            return
+        
+        target_names = list(self.morphing_system.targets.keys())
+        if len(target_names) > 1:
+            target_index = int(self.morph_factor * len(target_names)) % len(target_names)
+            target_name = target_names[target_index]
+            
+            for name, target in self.morphing_system.targets.items():
+                if name == target_name:
+                    target.weight = self.morph_factor
+                else:
+                    target.weight = 0.0
+            
+            morphed_vertices = self.morphing_system.compute_morph()
+            if len(morphed_vertices) > 0:
+                self._update_mesh_vertices(morphed_vertices)
+    
+    def _update_mesh_vertices(self, vertices):
+        """Update mesh with new vertices"""
+        try:
+            if self.mesh and len(vertices) > 0:
+                new_mesh = pv.PolyData(vertices)
+                new_mesh.translate(self.position)
+                self.mesh = new_mesh
+        except Exception as e:
+            print(f"Error updating mesh vertices for {self.name}: {e}")
+    
+    def set_audio_data(self, audio_data):
+        """Update with audio data for audio-reactive morphing"""
+        if hasattr(self, 'morphing_system') and audio_data is not None:
+            spectrum = np.abs(np.fft.fft(audio_data))[:len(audio_data)//2]
+            self.morphing_system.setup_audio_reactive_morphing(spectrum)
+            
+            morphed_vertices = self.morphing_system.compute_morph()
+            if len(morphed_vertices) > 0:
+                self._update_mesh_vertices(morphed_vertices)
+    
+    def _update_visual_properties(self):
+        """Update visual properties based on active notes"""
+        if self.active_notes:
+            avg_note = sum(self.active_notes) / len(self.active_notes)
+            note_factor = (avg_note - self.note_range[0]) / (self.note_range[1] - self.note_range[0])
+            note_factor = max(0.0, min(1.0, note_factor))
+            
+            import colorsys
+            r, g, b = self.base_color
+            h, s, v = colorsys.rgb_to_hsv(r, g, b)
+            h = (h + note_factor * 0.3) % 1.0
+            self.current_color = np.array(colorsys.hsv_to_rgb(h, s, v))
+            
+            self.opacity = 0.6 + (self.velocity * 0.4)
+        else:
+            self.opacity = max(0.2, self.opacity * 0.98)
+            self.current_color = self.base_color.copy()
+
+# Scene Manager
+class CleanSceneManager(QObject):
+    """Clean scene manager with morphing support"""
+    
+    scene_updated = Signal()
+    object_count_changed = Signal(int)
+    
+    def __init__(self, plotter_wrapper):
+        super().__init__()
+        self.plotter_wrapper = plotter_wrapper
+        self.objects = {}
+        self.global_morph_factor = 0.0
+        self.audio_data = None
+        
+        self._setup_scene_objects()
+        
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self._update_scene)
+        self.update_timer.start(16)
+    
+    def _setup_scene_objects(self):
+        """Setup the scene objects"""
+        try:
+            object_configs = [
+                ("Bass Sphere", "sphere", (-2, -1, 0), (24, 47), [0.2, 0.4, 1.0]),
+                ("Melody Cube", "cube", (0, 0, 0), (48, 71), [0.2, 1.0, 0.4]),
+                ("Treble Cylinder", "cylinder", (2, 1, 0), (72, 95), [1.0, 0.6, 0.2]),
+                ("High Icosahedron", "icosahedron", (0, 2.5, 0), (96, 108), [1.0, 0.2, 1.0])
+            ]
+            
+            for name, obj_type, position, note_range, color in object_configs:
+                obj = EnhancedSceneObject(name, obj_type, position, note_range, color)
+                self.objects[name] = obj
+            
+            print(f"✅ Created {len(self.objects)} scene objects")
+            self.object_count_changed.emit(len(self.objects))
+        except Exception as e:
+            print(f"Error setting up scene objects: {e}")
+    
+    def _update_scene(self):
+        """Update the 3D scene"""
+        try:
+            if not self.plotter_wrapper.plotter:
+                return
+            
+            for obj in self.objects.values():
+                obj.set_global_morph_factor(self.global_morph_factor)
+                
+                if self.audio_data is not None:
+                    obj.set_audio_data(self.audio_data)
+                
+                if obj.mesh:
+                    try:
+                        if obj.actor:
+                            self.plotter_wrapper.plotter.remove_actor(obj.actor)
+                        
+                        obj.actor = self.plotter_wrapper.plotter.add_mesh(
+                            obj.mesh,
+                            color=obj.current_color,
+                            opacity=obj.opacity,
+                            lighting=True
+                        )
+                    except Exception as e:
+                        print(f"Error updating visualization for {obj.name}: {e}")
+            
+            self.scene_updated.emit()
+        except Exception as e:
+            print(f"Scene update error: {e}")
+    
+    def handle_midi_note_on(self, note, velocity, channel):
+        """Handle MIDI note on"""
+        for obj in self.objects.values():
+            if obj.note_range[0] <= note <= obj.note_range[1]:
+                obj.add_note(note, velocity)
+                break
+    
+    def handle_midi_note_off(self, note, channel):
+        """Handle MIDI note off"""
+        for obj in self.objects.values():
+            if obj.note_range[0] <= note <= obj.note_range[1]:
+                obj.remove_note(note)
+                break
+    
+    def handle_midi_cc(self, cc_number, value, channel):
+        """Handle MIDI control change"""
+        if cc_number == 1:
+            self.set_global_morph_factor(value / 127.0)
+    
+    def set_global_morph_factor(self, factor):
+        """Set global morphing factor"""
+        self.global_morph_factor = max(0.0, min(1.0, factor))
+    
+    def set_audio_data(self, audio_data):
+        """Set audio data for audio-reactive features"""
+        self.audio_data = audio_data
+    
+    def reset_scene(self):
+        """Reset scene to default state"""
+        for obj in self.objects.values():
+            obj.active_notes.clear()
+            obj.velocity = 0.0
+        self.global_morph_factor = 0.0
+
+# Audio Analyzer
+class AudioAnalyzer(QObject):
+    """Real-time audio analysis"""
+    
+    audio_features_updated = Signal(dict)
+    
+    def __init__(self):
+        super().__init__()
+        self.sample_rate = 44100
+        self.buffer_size = 1024
+        self.audio_buffer = deque(maxlen=self.buffer_size * 4)
+        self.stream = None
+        self.analysis_enabled = True
+        
+        self._init_audio_stream()
+    
+    def _init_audio_stream(self):
+        """Initialize audio input stream"""
+        try:
+            self.stream = sd.InputStream(
+                samplerate=self.sample_rate,
+                channels=1,
+                blocksize=self.buffer_size,
+                callback=self._audio_callback
+            )
+            self.stream.start()
+            print("✅ Audio analyzer initialized")
+        except Exception as e:
+            print(f"❌ Audio analyzer error: {e}")
+    
+    def _audio_callback(self, indata, frames, time, status):
+        """Audio input callback"""
+        if not self.analysis_enabled:
+            return
+        
+        audio_data = indata[:, 0] if len(indata.shape) > 1 else indata
+        self.audio_buffer.extend(audio_data)
+        
+        if len(self.audio_buffer) >= self.buffer_size:
+            self._analyze_audio()
+    
+    def _analyze_audio(self):
+        """Analyze audio features"""
+        try:
+            audio_data = np.array(list(self.audio_buffer)[-self.buffer_size:])
+            
+            rms = np.sqrt(np.mean(audio_data**2))
+            spectrum = np.abs(np.fft.fft(audio_data))
+            freqs = np.fft.fftfreq(len(audio_data), 1/self.sample_rate)
+            
+            spectral_centroid = np.sum(freqs[:len(freqs)//2] * spectrum[:len(spectrum)//2]) / \
+                               (np.sum(spectrum[:len(spectrum)//2]) + 1e-7)
+            
+            features = {
+                'rms': rms,
+                'spectral_centroid': spectral_centroid,
+                'spectrum': spectrum[:len(spectrum)//2],
+                'audio_data': audio_data
+            }
+            
+            self.audio_features_updated.emit(features)
+        except Exception as e:
+            print(f"Audio analysis error: {e}")
+    
+    def stop(self):
+        """Stop audio analysis"""
+        if self.stream:
+            self.stream.stop()
+            self.stream.close()
+
+# MIDI Handler
+class MIDIHandler(QObject):
+    """MIDI input handler"""
+    
+    note_on = Signal(int, int, int)
+    note_off = Signal(int, int)
+    control_change = Signal(int, int, int)
+    
+    def __init__(self):
+        super().__init__()
+        self.midi_input = None
+        self.polling_timer = QTimer()
+        self.polling_timer.timeout.connect(self._poll_midi)
+        
+        self._init_midi()
+    
+    def _init_midi(self):
+        """Initialize MIDI input"""
+        try:
+            pygame.midi.init()
+            device_count = pygame.midi.get_count()
+            print(f"Found {device_count} MIDI devices")
+            
+            for i in range(device_count):
+                info = pygame.midi.get_device_info(i)
+                if info[2]:
+                    try:
+                        self.midi_input = pygame.midi.Input(i)
+                        print(f"✅ Connected to MIDI device: {info[1].decode()}")
+                        self.polling_timer.start(10)
+                        break
+                    except Exception as e:
+                        print(f"Failed to connect to device {i}: {e}")
+            
+            if not self.midi_input:
+                print("⚠️ No MIDI input devices found")
+        except Exception as e:
+            print(f"❌ MIDI initialization error: {e}")
+    
+    def _poll_midi(self):
+        """Poll for MIDI messages"""
+        try:
+            if self.midi_input and self.midi_input.poll():
+                midi_events = self.midi_input.read(10)
+                for event in midi_events:
+                    self._process_midi_event(event[0])
+        except Exception as e:
+            print(f"MIDI polling error: {e}")
+    
+    def _process_midi_event(self, event):
+        """Process a MIDI event"""
+        try:
+            status, note, velocity, _ = event
+            channel = status & 0x0F
+            message_type = status & 0xF0
+            
+            if message_type == 0x90:
+                if velocity > 0:
+                    self.note_on.emit(note, velocity, channel)
+                else:
+                    self.note_off.emit(note, channel)
+            elif message_type == 0x80:
+                self.note_off.emit(note, channel)
+            elif message_type == 0xB0:
+                self.control_change.emit(note, velocity, channel)
+        except Exception as e:
+            print(f"MIDI event processing error: {e}")
+    
+    def stop(self):
+        """Stop MIDI handling"""
+        if self.polling_timer.isActive():
+            self.polling_timer.stop()
+        if self.midi_input:
+            self.midi_input.close()
+        pygame.midi.quit()
+
+# Main Application Window
+class EnhancedMorphingMainWindow(QMainWindow):
+    """Main application window with advanced morphing"""
+    
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Enhanced MIDI Morphing Visualizer - Step 5: Advanced Multi-Target Morphing")
+        self.setGeometry(100, 100, 1600, 1000)
+        
+        # Initialize systems
+        self.performance_monitor = CleanPerformanceMonitor()
+        self.audio_analyzer = AudioAnalyzer()
+        self.midi_handler = MIDIHandler()
+        
+        # Setup UI
+        self._setup_ui()
+        self._setup_3d_visualization()
+        
+        # Initialize scene manager
+        self.scene_manager = CleanSceneManager(self.qt_interactor_wrapper)
+        
+        # Connect signals
+        self._connect_signals()
+        
+        # Status bar
+        self.statusBar().showMessage("Enhanced MIDI Morphing Visualizer - Step 5 Ready")
+        
+        print("✅ Enhanced Morphing Main Window initialized")
+    
+    def _setup_ui(self):
+        """Setup the user interface"""
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        main_layout = QHBoxLayout(central_widget)
+        
+        splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(splitter)
+        
+        self.visualization_widget = QWidget()
+        self.visualization_widget.setMinimumSize(800, 600)
+        splitter.addWidget(self.visualization_widget)
+        
+        control_panel = self._create_control_panel()
+        splitter.addWidget(control_panel)
+        
+        splitter.setSizes([800, 400])
+        
+        self._create_menu_bar()
+    
+    def _create_control_panel(self):
+        """Create the control panel"""
+        panel = QWidget()
+        panel.setMaximumWidth(400)
+        panel.setStyleSheet("""
+            QWidget { 
+                background-color: #2b2b2b; 
+                color: white; 
+                font-family: Arial, sans-serif;
+            }
+            QGroupBox { 
+                font-weight: bold; 
+                border: 2px solid #555;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title { 
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 10px 0 10px;
+            }
+            QPushButton {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #45a049; }
+            QPushButton:pressed { background-color: #3d8b40; }
+        """)
+        
+        layout = QVBoxLayout(panel)
+        
+        # Global Morphing Group
+        morph_group = QGroupBox("🎭 Advanced Multi-Target Morphing")
+        morph_layout = QVBoxLayout(morph_group)
+        
+        morph_layout.addWidget(QLabel("Global Morphing Factor (0-100%):"))
+        self.global_morph_slider = QSlider(Qt.Horizontal)
+        self.global_morph_slider.setRange(0, 100)
+        self.global_morph_slider.setValue(0)
+        self.global_morph_slider.valueChanged.connect(self._on_global_morph_changed)
+        morph_layout.addWidget(self.global_morph_slider)
+        
+        self.morph_value_label = QLabel("Morph: 0%")
+        morph_layout.addWidget(self.morph_value_label)
+        
+        self.audio_reactive_checkbox = QCheckBox("🎵 Audio-Reactive Morphing")
+        self.audio_reactive_checkbox.setChecked(True)
+        self.audio_reactive_checkbox.toggled.connect(self._on_audio_reactive_toggled)
+        morph_layout.addWidget(self.audio_reactive_checkbox)
+        
+        morph_layout.addWidget(QLabel("Audio Sensitivity:"))
+        self.audio_sensitivity_slider = QSlider(Qt.Horizontal)
+        self.audio_sensitivity_slider.setRange(1, 100)
+        self.audio_sensitivity_slider.setValue(50)
+        self.audio_sensitivity_slider.valueChanged.connect(self._on_sensitivity_changed)
+        morph_layout.addWidget(self.audio_sensitivity_slider)
+        
+        layout.addWidget(morph_group)
+        
+        # Animation Sequences Group
+        anim_group = QGroupBox("🎬 Animation Sequences")
+        anim_layout = QVBoxLayout(anim_group)
+        
+        # Animation Sequences Group
+        anim_group = QGroupBox("🎬 Animation Sequences")
+        anim_layout = QVBoxLayout(anim_group)
+        
+        anim_layout.addWidget(QLabel("Animation Presets:"))
+        self.sequence_combo = QComboBox()
+        self.sequence_combo.addItems([
+            "Smooth Cycle", "Rapid Transform", "Bass Response",
+            "Treble Peaks", "Audio Sync", "Manual Control"
+        ])
+        anim_layout.addWidget(self.sequence_combo)
+        
+        seq_buttons = QHBoxLayout()
+        self.play_sequence_btn = QPushButton("▶ Play")
+        self.pause_sequence_btn = QPushButton("⏸ Pause")
+        self.stop_sequence_btn = QPushButton("⏹ Stop")
+        
+        self.play_sequence_btn.clicked.connect(self._play_animation_sequence)
+        self.pause_sequence_btn.clicked.connect(self._pause_animation_sequence)
+        self.stop_sequence_btn.clicked.connect(self._stop_animation_sequence)
+        
+        seq_buttons.addWidget(self.play_sequence_btn)
+        seq_buttons.addWidget(self.pause_sequence_btn)
+        seq_buttons.addWidget(self.stop_sequence_btn)
+        anim_layout.addLayout(seq_buttons)
+        
+        layout.addWidget(anim_group)
+        
+        # Scene Objects Group
+        objects_group = QGroupBox("🎯 Scene Objects")
+        objects_layout = QVBoxLayout(objects_group)
+        
+        self.object_list = QListWidget()
+        self.object_list.setMaximumHeight(120)
+        objects_layout.addWidget(self.object_list)
+        
+        self.object_info_label = QLabel("4 objects with note range mapping")
+        self.object_info_label.setWordWrap(True)
+        objects_layout.addWidget(self.object_info_label)
+        
+        layout.addWidget(objects_group)
+        
+        # Performance Monitor Group
+        perf_group = QGroupBox("📊 Performance Monitor")
+        perf_layout = QVBoxLayout(perf_group)
+        
+        self.fps_label = QLabel("FPS: --")
+        self.memory_label = QLabel("Memory: --%")
+        self.cpu_label = QLabel("CPU: --%")
+        self.object_count_label = QLabel("Objects: --")
+        self.status_3d_label = QLabel("3D Status: Initializing...")
+        
+        perf_layout.addWidget(self.fps_label)
+        perf_layout.addWidget(self.memory_label)
+        perf_layout.addWidget(self.cpu_label)
+        perf_layout.addWidget(self.object_count_label)
+        perf_layout.addWidget(self.status_3d_label)
+        
+        layout.addWidget(perf_group)
+        
+        # Test Controls Group
+        test_group = QGroupBox("🧪 Test Controls")
+        test_layout = QVBoxLayout(test_group)
+        
+        self.test_morph_btn = QPushButton("Test Multi-Target Morphing")
+        self.test_audio_btn = QPushButton("Test Audio-Reactive")
+        self.test_midi_btn = QPushButton("Test MIDI Note")
+        self.reset_scene_btn = QPushButton("🔄 Reset Scene")
+        
+        self.test_morph_btn.clicked.connect(self._test_morphing)
+        self.test_audio_btn.clicked.connect(self._test_audio_reactive)
+        self.test_midi_btn.clicked.connect(self._test_midi_note)
+        self.reset_scene_btn.clicked.connect(self._reset_scene)
+        
+        test_layout.addWidget(self.test_morph_btn)
+        test_layout.addWidget(self.test_audio_btn)
+        test_layout.addWidget(self.test_midi_btn)
+        test_layout.addWidget(self.reset_scene_btn)
+        
+        layout.addWidget(test_group)
+        
+        layout.addStretch()
+        
+        return panel
+    
+    def _create_menu_bar(self):
+        """Create menu bar"""
+        menubar = self.menuBar()
+        
+        # File menu
+        file_menu = menubar.addMenu('&File')
+        
+        save_session_action = QAction('Save Morphing Session...', self)
+        save_session_action.triggered.connect(self._save_morphing_session)
+        file_menu.addAction(save_session_action)
+        
+        load_session_action = QAction('Load Morphing Session...', self)
+        load_session_action.triggered.connect(self._load_morphing_session)
+        file_menu.addAction(load_session_action)
+        
+        file_menu.addSeparator()
+        
+        exit_action = QAction('E&xit', self)
+        exit_action.setShortcut('Ctrl+Q')
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+        
+        # Morphing menu
+        morph_menu = menubar.addMenu('&Morphing')
+        
+        morph_25_action = QAction('25% Morph', self)
+        morph_25_action.setShortcut('1')
+        morph_25_action.triggered.connect(lambda: self.global_morph_slider.setValue(25))
+        morph_menu.addAction(morph_25_action)
+        
+        morph_50_action = QAction('50% Morph', self)
+        morph_50_action.setShortcut('2')
+        morph_50_action.triggered.connect(lambda: self.global_morph_slider.setValue(50))
+        morph_menu.addAction(morph_50_action)
+        
+        morph_75_action = QAction('75% Morph', self)
+        morph_75_action.setShortcut('3')
+        morph_75_action.triggered.connect(lambda: self.global_morph_slider.setValue(75))
+        morph_menu.addAction(morph_75_action)
+        
+        morph_100_action = QAction('100% Morph', self)
+        morph_100_action.setShortcut('4')
+        morph_100_action.triggered.connect(lambda: self.global_morph_slider.setValue(100))
+        morph_menu.addAction(morph_100_action)
+        
+        # Help menu
+        help_menu = menubar.addMenu('&Help')
+        
+        about_action = QAction('&About', self)
+        about_action.triggered.connect(self._show_about)
+        help_menu.addAction(about_action)
+    
+    def _setup_3d_visualization(self):
+        """Setup 3D visualization"""
+        try:
+            self.qt_interactor_wrapper = QtInteractorWrapper(parent=self.visualization_widget)
+            
+            if self.qt_interactor_wrapper.widget:
+                self.visualization_widget.setParent(None)
+                
+                splitter = self.centralWidget().findChild(QSplitter)
+                if splitter:
+                    splitter.replaceWidget(0, self.qt_interactor_wrapper.widget)
+                
+                if self.qt_interactor_wrapper.plotter:
+                    self.qt_interactor_wrapper.plotter.background_color = "black"
+                    
+                    try:
+                        self.qt_interactor_wrapper.plotter.show_axes()
+                        light = pv.Light()
+                        self.qt_interactor_wrapper.plotter.add_light(light)
+                    except Exception as e:
+                        print(f"Lighting setup warning: {e}")
+                    
+                    self.status_3d_label.setText("3D Status: ✅ Working")
+                else:
+                    self.status_3d_label.setText("3D Status: ⚠️ Limited")
+            
+            print("✅ 3D visualization setup complete")
+        except Exception as e:
+            print(f"❌ 3D visualization setup error: {e}")
+            self.status_3d_label.setText("3D Status: ❌ Error")
+    
+    def _connect_signals(self):
+        """Connect all signals"""
+        self.performance_monitor.performance_update.connect(self._update_performance_display)
+        self.audio_analyzer.audio_features_updated.connect(self._handle_audio_features)
+        self.midi_handler.note_on.connect(self.scene_manager.handle_midi_note_on)
+        self.midi_handler.note_off.connect(self.scene_manager.handle_midi_note_off)
+        self.midi_handler.control_change.connect(self.scene_manager.handle_midi_cc)
+        self.scene_manager.object_count_changed.connect(self._update_object_list)
+        self.scene_manager.scene_updated.connect(self.performance_monitor.register_frame)
+    
+    # Event handlers
+    def _on_global_morph_changed(self, value):
+        """Handle global morph slider change"""
+        factor = value / 100.0
+        self.scene_manager.set_global_morph_factor(factor)
+        self.morph_value_label.setText(f"Morph: {value}%")
+    
+    def _on_audio_reactive_toggled(self, checked):
+        """Handle audio reactive toggle"""
+        self.audio_analyzer.analysis_enabled = checked
+        status = "Enabled" if checked else "Disabled"
+        print(f"Audio-reactive morphing: {status}")
+    
+    def _on_sensitivity_changed(self, value):
+        """Handle sensitivity slider change"""
+        sensitivity = value / 100.0
+        for obj in self.scene_manager.objects.values():
+            if hasattr(obj, 'morphing_system'):
+                obj.morphing_system.audio_morph_sensitivity = sensitivity
+    
+    def _play_animation_sequence(self):
+        """Play selected animation sequence"""
+        sequence = self.sequence_combo.currentText()
+        print(f"Playing animation sequence: {sequence}")
+        
+        for obj in self.scene_manager.objects.values():
+            if hasattr(obj, 'morphing_system'):
+                obj.morphing_system.is_animating = True
+                obj.morphing_system.animation_time = 0.0
+                
+                if sequence == "Smooth Cycle":
+                    self._setup_smooth_cycle_keyframes(obj)
+                elif sequence == "Rapid Transform":
+                    self._setup_rapid_transform_keyframes(obj)
+    
+    def _pause_animation_sequence(self):
+        """Pause animation sequence"""
+        for obj in self.scene_manager.objects.values():
+            if hasattr(obj, 'morphing_system'):
+                obj.morphing_system.is_animating = False
+        print("Animation paused")
+    
+    def _stop_animation_sequence(self):
+        """Stop animation sequence"""
+        for obj in self.scene_manager.objects.values():
+            if hasattr(obj, 'morphing_system'):
+                obj.morphing_system.is_animating = False
+                obj.morphing_system.animation_time = 0.0
+                for target in obj.morphing_system.targets.values():
+                    target.weight = 0.0
+                    target.keyframes.clear()
+        print("Animation stopped")
+    
+    def _setup_smooth_cycle_keyframes(self, obj):
+        """Setup smooth cycling keyframes"""
+        targets = list(obj.morphing_system.targets.keys())
+        duration = 8.0
+        
+        for i, target_name in enumerate(targets):
+            target = obj.morphing_system.targets[target_name]
+            target.keyframes.clear()
+            
+            time_offset = (i / len(targets)) * duration
+            target.add_keyframe(time_offset, 0.0)
+            target.add_keyframe(time_offset + duration/(len(targets)*2), 1.0)
+            target.add_keyframe(time_offset + duration/len(targets), 0.0)
+    
+    def _setup_rapid_transform_keyframes(self, obj):
+        """Setup rapid transformation keyframes"""
+        targets = list(obj.morphing_system.targets.keys())
+        duration = 0.5
+        
+        for i, target_name in enumerate(targets):
+            target = obj.morphing_system.targets[target_name]
+            target.keyframes.clear()
+            
+            time_start = i * duration
+            target.add_keyframe(time_start, 0.0)
+            target.add_keyframe(time_start + duration/2, 1.0)
+            target.add_keyframe(time_start + duration, 0.0)
+    
+    def _handle_audio_features(self, features):
+        """Handle audio features from analyzer"""
+        if self.audio_reactive_checkbox.isChecked():
+            audio_data = features.get('audio_data')
+            if audio_data is not None:
+                self.scene_manager.set_audio_data(audio_data)
+    
+    def _update_performance_display(self, perf_data):
+        """Update performance display"""
+        fps = perf_data.get('fps', 0)
+        fps_status = perf_data.get('fps_status', 'unknown')
+        memory_percent = perf_data.get('memory_percent', 0)
+        cpu_percent = perf_data.get('cpu_percent', 0)
+        
+        fps_colors = {'good': 'green', 'warning': 'orange', 'critical': 'red'}
+        fps_color = fps_colors.get(fps_status, 'white')
+        
+        self.fps_label.setText(f'<span style="color: {fps_color}">FPS: {fps}</span>')
+        self.memory_label.setText(f"Memory: {memory_percent:.1f}%")
+        self.cpu_label.setText(f"CPU: {cpu_percent:.1f}%")
+    
+    def _update_object_list(self, count):
+        """Update object list and count"""
+        self.object_count_label.setText(f"Objects: {count}")
+        
+        self.object_list.clear()
+        for name, obj in self.scene_manager.objects.items():
+            item_text = f"{name} ({obj.obj_type})"
+            if obj.active_notes:
+                item_text += f" - {len(obj.active_notes)} notes"
+            self.object_list.addItem(item_text)
+    
+    # Test functions
+    def _test_morphing(self):
+        """Test multi-target morphing"""
+        print("Testing multi-target morphing...")
+        
+        def animate_test():
+            for value in [25, 50, 75, 100, 50, 0]:
+                self.global_morph_slider.setValue(value)
+                QApplication.processEvents()
+                time.sleep(1.0)
+        
+        QTimer.singleShot(100, animate_test)
+    
+    def _test_audio_reactive(self):
+        """Test audio-reactive morphing"""
+        self.audio_reactive_checkbox.setChecked(True)
+        print("Audio-reactive morphing enabled - try making sounds!")
+        self.statusBar().showMessage("Audio-reactive test active - make some noise!", 5000)
+    
+    def _test_midi_note(self):
+        """Test MIDI note triggering"""
+        test_notes = [36, 48, 60, 72, 84, 96]
+        
+        def play_test_note():
+            if hasattr(self, '_test_note_index'):
+                self._test_note_index += 1
+            else:
+                self._test_note_index = 0
+            
+            if self._test_note_index < len(test_notes):
+                note = test_notes[self._test_note_index]
+                self.scene_manager.handle_midi_note_on(note, 100, 0)
+                print(f"Test MIDI note: {note}")
+                
+                QTimer.singleShot(500, lambda: self.scene_manager.handle_midi_note_off(note, 0))
+                QTimer.singleShot(1000, play_test_note)
+            else:
+                print("MIDI note test complete")
+        
+        play_test_note()
+    
+    def _reset_scene(self):
+        """Reset scene to default state"""
+        self.scene_manager.reset_scene()
+        self.global_morph_slider.setValue(0)
+        print("Scene reset")
+        self.statusBar().showMessage("Scene reset to default state", 3000)
+    
+    # Session management
+    def _save_morphing_session(self):
+        """Save current morphing session"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Save Morphing Session", "", "Morphing Session Files (*.json)"
+        )
+        if file_path:
+            try:
+                session_data = {
+                    'global_morph_factor': self.scene_manager.global_morph_factor,
+                    'audio_reactive': self.audio_reactive_checkbox.isChecked(),
+                    'audio_sensitivity': self.audio_sensitivity_slider.value(),
+                    'sequence_preset': self.sequence_combo.currentText()
+                }
+                
+                with open(file_path, 'w') as f:
+                    json.dump(session_data, f, indent=2)
+                
+                print(f"Session saved: {file_path}")
+                self.statusBar().showMessage(f"Session saved: {os.path.basename(file_path)}", 3000)
+            except Exception as e:
+                QMessageBox.warning(self, "Save Error", f"Failed to save session: {e}")
+    
+    def _load_morphing_session(self):
+        """Load morphing session"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Load Morphing Session", "", "Morphing Session Files (*.json)"
+        )
+        if file_path:
+            try:
+                with open(file_path, 'r') as f:
+                    session_data = json.load(f)
+                
+                if 'global_morph_factor' in session_data:
+                    value = int(session_data['global_morph_factor'] * 100)
+                    self.global_morph_slider.setValue(value)
+                
+                if 'audio_reactive' in session_data:
+                    self.audio_reactive_checkbox.setChecked(session_data['audio_reactive'])
+                
+                if 'audio_sensitivity' in session_data:
+                    self.audio_sensitivity_slider.setValue(session_data['audio_sensitivity'])
+                
+                if 'sequence_preset' in session_data:
+                    index = self.sequence_combo.findText(session_data['sequence_preset'])
+                    if index >= 0:
+                        self.sequence_combo.setCurrentIndex(index)
+                
+                print(f"Session loaded: {file_path}")
+                self.statusBar().showMessage(f"Session loaded: {os.path.basename(file_path)}", 3000)
+            except Exception as e:
+                QMessageBox.warning(self, "Load Error", f"Failed to load session: {e}")
+    
+    def _show_about(self):
+        """Show about dialog"""
+        about_text = """
+Enhanced MIDI Morphing Visualizer - Step 5
+Advanced Multi-Target Morphing System
+
+🎭 Multi-target morphing with real-time blending
+🎵 Audio-reactive morphing using spectral analysis  
+🎬 Advanced animation sequences with keyframes
+🎯 Multiple 3D objects responding to MIDI note ranges
+📊 Real-time performance monitoring
+🎮 Comprehensive MIDI integration
+
+Built with PyVista, PySide6, and advanced audio analysis.
+
+Use the Global Morphing slider or enable Audio-Reactive mode
+to see shapes transform in real-time!
+        """
+        
+        QMessageBox.about(self, "About Enhanced MIDI Morphing Visualizer", about_text)
+    
+    def closeEvent(self, event):
+        """Cleanup on application close"""
+        print("Closing Enhanced MIDI Morphing Visualizer...")
+        
+        try:
+            # Stop timers first
+            if hasattr(self, 'performance_monitor') and hasattr(self.performance_monitor, 'update_timer'):
+                self.performance_monitor.update_timer.stop()
+            
+            if hasattr(self, 'scene_manager') and hasattr(self.scene_manager, 'update_timer'):
+                self.scene_manager.update_timer.stop()
+            
+            # Stop audio and MIDI
+            if hasattr(self, 'audio_analyzer'):
+                self.audio_analyzer.stop()
+            
+            if hasattr(self, 'midi_handler'):
+                self.midi_handler.stop()
+            
+            # Clear 3D scene before closing
+            if hasattr(self, 'qt_interactor_wrapper') and self.qt_interactor_wrapper.plotter:
+                try:
+                    self.qt_interactor_wrapper.plotter.clear()
+                except:
+                    pass
+            
+            # Set plotter to None to prevent double cleanup
+            if hasattr(self, 'qt_interactor_wrapper'):
+                self.qt_interactor_wrapper.plotter = None
+                
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+        
+        event.accept()
+
+# Main Application
+def main():
+    """Main application entry point"""
+    app = QApplication(sys.argv)
+    app.setApplicationName("Enhanced MIDI Morphing Visualizer - Step 5")
+    app.setOrganizationName("MIDI Morphing Systems")
+    
+    window = EnhancedMorphingMainWindow()
+    window.show()
+    
+    print("🚀 Enhanced MIDI Morphing Visualizer - Step 5 Started!")
+    print("=" * 60)
+    print("✅ STEP 5 FEATURES IMPLEMENTED:")
+    print("   🎭 Multi-target morphing system")
+    print("   🎬 Advanced animation sequences with keyframes")
+    print("   🎵 Audio-reactive morphing using spectral analysis")
+    print("   🎯 Multiple 3D objects with note range mapping")
+    print("   📊 Enhanced performance monitoring")
+    print("   🎮 Comprehensive MIDI integration")
+    print("=" * 60)
+    print("🎮 CONTROLS:")
+    print("   • Global Morphing Slider: Real-time multi-target morphing")
+    print("   • Audio-Reactive: Toggle audio-driven morphing")
+    print("   • Animation Sequences: Pre-built morphing animations")
+    print("   • MIDI Notes: Different ranges trigger different objects")
+    print("   • Keyboard Shortcuts: 1-4 for quick morph presets")
+    print("=" * 60)
+    print("🎯 TEST FEATURES:")
+    print("   1. Use 'Test Multi-Target Morphing' for automated demo")
+    print("   2. Enable 'Audio-Reactive Morphing' and make sounds")
+    print("   3. Try 'Test MIDI Note' to cycle through note ranges")
+    print("   4. Use animation sequences for preset morphing patterns")
+    print("   5. Move Global Morphing slider to see shape transitions")
+    print("=" * 60)
+    
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        
+        print("🚨 UNHANDLED EXCEPTION:")
+        print("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+    
+    sys.excepthook = handle_exception
+    
+    try:
+        exit_code = app.exec()
+        print("\n👋 Enhanced MIDI Morphing Visualizer - Step 5 Closed")
+        return exit_code
+    except Exception as e:
+        print(f"🚨 Application error: {e}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

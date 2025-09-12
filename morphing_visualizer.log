@@ -1405,3 +1405,13 @@ IndentationError: expected an indented block after 'if' statement on line 60
 2025-09-10 13:27:19,983 - plotter_attribute_fix - INFO - ✓ All plotter fixes applied successfully
 2025-09-10 13:27:19,983 - __main__ - INFO - ✓ Plotter fixes applied successfully
 2025-09-10 13:27:20,080 - __main__ - INFO - ✓ Application ready
+2025-09-10 19:46:57,421 - __main__ - INFO - Starting MIDI Morphing Visualizer...
+2025-09-10 19:46:57,539 - __main__ - INFO - ✓ Qt framework loaded
+2025-09-10 19:46:58,689 - __main__ - WARNING - Could not import main_fixed_window: No module named 'visualizer'
+2025-09-10 19:46:58,698 - __main__ - INFO - ✓ Using MainWindow from main_window
+2025-09-10 19:46:58,698 - __main__ - INFO - ✓ Plotter fix module loaded
+2025-09-10 19:46:58,702 - __main__ - INFO - ✓ Main window created
+2025-09-10 19:46:58,703 - plotter_attribute_fix - INFO - ✓ Plotter attribute fixes applied
+2025-09-10 19:46:58,703 - plotter_attribute_fix - INFO - ✓ All plotter fixes applied successfully
+2025-09-10 19:46:58,703 - __main__ - INFO - ✓ Plotter fixes applied successfully
+2025-09-10 19:46:58,803 - __main__ - INFO - ✓ Application ready

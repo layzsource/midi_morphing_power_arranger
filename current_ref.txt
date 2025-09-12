@@ -1,0 +1,149 @@
+# Enhanced MIDI Morphing Visualizer - Step 1 Reference
+
+**Date:** December 19, 2024  
+**Time:** Current session  
+**File:** enhanced_main_step1_audio.py  
+**Status:** Step 1 COMPLETED ✅
+
+## 🎯 Project Context
+
+We are working on restoring ALL advanced features to your MIDI Morphing Visualizer that were previously working but got simplified in main_fixed_window.py. We're using a gradual enhancement approach to ensure each feature works before adding the next.
+
+## 🚀 What We've Accomplished - Step 1
+
+### ✅ Fixed Core Issues:
+- **QtInteractor compatibility issue** - Fixed `plotter` attribute error
+- **PySide6 compatibility** - All imports working correctly
+- **Working foundation** - Basic 3D visualization with sphere
+
+### ✅ Advanced Audio Analysis System Implemented:
+
+#### **Multiple Audio Backend Support:**
+- SoundDevice backend (preferred)
+- PyAudio backend (fallback)
+- Automatic backend detection and fallback
+- Runtime backend switching
+
+#### **Comprehensive Spectral Analysis:**
+- Real-time spectral centroid (controls sphere color based on pitch)
+- Spectral rolloff (85% energy point)
+- Spectral bandwidth (frequency spread)
+- Spectral flux (spectral change detection)
+- Zero-crossing rate analysis
+
+#### **Advanced Audio Features (with librosa):**
+- MFCC feature extraction (13 coefficients)
+- Mel-spectrogram analysis (128 mel bands)
+- Chroma features for harmonic analysis
+- Advanced onset detection (triggers visual flashes)
+- Beat detection and tempo tracking (creates scaling effects)
+
+#### **Real-time Audio-Visual Mapping:**
+- Amplitude → Sphere brightness/opacity
+- Spectral centroid → Sphere color (blue=low, red=high frequencies)
+- Onset detection → White flash effects
+- Beat detection → Scaling effects
+- All features emit signals for real-time processing
+
+## 🔊 Current Audio Features Working:
+
+1. **Live Audio Input** - Microphone or system audio
+2. **Real-time Visual Feedback** - Sphere responds to audio
+3. **Console Logging** - Live audio analysis data
+4. **Backend Switching** - Dropdown menu to change audio backend
+5. **Onset Flash Effects** - Clap or sudden sounds trigger white flashes
+6. **Pitch-to-Color Mapping** - High pitch = red, low pitch = blue
+7. **Volume-to-Brightness** - Loud = bright, quiet = dim
+
+## 🎛️ Current UI Controls:
+
+- **Global Morphing Slider** - (Ready for Step 3)
+- **Audio Backend Dropdown** - SoundDevice/PyAudio/Auto
+- **Particle Effects Checkbox** - (Ready for Step 2)
+- **Performance Monitoring** - FPS and memory tracking
+- **Test Buttons** - Test MIDI Note, Test Particles
+- **Menu System** - File, Audio, Scene, Help menus
+
+## 🎵 MIDI Integration Status:
+
+- **MIDI Device Detection** - Auto-detects connected MIDI devices
+- **Note On/Off Handling** - Routes to scene manager
+- **Control Change** - CC1 controls morph slider
+- **Channel Support** - Multi-channel MIDI processing
+- **Test Functionality** - "Test MIDI Note" button works
+
+## 📊 Performance Monitoring:
+
+- Real-time FPS tracking
+- Memory usage monitoring
+- Audio processing performance
+- Status bar with system health indicators
+
+## 🔧 Technical Implementation:
+
+- **File:** enhanced_main_step1_audio.py
+- **Audio Backends:** SoundDevice + PyAudio with fallback
+- **Signal System:** Qt signals for real-time communication
+- **Threading:** Separate audio analysis thread
+- **Error Handling:** Comprehensive exception handling
+- **Performance:** Optimized for real-time processing
+
+## 🚀 Next Steps - Step 2 Plan:
+
+Will add **Advanced Particle Physics System:**
+- Full physics simulation (gravity, drag, forces)
+- Multiple particle types (spark, burst, trail, bloom, explosion)
+- MIDI-triggered particle emission
+- Note-to-color mapping with velocity scaling
+- Performance-optimized rendering
+- Integration with existing audio analysis
+
+## 📋 Missing Features (To Be Added in Future Steps):
+
+**Step 2:** Advanced Particle Physics System
+**Step 3:** Enhanced Scene Manager with Multiple Objects
+**Step 4:** Complete Geometric Library with Morphing
+**Step 5:** Advanced Lighting and Visual Effects
+**Step 6:** Performance Recording and Playback
+
+## 🔍 Known Working Features:
+
+✅ QtInteractor 3D visualization  
+✅ Advanced audio analysis with multiple backends  
+✅ Real-time spectral analysis  
+✅ Onset detection with visual feedback  
+✅ Beat tracking and tempo analysis  
+✅ MFCC and mel-spectrogram processing  
+✅ MIDI device integration  
+✅ Performance monitoring  
+✅ UI controls and menu system  
+✅ Audio-visual mapping  
+
+## 🎯 Current Test Commands:
+
+```bash
+# Run Step 1
+python enhanced_main_step1_audio.py
+
+# Test audio features:
+# - Speak near microphone (watch color change)
+# - Clap hands (see onset flashes)
+# - Play music (observe beat detection)
+# - Switch audio backends in dropdown
+```
+
+## 💾 File Structure:
+
+```
+project/
+├── main_fixed_window.py              # Original backup
+├── enhanced_main_step1_audio.py      # Current Step 1 ← WE ARE HERE
+├── [Step 2 file coming next]
+└── [other project files]
+```
+
+---
+
+**Ready for Step 2: Advanced Particle Physics System** 🎆
+
+This reference document captures our exact progress point for continuing development.

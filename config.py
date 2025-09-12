@@ -1,248 +1,203 @@
+#!/usr/bin/env python3
+"""
+Configuration module for MIDI Morphing Visualizer
+Contains all configuration parameters and settings management.
+"""
+
 import os
 import json
-from PySide6.QtCore import QSettings
+import numpy as np
+from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Tuple, Optional, Any
+from enum import Enum
 
-class MidiConstants:
-    """MIDI protocol constants."""
-    
-    # MIDI message types
-    NOTE_OFF_START = 128
-    NOTE_OFF_END = 143
-    NOTE_ON_START = 144
-    NOTE_ON_END = 159
-    CC_START = 176
-    CC_END = 191
-    
-    # MIDI value ranges
-    MIN_VALUE = 0
-    MAX_VALUE = 127
-    
-    # Common MIDI CCs
-    MODWHEEL_CC = 1
-    VOLUME_CC = 7
-    PAN_CC = 10
-    EXPRESSION_CC = 11
-    SUSTAIN_CC = 64
 
+class RenderQuality(Enum):
+    """Render quality presets."""
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+    ULTRA = "Ultra"
+
+
+class AudioPriority(Enum):
+    """Audio processing priority."""
+    LOW = "Low"
+    NORMAL = "Normal"
+    HIGH = "High"
+    REALTIME = "Realtime"
+
+
+@dataclass
 class Config:
-    """Enhanced configuration class with comprehensive settings."""
+    """Complete configuration for the MIDI Morphing Visualizer."""
     
-    def __init__(self):
-        # Core settings
-        self.MESH_RESOLUTION = 50
-        self.MIDI_PORT = None
-        self.AUDIO_SAMPLE_RATE = 44100
-        self.AUDIO_CHUNK_SIZE = 512
-        self.AUDIO_ONSET_THRESHOLD = 1.5
-        
-        # MISSING AUDIO ATTRIBUTES - CRITICAL FIX
-        self.AUDIO_ENABLED = True
-        self.AUDIO_DEVICE_INDEX = None
-        self.AUDIO_CHANNELS = 1
-        self.AUDIO_FFT_SIZE = 2048
-        self.AUDIO_HOP_LENGTH = 512
-        self.AUDIO_FREQUENCY_RANGE = (80, 8000)
-        self.AUDIO_SPECTRAL_ROLLOFF = 0.85
-        
-        # Extended MIDI settings
-        self.VELOCITY_SENSITIVITY = 1.0
-        self.NOTE_MIN = 0
-        self.NOTE_MAX = 127
-        self.MORPH_CC = 1
-        self.NOTE_TIMEOUT = 60
-        self.MIDI_CHANNEL = 0  # 0 = all channels
-        self.MIDI_AUTO_RECONNECT = True
-        
-        # Extended Audio settings
-        self.AUDIO_COLOR_STRENGTH = 1.0
-        self.AUDIO_MORPH_STRENGTH = 0.2
-        self.FREQ_MIN = 80
-        self.FREQ_MAX = 8000
-        self.ENABLE_SPECTRAL_CENTROID = True
-        self.ENABLE_MFCC = False
-        self.ENABLE_TEMPO = False
-        
-        # Visualization settings
-        self.COLOR_SATURATION = 0.8
-        self.COLOR_BRIGHTNESS = 1.0
-        self.MORPH_SPEED = 1.0
-        self.COLOR_TRANSITION_SPEED = 0.5
-        self.FLASH_DURATION = 150
-        self.SMOOTH_SHADING = True
-        self.WIREFRAME_MODE = False
-        self.AUTO_ROTATE = False
-        self.ROTATION_SPEED = 1.0
-        self.DEFAULT_COLOR = [0.8, 0.8, 0.8]  # Light gray RGB
-        
-        # Performance settings
-        self.TARGET_FPS = 60
-        self.VSYNC = True
-        self.RENDER_QUALITY = "High"
-        self.MEMORY_LIMIT = 1000  # MB
-        self.CLEANUP_INTERVAL = 5  # seconds
-        self.FPS_WARNING = 30
-        self.MEMORY_WARNING = 80  # percent
-        self.CPU_WARNING = 85  # percent
-        self.ENABLE_PROFILING = True
-        self.VERBOSE_LOGGING = False
-        self.SHOW_DEBUG_INFO = False
-        
-        # Advanced settings
-        self.OSC_IP = "127.0.0.1"
-        self.OSC_PORT = 5005
-        self.ENABLE_OSC = False
-        self.WORKER_THREADS = 2
-        self.AUDIO_PRIORITY = "High"
-        self.CONFIG_DIR = os.path.expanduser("~/.morphing_visualizer")
-        self.LOG_DIR = os.path.expanduser("~/.morphing_visualizer/logs")
-        self.ENABLE_ML_FEATURES = False
-        self.ENABLE_NETWORK_SYNC = False
-        self.ENABLE_PLUGIN_SYSTEM = False
-        
-        # Create directories if they don't exist
-        self._ensure_directories()
+    # === MIDI Settings ===
+    MIDI_PORT: Optional[str] = None
+    MIDI_CHANNEL: int = 0  # 0 = all channels
+    VELOCITY_SENSITIVITY: float = 1.0
+    NOTE_MIN: int = 0
+    NOTE_MAX: int = 127
+    MORPH_CC: int = 1  # Modulation wheel
+    NOTE_TIMEOUT: int = 60  # seconds
+    MIDI_AUTO_RECONNECT: bool = True
     
-    def _ensure_directories(self):
-        """Ensure required directories exist."""
+    # === Audio Settings ===
+    AUDIO_ENABLED: bool = False
+    AUDIO_DEVICE: Optional[str] = None
+    AUDIO_SAMPLE_RATE: int = 44100
+    AUDIO_BUFFER_SIZE: int = 2048
+    AUDIO_CHUNK_SIZE: int = 1024
+    AUDIO_HOP_LENGTH: int = 512
+    AUDIO_ONSET_THRESHOLD: float = 2.0
+    AUDIO_SPECTRAL_ROLLOFF: float = 0.85
+    AUDIO_FREQUENCY_RANGE: List[int] = field(default_factory=lambda: [20, 20000])
+    AUDIO_COLOR_STRENGTH: float = 1.0
+    AUDIO_MORPH_STRENGTH: float = 0.2
+    FREQ_MIN: int = 80
+    FREQ_MAX: int = 8000
+    
+    # === Visualization Settings ===
+    BACKGROUND_COLOR: str = "black"  # PyVista background color
+    DEFAULT_COLOR: List[float] = field(default_factory=lambda: [0.8, 0.8, 0.8])
+    MESH_RESOLUTION: int = 50
+    COLOR_SATURATION: float = 0.8
+    COLOR_BRIGHTNESS: float = 1.0
+    MORPH_SPEED: float = 1.0
+    COLOR_TRANSITION_SPEED: float = 0.5
+    FLASH_DURATION: int = 150  # milliseconds
+    SMOOTH_SHADING: bool = True
+    WIREFRAME_MODE: bool = False
+    AUTO_ROTATE: bool = False
+    ROTATION_SPEED: float = 1.0
+    SHOW_EDGES: bool = False
+    EDGE_COLOR: List[float] = field(default_factory=lambda: [0.2, 0.2, 0.2])
+    
+    # === Lighting Settings ===
+    NUM_LIGHTS: int = 3
+    LIGHT_INTENSITY: float = 1.0
+    LIGHT_COLOR: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0])
+    AMBIENT_LIGHT: float = 0.2
+    SPECULAR_POWER: int = 50
+    ENABLE_SHADOWS: bool = False
+    
+    # === Particle Settings ===
+    PARTICLES_ENABLED: bool = True
+    MAX_PARTICLES: int = 1000
+    PARTICLE_SIZE_SCALE: float = 1.0
+    PARTICLE_OPACITY_SCALE: float = 1.0
+    PARTICLE_GRAVITY: List[float] = field(default_factory=lambda: [0.0, -9.8, 0.0])
+    PARTICLE_DRAG: float = 0.98
+    PARTICLE_PERFORMANCE_MODE: bool = False
+    
+    # === Scene Manager Settings ===
+    MAX_SCENE_OBJECTS: int = 8
+    SCENE_PHYSICS_ENABLED: bool = True
+    SCENE_BLEND_MODE: str = "normal"
+    DEPTH_SORTING: bool = True
+    UPDATE_THROTTLE: float = 0.016  # ~60 FPS
+    
+    # === Performance Settings ===
+    TARGET_FPS: int = 60
+    VSYNC: bool = True
+    RENDER_QUALITY: str = "High"
+    MEMORY_LIMIT: int = 1000  # MB
+    CLEANUP_INTERVAL: int = 5  # seconds
+    FPS_WARNING: int = 30
+    MEMORY_WARNING: int = 80  # percentage
+    CPU_WARNING: int = 85  # percentage
+    ENABLE_PROFILING: bool = True
+    VERBOSE_LOGGING: bool = False
+    SHOW_DEBUG_INFO: bool = False
+    
+    # === OSC Settings ===
+    OSC_ENABLED: bool = False
+    OSC_IP: str = "127.0.0.1"
+    OSC_PORT: int = 5005
+    OSC_PREFIX: str = "/morphing"
+    
+    # === Advanced Settings ===
+    WORKER_THREADS: int = 2
+    AUDIO_PRIORITY: str = "High"
+    CONFIG_DIR: str = field(default_factory=lambda: os.path.expanduser("~/.morphing_visualizer"))
+    LOG_DIR: str = field(default_factory=lambda: os.path.expanduser("~/.morphing_visualizer/logs"))
+    CACHE_DIR: str = field(default_factory=lambda: os.path.expanduser("~/.morphing_visualizer/cache"))
+    ENABLE_ML_FEATURES: bool = False
+    ENABLE_NETWORK_SYNC: bool = False
+    ENABLE_PLUGIN_SYSTEM: bool = False
+    ENABLE_OSC: bool = False  # Duplicate for compatibility
+    
+    # === Note Range Mappings ===
+    BASS_RANGE: Tuple[int, int] = (0, 47)
+    MELODY_RANGE: Tuple[int, int] = (48, 71)
+    TREBLE_RANGE: Tuple[int, int] = (72, 95)
+    HIGH_RANGE: Tuple[int, int] = (96, 127)
+    
+    def save_to_file(self, filename: str):
+        """Save configuration to JSON file."""
         try:
-            os.makedirs(self.CONFIG_DIR, exist_ok=True)
-            os.makedirs(self.LOG_DIR, exist_ok=True)
+            config_dict = asdict(self)
+            # Convert numpy arrays and tuples to lists for JSON serialization
+            config_dict = self._prepare_for_json(config_dict)
+            
+            os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
+            with open(filename, 'w') as f:
+                json.dump(config_dict, f, indent=4)
+            print(f"Configuration saved to {filename}")
+            return True
         except Exception as e:
-            print(f"Warning: Could not create directories: {e}")
+            print(f"Failed to save configuration: {e}")
+            return False
     
-    def load_from_settings(self, settings: QSettings):
-        """Load configuration from QSettings."""
+    def load_from_file(self, filename: str):
+        """Load configuration from JSON file."""
         try:
-            # Core settings
-            self.MESH_RESOLUTION = settings.value("core/mesh_resolution", self.MESH_RESOLUTION, int)
-            self.MIDI_PORT = settings.value("core/midi_port", self.MIDI_PORT)
-            self.AUDIO_SAMPLE_RATE = settings.value("core/audio_sample_rate", self.AUDIO_SAMPLE_RATE, int)
-            self.AUDIO_CHUNK_SIZE = settings.value("core/audio_chunk_size", self.AUDIO_CHUNK_SIZE, int)
-            self.AUDIO_ONSET_THRESHOLD = settings.value("core/audio_onset_threshold", self.AUDIO_ONSET_THRESHOLD, float)
+            with open(filename, 'r') as f:
+                config_dict = json.load(f)
             
-            # Audio settings - CRITICAL FIXES
-            self.AUDIO_ENABLED = settings.value("audio/enabled", self.AUDIO_ENABLED, bool)
-            self.AUDIO_DEVICE_INDEX = settings.value("audio/device_index", self.AUDIO_DEVICE_INDEX)
-            self.AUDIO_CHANNELS = settings.value("audio/channels", self.AUDIO_CHANNELS, int)
-            self.AUDIO_FFT_SIZE = settings.value("audio/fft_size", self.AUDIO_FFT_SIZE, int)
-            self.AUDIO_HOP_LENGTH = settings.value("audio/hop_length", self.AUDIO_HOP_LENGTH, int)
+            # Update current configuration
+            for key, value in config_dict.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
             
-            # Audio frequency range
-            freq_range_str = settings.value("audio/frequency_range", f"{self.AUDIO_FREQUENCY_RANGE[0]},{self.AUDIO_FREQUENCY_RANGE[1]}")
-            if isinstance(freq_range_str, str) and "," in freq_range_str:
-                freq_parts = freq_range_str.split(",")
-                self.AUDIO_FREQUENCY_RANGE = (int(freq_parts[0]), int(freq_parts[1]))
-            
-            self.AUDIO_SPECTRAL_ROLLOFF = settings.value("audio/spectral_rolloff", self.AUDIO_SPECTRAL_ROLLOFF, float)
-            
-            # MIDI settings
-            self.VELOCITY_SENSITIVITY = settings.value("midi/velocity_sensitivity", self.VELOCITY_SENSITIVITY, float)
-            self.NOTE_MIN = settings.value("midi/note_min", self.NOTE_MIN, int)
-            self.NOTE_MAX = settings.value("midi/note_max", self.NOTE_MAX, int)
-            self.MORPH_CC = settings.value("midi/morph_cc", self.MORPH_CC, int)
-            self.NOTE_TIMEOUT = settings.value("midi/note_timeout", self.NOTE_TIMEOUT, int)
-            self.MIDI_CHANNEL = settings.value("midi/channel", self.MIDI_CHANNEL, int)
-            self.MIDI_AUTO_RECONNECT = settings.value("midi/auto_reconnect", self.MIDI_AUTO_RECONNECT, bool)
-            
-            # Extended Audio settings
-            self.AUDIO_COLOR_STRENGTH = settings.value("audio/color_strength", self.AUDIO_COLOR_STRENGTH, float)
-            self.AUDIO_MORPH_STRENGTH = settings.value("audio/morph_strength", self.AUDIO_MORPH_STRENGTH, float)
-            self.FREQ_MIN = settings.value("audio/freq_min", self.FREQ_MIN, int)
-            self.FREQ_MAX = settings.value("audio/freq_max", self.FREQ_MAX, int)
-            self.ENABLE_SPECTRAL_CENTROID = settings.value("audio/enable_spectral_centroid", self.ENABLE_SPECTRAL_CENTROID, bool)
-            self.ENABLE_MFCC = settings.value("audio/enable_mfcc", self.ENABLE_MFCC, bool)
-            self.ENABLE_TEMPO = settings.value("audio/enable_tempo", self.ENABLE_TEMPO, bool)
-            
-            # Visualization settings
-            self.COLOR_SATURATION = settings.value("visualization/color_saturation", self.COLOR_SATURATION, float)
-            self.COLOR_BRIGHTNESS = settings.value("visualization/color_brightness", self.COLOR_BRIGHTNESS, float)
-            self.MORPH_SPEED = settings.value("visualization/morph_speed", self.MORPH_SPEED, float)
-            self.COLOR_TRANSITION_SPEED = settings.value("visualization/color_transition_speed", self.COLOR_TRANSITION_SPEED, float)
-            self.FLASH_DURATION = settings.value("visualization/flash_duration", self.FLASH_DURATION, int)
-            self.SMOOTH_SHADING = settings.value("visualization/smooth_shading", self.SMOOTH_SHADING, bool)
-            self.WIREFRAME_MODE = settings.value("visualization/wireframe_mode", self.WIREFRAME_MODE, bool)
-            self.AUTO_ROTATE = settings.value("visualization/auto_rotate", self.AUTO_ROTATE, bool)
-            self.ROTATION_SPEED = settings.value("visualization/rotation_speed", self.ROTATION_SPEED, float)
-            
-            # Load default color
-            default_color_list = settings.value("visualization/default_color", self.DEFAULT_COLOR)
-            if isinstance(default_color_list, str):
-                # Handle color stored as hex string
-                from PySide6.QtGui import QColor
-                color = QColor(default_color_list)
-                self.DEFAULT_COLOR = [color.redF(), color.greenF(), color.blueF()]
-            elif isinstance(default_color_list, (list, tuple)) and len(default_color_list) == 3:
-                self.DEFAULT_COLOR = list(default_color_list)
-            
-            # Performance settings
-            self.TARGET_FPS = settings.value("performance/target_fps", self.TARGET_FPS, int)
-            self.VSYNC = settings.value("performance/vsync", self.VSYNC, bool)
-            self.RENDER_QUALITY = settings.value("performance/render_quality", self.RENDER_QUALITY)
-            self.MEMORY_LIMIT = settings.value("performance/memory_limit", self.MEMORY_LIMIT, int)
-            self.CLEANUP_INTERVAL = settings.value("performance/cleanup_interval", self.CLEANUP_INTERVAL, int)
-            self.FPS_WARNING = settings.value("performance/fps_warning", self.FPS_WARNING, int)
-            self.MEMORY_WARNING = settings.value("performance/memory_warning", self.MEMORY_WARNING, int)
-            self.CPU_WARNING = settings.value("performance/cpu_warning", self.CPU_WARNING, int)
-            self.ENABLE_PROFILING = settings.value("performance/enable_profiling", self.ENABLE_PROFILING, bool)
-            self.VERBOSE_LOGGING = settings.value("performance/verbose_logging", self.VERBOSE_LOGGING, bool)
-            self.SHOW_DEBUG_INFO = settings.value("performance/show_debug_info", self.SHOW_DEBUG_INFO, bool)
-            
-            # Advanced settings
-            self.OSC_IP = settings.value("advanced/osc_ip", self.OSC_IP)
-            self.OSC_PORT = settings.value("advanced/osc_port", self.OSC_PORT, int)
-            self.ENABLE_OSC = settings.value("advanced/enable_osc", self.ENABLE_OSC, bool)
-            self.WORKER_THREADS = settings.value("advanced/worker_threads", self.WORKER_THREADS, int)
-            self.AUDIO_PRIORITY = settings.value("advanced/audio_priority", self.AUDIO_PRIORITY)
-            self.CONFIG_DIR = settings.value("advanced/config_dir", self.CONFIG_DIR)
-            self.LOG_DIR = settings.value("advanced/log_dir", self.LOG_DIR)
-            self.ENABLE_ML_FEATURES = settings.value("advanced/enable_ml", self.ENABLE_ML_FEATURES, bool)
-            self.ENABLE_NETWORK_SYNC = settings.value("advanced/enable_network_sync", self.ENABLE_NETWORK_SYNC, bool)
-            self.ENABLE_PLUGIN_SYSTEM = settings.value("advanced/enable_plugins", self.ENABLE_PLUGIN_SYSTEM, bool)
-            
-            # Update directories after loading
-            self._ensure_directories()
-            
+            print(f"Configuration loaded from {filename}")
+            return True
+        except FileNotFoundError:
+            print(f"Configuration file not found: {filename}")
+            return False
         except Exception as e:
-            print(f"Error loading settings: {e}")
+            print(f"Failed to load configuration: {e}")
+            return False
     
-    def save_to_settings(self, settings: QSettings):
+    def save_to_settings(self, settings):
         """Save configuration to QSettings."""
         try:
-            # Core settings
-            settings.setValue("core/mesh_resolution", self.MESH_RESOLUTION)
-            settings.setValue("core/midi_port", self.MIDI_PORT)
-            settings.setValue("core/audio_sample_rate", self.AUDIO_SAMPLE_RATE)
-            settings.setValue("core/audio_chunk_size", self.AUDIO_CHUNK_SIZE)
-            settings.setValue("core/audio_onset_threshold", self.AUDIO_ONSET_THRESHOLD)
-            
-            # Audio settings - CRITICAL FIXES
-            settings.setValue("audio/enabled", self.AUDIO_ENABLED)
-            settings.setValue("audio/device_index", self.AUDIO_DEVICE_INDEX)
-            settings.setValue("audio/channels", self.AUDIO_CHANNELS)
-            settings.setValue("audio/fft_size", self.AUDIO_FFT_SIZE)
-            settings.setValue("audio/hop_length", self.AUDIO_HOP_LENGTH)
-            settings.setValue("audio/frequency_range", f"{self.AUDIO_FREQUENCY_RANGE[0]},{self.AUDIO_FREQUENCY_RANGE[1]}")
-            settings.setValue("audio/spectral_rolloff", self.AUDIO_SPECTRAL_ROLLOFF)
-            
             # MIDI settings
+            settings.setValue("midi/port", self.MIDI_PORT)
+            settings.setValue("midi/channel", self.MIDI_CHANNEL)
             settings.setValue("midi/velocity_sensitivity", self.VELOCITY_SENSITIVITY)
             settings.setValue("midi/note_min", self.NOTE_MIN)
             settings.setValue("midi/note_max", self.NOTE_MAX)
             settings.setValue("midi/morph_cc", self.MORPH_CC)
             settings.setValue("midi/note_timeout", self.NOTE_TIMEOUT)
-            settings.setValue("midi/channel", self.MIDI_CHANNEL)
             settings.setValue("midi/auto_reconnect", self.MIDI_AUTO_RECONNECT)
             
-            # Extended Audio settings
+            # Audio settings
+            settings.setValue("audio/enabled", self.AUDIO_ENABLED)
+            settings.setValue("audio/device", self.AUDIO_DEVICE)
+            settings.setValue("audio/sample_rate", self.AUDIO_SAMPLE_RATE)
+            settings.setValue("audio/buffer_size", self.AUDIO_BUFFER_SIZE)
+            settings.setValue("audio/chunk_size", self.AUDIO_CHUNK_SIZE)
+            settings.setValue("audio/onset_threshold", self.AUDIO_ONSET_THRESHOLD)
             settings.setValue("audio/color_strength", self.AUDIO_COLOR_STRENGTH)
             settings.setValue("audio/morph_strength", self.AUDIO_MORPH_STRENGTH)
             settings.setValue("audio/freq_min", self.FREQ_MIN)
             settings.setValue("audio/freq_max", self.FREQ_MAX)
-            settings.setValue("audio/enable_spectral_centroid", self.ENABLE_SPECTRAL_CENTROID)
-            settings.setValue("audio/enable_mfcc", self.ENABLE_MFCC)
-            settings.setValue("audio/enable_tempo", self.ENABLE_TEMPO)
             
             # Visualization settings
+            settings.setValue("visualization/background_color", self.BACKGROUND_COLOR)
+            settings.setValue("visualization/default_color", self.DEFAULT_COLOR)
+            settings.setValue("visualization/mesh_resolution", self.MESH_RESOLUTION)
             settings.setValue("visualization/color_saturation", self.COLOR_SATURATION)
             settings.setValue("visualization/color_brightness", self.COLOR_BRIGHTNESS)
             settings.setValue("visualization/morph_speed", self.MORPH_SPEED)
@@ -252,7 +207,12 @@ class Config:
             settings.setValue("visualization/wireframe_mode", self.WIREFRAME_MODE)
             settings.setValue("visualization/auto_rotate", self.AUTO_ROTATE)
             settings.setValue("visualization/rotation_speed", self.ROTATION_SPEED)
-            settings.setValue("visualization/default_color", self.DEFAULT_COLOR)
+            
+            # Lighting settings
+            settings.setValue("lighting/num_lights", self.NUM_LIGHTS)
+            settings.setValue("lighting/light_intensity", self.LIGHT_INTENSITY)
+            settings.setValue("lighting/light_color", self.LIGHT_COLOR)
+            settings.setValue("lighting/ambient_light", self.AMBIENT_LIGHT)
             
             # Performance settings
             settings.setValue("performance/target_fps", self.TARGET_FPS)
@@ -264,8 +224,6 @@ class Config:
             settings.setValue("performance/memory_warning", self.MEMORY_WARNING)
             settings.setValue("performance/cpu_warning", self.CPU_WARNING)
             settings.setValue("performance/enable_profiling", self.ENABLE_PROFILING)
-            settings.setValue("performance/verbose_logging", self.VERBOSE_LOGGING)
-            settings.setValue("performance/show_debug_info", self.SHOW_DEBUG_INFO)
             
             # Advanced settings
             settings.setValue("advanced/osc_ip", self.OSC_IP)
@@ -273,153 +231,179 @@ class Config:
             settings.setValue("advanced/enable_osc", self.ENABLE_OSC)
             settings.setValue("advanced/worker_threads", self.WORKER_THREADS)
             settings.setValue("advanced/audio_priority", self.AUDIO_PRIORITY)
-            settings.setValue("advanced/config_dir", self.CONFIG_DIR)
-            settings.setValue("advanced/log_dir", self.LOG_DIR)
-            settings.setValue("advanced/enable_ml", self.ENABLE_ML_FEATURES)
-            settings.setValue("advanced/enable_network_sync", self.ENABLE_NETWORK_SYNC)
-            settings.setValue("advanced/enable_plugins", self.ENABLE_PLUGIN_SYSTEM)
             
-            settings.sync()
-            
-        except Exception as e:
-            print(f"Error saving settings: {e}")
-    
-    def load_from_file(self, filename):
-        """Load configuration from JSON file."""
-        try:
-            with open(filename, 'r') as f:
-                config_data = json.load(f)
-            
-            # Update attributes from loaded data
-            for section, values in config_data.items():
-                for key, value in values.items():
-                    # Convert key to config attribute name
-                    attr_name = key.upper()
-                    if hasattr(self, attr_name):
-                        setattr(self, attr_name, value)
-            
-            self._ensure_directories()
             return True
-            
         except Exception as e:
-            print(f"Error loading config from file: {e}")
+            print(f"Failed to save to settings: {e}")
             return False
     
-    def save_to_file(self, filename):
-        """Save configuration to JSON file."""
+    def load_from_settings(self, settings):
+        """Load configuration from QSettings."""
         try:
-            config_data = {
-                "core": {
-                    "mesh_resolution": self.MESH_RESOLUTION,
-                    "midi_port": self.MIDI_PORT,
-                    "audio_sample_rate": self.AUDIO_SAMPLE_RATE,
-                    "audio_chunk_size": self.AUDIO_CHUNK_SIZE,
-                    "audio_onset_threshold": self.AUDIO_ONSET_THRESHOLD
-                },
-                "audio": {
-                    "enabled": self.AUDIO_ENABLED,
-                    "device_index": self.AUDIO_DEVICE_INDEX,
-                    "channels": self.AUDIO_CHANNELS,
-                    "fft_size": self.AUDIO_FFT_SIZE,
-                    "hop_length": self.AUDIO_HOP_LENGTH,
-                    "frequency_range": self.AUDIO_FREQUENCY_RANGE,
-                    "spectral_rolloff": self.AUDIO_SPECTRAL_ROLLOFF,
-                    "color_strength": self.AUDIO_COLOR_STRENGTH,
-                    "morph_strength": self.AUDIO_MORPH_STRENGTH,
-                    "freq_min": self.FREQ_MIN,
-                    "freq_max": self.FREQ_MAX,
-                    "enable_spectral_centroid": self.ENABLE_SPECTRAL_CENTROID,
-                    "enable_mfcc": self.ENABLE_MFCC,
-                    "enable_tempo": self.ENABLE_TEMPO
-                },
-                "midi": {
-                    "velocity_sensitivity": self.VELOCITY_SENSITIVITY,
-                    "note_min": self.NOTE_MIN,
-                    "note_max": self.NOTE_MAX,
-                    "morph_cc": self.MORPH_CC,
-                    "note_timeout": self.NOTE_TIMEOUT,
-                    "channel": self.MIDI_CHANNEL,
-                    "auto_reconnect": self.MIDI_AUTO_RECONNECT
-                },
-                "visualization": {
-                    "color_saturation": self.COLOR_SATURATION,
-                    "color_brightness": self.COLOR_BRIGHTNESS,
-                    "morph_speed": self.MORPH_SPEED,
-                    "color_transition_speed": self.COLOR_TRANSITION_SPEED,
-                    "flash_duration": self.FLASH_DURATION,
-                    "smooth_shading": self.SMOOTH_SHADING,
-                    "wireframe_mode": self.WIREFRAME_MODE,
-                    "auto_rotate": self.AUTO_ROTATE,
-                    "rotation_speed": self.ROTATION_SPEED,
-                    "default_color": self.DEFAULT_COLOR
-                },
-                "performance": {
-                    "target_fps": self.TARGET_FPS,
-                    "vsync": self.VSYNC,
-                    "render_quality": self.RENDER_QUALITY,
-                    "memory_limit": self.MEMORY_LIMIT,
-                    "cleanup_interval": self.CLEANUP_INTERVAL,
-                    "fps_warning": self.FPS_WARNING,
-                    "memory_warning": self.MEMORY_WARNING,
-                    "cpu_warning": self.CPU_WARNING,
-                    "enable_profiling": self.ENABLE_PROFILING,
-                    "verbose_logging": self.VERBOSE_LOGGING,
-                    "show_debug_info": self.SHOW_DEBUG_INFO
-                },
-                "advanced": {
-                    "osc_ip": self.OSC_IP,
-                    "osc_port": self.OSC_PORT,
-                    "enable_osc": self.ENABLE_OSC,
-                    "worker_threads": self.WORKER_THREADS,
-                    "audio_priority": self.AUDIO_PRIORITY,
-                    "config_dir": self.CONFIG_DIR,
-                    "log_dir": self.LOG_DIR,
-                    "enable_ml": self.ENABLE_ML_FEATURES,
-                    "enable_network_sync": self.ENABLE_NETWORK_SYNC,
-                    "enable_plugins": self.ENABLE_PLUGIN_SYSTEM
-                }
+            # MIDI settings
+            self.MIDI_PORT = settings.value("midi/port", self.MIDI_PORT)
+            self.MIDI_CHANNEL = settings.value("midi/channel", self.MIDI_CHANNEL, int)
+            self.VELOCITY_SENSITIVITY = settings.value("midi/velocity_sensitivity", self.VELOCITY_SENSITIVITY, float)
+            self.NOTE_MIN = settings.value("midi/note_min", self.NOTE_MIN, int)
+            self.NOTE_MAX = settings.value("midi/note_max", self.NOTE_MAX, int)
+            self.MORPH_CC = settings.value("midi/morph_cc", self.MORPH_CC, int)
+            self.NOTE_TIMEOUT = settings.value("midi/note_timeout", self.NOTE_TIMEOUT, int)
+            self.MIDI_AUTO_RECONNECT = settings.value("midi/auto_reconnect", self.MIDI_AUTO_RECONNECT, bool)
+            
+            # Audio settings
+            self.AUDIO_ENABLED = settings.value("audio/enabled", self.AUDIO_ENABLED, bool)
+            self.AUDIO_DEVICE = settings.value("audio/device", self.AUDIO_DEVICE)
+            self.AUDIO_SAMPLE_RATE = settings.value("audio/sample_rate", self.AUDIO_SAMPLE_RATE, int)
+            self.AUDIO_BUFFER_SIZE = settings.value("audio/buffer_size", self.AUDIO_BUFFER_SIZE, int)
+            self.AUDIO_CHUNK_SIZE = settings.value("audio/chunk_size", self.AUDIO_CHUNK_SIZE, int)
+            self.AUDIO_ONSET_THRESHOLD = settings.value("audio/onset_threshold", self.AUDIO_ONSET_THRESHOLD, float)
+            self.AUDIO_COLOR_STRENGTH = settings.value("audio/color_strength", self.AUDIO_COLOR_STRENGTH, float)
+            self.AUDIO_MORPH_STRENGTH = settings.value("audio/morph_strength", self.AUDIO_MORPH_STRENGTH, float)
+            self.FREQ_MIN = settings.value("audio/freq_min", self.FREQ_MIN, int)
+            self.FREQ_MAX = settings.value("audio/freq_max", self.FREQ_MAX, int)
+            
+            # Visualization settings
+            self.BACKGROUND_COLOR = settings.value("visualization/background_color", self.BACKGROUND_COLOR)
+            default_color = settings.value("visualization/default_color", self.DEFAULT_COLOR)
+            if isinstance(default_color, (list, tuple)) and len(default_color) == 3:
+                self.DEFAULT_COLOR = list(default_color)
+            self.MESH_RESOLUTION = settings.value("visualization/mesh_resolution", self.MESH_RESOLUTION, int)
+            self.COLOR_SATURATION = settings.value("visualization/color_saturation", self.COLOR_SATURATION, float)
+            self.COLOR_BRIGHTNESS = settings.value("visualization/color_brightness", self.COLOR_BRIGHTNESS, float)
+            self.MORPH_SPEED = settings.value("visualization/morph_speed", self.MORPH_SPEED, float)
+            self.COLOR_TRANSITION_SPEED = settings.value("visualization/color_transition_speed", self.COLOR_TRANSITION_SPEED, float)
+            self.FLASH_DURATION = settings.value("visualization/flash_duration", self.FLASH_DURATION, int)
+            self.SMOOTH_SHADING = settings.value("visualization/smooth_shading", self.SMOOTH_SHADING, bool)
+            self.WIREFRAME_MODE = settings.value("visualization/wireframe_mode", self.WIREFRAME_MODE, bool)
+            self.AUTO_ROTATE = settings.value("visualization/auto_rotate", self.AUTO_ROTATE, bool)
+            self.ROTATION_SPEED = settings.value("visualization/rotation_speed", self.ROTATION_SPEED, float)
+            
+            # Lighting settings
+            self.NUM_LIGHTS = settings.value("lighting/num_lights", self.NUM_LIGHTS, int)
+            self.LIGHT_INTENSITY = settings.value("lighting/light_intensity", self.LIGHT_INTENSITY, float)
+            light_color = settings.value("lighting/light_color", self.LIGHT_COLOR)
+            if isinstance(light_color, (list, tuple)) and len(light_color) == 3:
+                self.LIGHT_COLOR = list(light_color)
+            self.AMBIENT_LIGHT = settings.value("lighting/ambient_light", self.AMBIENT_LIGHT, float)
+            
+            # Performance settings
+            self.TARGET_FPS = settings.value("performance/target_fps", self.TARGET_FPS, int)
+            self.VSYNC = settings.value("performance/vsync", self.VSYNC, bool)
+            self.RENDER_QUALITY = settings.value("performance/render_quality", self.RENDER_QUALITY)
+            self.MEMORY_LIMIT = settings.value("performance/memory_limit", self.MEMORY_LIMIT, int)
+            self.CLEANUP_INTERVAL = settings.value("performance/cleanup_interval", self.CLEANUP_INTERVAL, int)
+            self.FPS_WARNING = settings.value("performance/fps_warning", self.FPS_WARNING, int)
+            self.MEMORY_WARNING = settings.value("performance/memory_warning", self.MEMORY_WARNING, int)
+            self.CPU_WARNING = settings.value("performance/cpu_warning", self.CPU_WARNING, int)
+            self.ENABLE_PROFILING = settings.value("performance/enable_profiling", self.ENABLE_PROFILING, bool)
+            
+            # Advanced settings
+            self.OSC_IP = settings.value("advanced/osc_ip", self.OSC_IP)
+            self.OSC_PORT = settings.value("advanced/osc_port", self.OSC_PORT, int)
+            self.ENABLE_OSC = settings.value("advanced/enable_osc", self.ENABLE_OSC, bool)
+            self.WORKER_THREADS = settings.value("advanced/worker_threads", self.WORKER_THREADS, int)
+            self.AUDIO_PRIORITY = settings.value("advanced/audio_priority", self.AUDIO_PRIORITY)
+            
+            return True
+        except Exception as e:
+            print(f"Failed to load from settings: {e}")
+            return False
+    
+    def _prepare_for_json(self, obj):
+        """Prepare configuration for JSON serialization."""
+        if isinstance(obj, dict):
+            return {k: self._prepare_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._prepare_for_json(item) for item in obj]
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif hasattr(obj, '__dict__'):
+            return self._prepare_for_json(obj.__dict__)
+        else:
+            return obj
+    
+    def get_preset(self, preset_name: str) -> Dict:
+        """Get a configuration preset."""
+        presets = {
+            "performance": {
+                "RENDER_QUALITY": "Low",
+                "MESH_RESOLUTION": 30,
+                "MAX_PARTICLES": 500,
+                "PARTICLE_PERFORMANCE_MODE": True,
+                "TARGET_FPS": 30,
+                "ENABLE_SHADOWS": False
+            },
+            "quality": {
+                "RENDER_QUALITY": "Ultra",
+                "MESH_RESOLUTION": 100,
+                "MAX_PARTICLES": 2000,
+                "PARTICLE_PERFORMANCE_MODE": False,
+                "TARGET_FPS": 60,
+                "ENABLE_SHADOWS": True
+            },
+            "balanced": {
+                "RENDER_QUALITY": "High",
+                "MESH_RESOLUTION": 50,
+                "MAX_PARTICLES": 1000,
+                "PARTICLE_PERFORMANCE_MODE": False,
+                "TARGET_FPS": 60,
+                "ENABLE_SHADOWS": False
             }
-            
-            with open(filename, 'w') as f:
-                json.dump(config_data, f, indent=2)
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error saving config to file: {e}")
-            return False
-    
-    def reset_to_defaults(self):
-        """Reset all settings to default values."""
-        self.__init__()
-    
-    def get_summary(self):
-        """Get a summary of current configuration."""
-        return {
-            "Mesh Resolution": self.MESH_RESOLUTION,
-            "MIDI Port": self.MIDI_PORT or "Auto-detect",
-            "Audio Sample Rate": f"{self.AUDIO_SAMPLE_RATE} Hz",
-            "Audio Buffer Size": self.AUDIO_CHUNK_SIZE,
-            "Audio Enabled": "Yes" if self.AUDIO_ENABLED else "No",
-            "Target FPS": self.TARGET_FPS,
-            "Performance Monitoring": "Enabled" if self.ENABLE_PROFILING else "Disabled",
-            "OSC Output": "Enabled" if self.ENABLE_OSC else "Disabled",
-            "Auto-rotate": "Enabled" if self.AUTO_ROTATE else "Disabled"
         }
+        return presets.get(preset_name, {})
     
-    def __str__(self):
-        """String representation of configuration."""
-        summary = self.get_summary()
-        return "\n".join([f"{key}: {value}" for key, value in summary.items()])
-    
-    # Compatibility methods for older code
-    def to_dict(self):
-        """Convert config to dictionary for compatibility."""
-        return {attr: getattr(self, attr) for attr in dir(self) 
-                if not attr.startswith('_') and not callable(getattr(self, attr))}
-    
-    def from_dict(self, config_dict):
-        """Load from dictionary for compatibility."""
-        for key, value in config_dict.items():
+    def apply_preset(self, preset_name: str):
+        """Apply a configuration preset."""
+        preset = self.get_preset(preset_name)
+        for key, value in preset.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+        print(f"Applied preset: {preset_name}")
+
+
+# Test function
+def test_config():
+    """Test configuration functionality."""
+    print("Testing Configuration")
+    print("=" * 50)
+    
+    config = Config()
+    
+    # Test default values
+    print(f"✓ Default BACKGROUND_COLOR: {config.BACKGROUND_COLOR}")
+    print(f"✓ Default TARGET_FPS: {config.TARGET_FPS}")
+    print(f"✓ Default MAX_PARTICLES: {config.MAX_PARTICLES}")
+    
+    # Test save/load
+    test_file = "test_config.json"
+    config.MIDI_PORT = "Test Device"
+    config.TARGET_FPS = 120
+    
+    if config.save_to_file(test_file):
+        print(f"✓ Saved config to {test_file}")
+        
+        # Load into new config
+        new_config = Config()
+        if new_config.load_from_file(test_file):
+            print(f"✓ Loaded config from {test_file}")
+            print(f"  • MIDI_PORT: {new_config.MIDI_PORT}")
+            print(f"  • TARGET_FPS: {new_config.TARGET_FPS}")
+        
+        # Clean up
+        try:
+            os.remove(test_file)
+            print(f"✓ Cleaned up test file")
+        except:
+            pass
+    
+    # Test presets
+    print("\n✓ Available presets:")
+    for preset_name in ["performance", "quality", "balanced"]:
+        preset = config.get_preset(preset_name)
+        print(f"  • {preset_name}: {len(preset)} settings")
+    
+    print("\n✅ All configuration tests passed!")
+
+
+if __name__ == "__main__":
+    test_config()

@@ -56,44 +56,6 @@ except ImportError:
     AUDIO_AVAILABLE = False
     print("Warning: Audio features disabled (sounddevice not installed)")
 
-def safe_subdivide(mesh, subdivisions=1):
-    """Safely subdivide a mesh, ensuring it's triangulated first."""
-    try:
-        # Make a copy to avoid modifying the original
-        mesh_copy = mesh.copy()
-        
-        # Ensure mesh is triangulated before subdivision
-        if hasattr(mesh_copy, 'triangulate'):
-            mesh_copy = mesh_copy.triangulate()
-        
-        # Check if mesh is all triangles
-        if hasattr(mesh_copy, 'faces'):
-            faces = mesh_copy.faces
-            # Reshape faces to get triangle info
-            if faces.size > 0:
-                # PyVista faces format: [n_points, point1, point2, ..., n_points, point1, point2, ...]
-                face_sizes = faces[::4]  # Every 4th element is the number of points
-                if not np.all(face_sizes == 3):
-                    print("Warning: Mesh contains non-triangular faces, triangulating...")
-                    mesh_copy = mesh_copy.triangulate()
-        
-        # Now attempt subdivision
-        return safe_subdivide(mesh_copy, subdivisions)
-        
-    except Exception as e:
-        print(f"Subdivision failed: {e}")
-        return mesh  # Return original mesh if subdivision fails
-
-
-def safe_hsv_to_rgb(h, s, v):
-    """Safe HSV to RGB conversion with error handling."""
-    try:
-        return colorsys.hsv_to_rgb(h, s, v)
-    except (ValueError, TypeError) as e:
-        print(f"HSV conversion error: {e}, using fallback color")
-        return (0.5, 0.5, 0.5)  # Gray fallback
-
-
 class PerformanceAwareMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -497,7 +459,7 @@ class PerformanceAwareMainWindow(QMainWindow):
         
         # Update scene manager if available
         if self.scene_manager:
-            self.scene_manager.handle_midi_note(note, velocity, True)
+            self.scene_manager.handle_note_event(note, velocity, True)
         
         # Enhanced scene manager specific handling
         if ENHANCED_SCENE_AVAILABLE and isinstance(self.scene_manager, EnhancedSceneManager):
@@ -519,7 +481,7 @@ class PerformanceAwareMainWindow(QMainWindow):
         
         # Update scene manager
         if self.scene_manager:
-            self.scene_manager.handle_midi_note(note, 0, False)
+            self.scene_manager.handle_note_event(note, 0, False)
         
         # Enhanced scene manager specific handling
         if ENHANCED_SCENE_AVAILABLE and isinstance(self.scene_manager, EnhancedSceneManager):
