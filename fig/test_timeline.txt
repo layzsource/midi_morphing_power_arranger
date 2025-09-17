@@ -1,0 +1,18 @@
+# Enhanced MMPA Timeline Test Sequence
+# Time format: seconds : action
+
+0.0: preset Jazz Club
+2.0: shapes sphere torus
+4.0: color rainbow
+6.0: shapes dodecahedron icosahedron
+8.0: preset Classical Concert
+10.0: shapes klein_bottle mobius_strip
+12.0: color mmpa_reactive
+14.0: preset Electronic Dance
+16.0: shapes helix octahedron
+18.0: preset Blues Club
+20.0: shapes cube sphere
+22.0: preset Folk Acoustic
+24.0: color rainbow
+26.0: shapes torus dodecahedron
+28.0: preset Jazz Club

@@ -1,0 +1,15 @@
+2025-09-14 18:04:44,015 - __main__ - INFO - Available MIDI ports:
+2025-09-14 18:04:44,015 - __main__ - INFO -   0: MPK mini
+2025-09-14 18:04:44,015 - __main__ - INFO -   1: IAC Driver Bus 1
+2025-09-14 18:04:44,015 - __main__ - INFO -   2: IAC Driver Python Midi
+2025-09-14 18:04:44,015 - __main__ - INFO -   3: IAC Driver Morphing Virtual Port
+2025-09-14 18:04:44,016 - __main__ - INFO -   4: from Max 1
+2025-09-14 18:04:44,016 - __main__ - INFO -   5: from Max 2
+2025-09-14 18:04:44,016 - __main__ - INFO - ✅ Connected to MIDI device: MPK mini
+2025-09-14 18:04:44,122 - __main__ - INFO - ✅ SoundDevice audio input started
+2025-09-14 18:04:44,122 - __main__ - INFO - 🎉 Stable main window initialized
+2025-09-14 18:04:44,209 - __main__ - INFO - ✅ OpenGL initialized successfully
+2025-09-14 18:05:12,582 - __main__ - INFO - 🛑 Application shutdown initiated
+2025-09-14 18:05:12,685 - __main__ - INFO - ✅ Audio stream stopped
+2025-09-14 18:05:12,686 - __main__ - INFO - ✅ MIDI device disconnected
+2025-09-14 18:05:12,686 - __main__ - INFO - ✅ Application shutdown complete

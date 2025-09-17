@@ -1,0 +1,46 @@
+CPU USAGE OPTIMIZATION - URGENT FOR NEXT SESSION
+================================================
+Date: September 17, 2025 02:55 EDT
+
+🔥 CRITICAL CPU HOTSPOTS IDENTIFIED:
+
+1. ANIMATION TIMER: 60 FPS (16ms) - Line 1388
+   - self.timer.start(16) # Main animation loop
+   - SOLUTION: Add FPS slider, default to 30 FPS
+
+2. MMPA AUDIO UPDATES: 10 FPS (100ms) - Line 3771
+   - self.mmpa_timer.start(100) # Audio analysis
+   - SOLUTION: Reduce to 200ms (5 FPS)
+
+3. PARTICLE SYSTEM: 25,000+ particles
+   - Physics calculations every frame
+   - SOLUTION: Add particle count slider
+
+⚡ QUICK FIXES FOR NEXT SESSION:
+
+IMMEDIATE (5 minutes):
+- Change line 1388: self.timer.start(33) # 30 FPS = 50% CPU reduction
+- Change line 3771: self.mmpa_timer.start(200) # 5 FPS audio
+
+MEDIUM (15 minutes):
+- Add FPS control slider to Performance tab
+- Add particle count slider (5k-25k range)
+
+ADVANCED (30 minutes):
+- Performance mode presets (Economy/Balanced/Performance)
+- Adaptive quality based on system load
+
+🎯 EXPECTED CPU SAVINGS: 60-70% reduction possible
+
+The system is currently running at maximum quality/performance settings which may cause high CPU usage on some systems. These optimizations will make it much more efficient while maintaining visual quality.
+
+LAUNCH WITH CPU MONITORING:
+```bash
+# In Terminal 1:
+python3 mmpa_ultimate_professional.py
+
+# In Terminal 2:
+top -pid $(pgrep -f mmpa_ultimate)
+```
+
+This will help identify actual CPU usage numbers for optimization.

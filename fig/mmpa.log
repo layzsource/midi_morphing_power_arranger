@@ -1,0 +1,28 @@
+2025-09-14 13:04:32,488 - __main__ - INFO - Starting MMPA - Midi Morphing Power Arranger
+2025-09-14 13:04:32,489 - __main__ - INFO - The Language of Signals Becoming Form
+2025-09-14 13:04:32,607 - core.app.EnhancedApplication - INFO - Initializing MMPA subsystems...
+2025-09-14 13:04:32,607 - core.app.EnhancedApplication - WARNING - ⚠️ Audio system not available
+2025-09-14 13:04:32,607 - core.app.EnhancedApplication - WARNING - ⚠️ MIDI system not available
+2025-09-14 13:04:32,607 - core.app.EnhancedApplication - WARNING - ⚠️ Visual system not available
+2025-09-14 13:04:32,607 - core.app.EnhancedApplication - WARNING - ⚠️ GUI system not available, creating fallback
+2025-09-14 13:04:32,611 - core.app.EnhancedApplication - INFO - Connecting subsystem signals...
+2025-09-14 13:04:32,611 - core.app.EnhancedApplication - INFO - ✅ Signals connected
+2025-09-14 13:04:32,611 - core.app.EnhancedApplication - INFO - MMPA Enhanced Application initialized
+2025-09-14 13:04:32,734 - __main__ - INFO - MMPA initialized successfully
+2025-09-14 13:04:42,616 - core.app.EnhancedApplication - INFO - Stopping MMPA subsystems...
+2025-09-14 13:04:42,617 - core.app.EnhancedApplication - INFO - ✅ Configuration saved
+2025-09-14 13:04:42,617 - core.app.EnhancedApplication - INFO - ✅ MMPA shutdown complete
+2025-09-14 18:06:46,287 - __main__ - INFO - Starting MMPA - Midi Morphing Power Arranger
+2025-09-14 18:06:46,287 - __main__ - INFO - The Language of Signals Becoming Form
+2025-09-14 18:06:46,352 - core.app.EnhancedApplication - INFO - Initializing MMPA subsystems...
+2025-09-14 18:06:46,352 - core.app.EnhancedApplication - WARNING - ⚠️ Audio system not available
+2025-09-14 18:06:46,352 - core.app.EnhancedApplication - WARNING - ⚠️ MIDI system not available
+2025-09-14 18:06:46,352 - core.app.EnhancedApplication - WARNING - ⚠️ Visual system not available
+2025-09-14 18:06:46,352 - core.app.EnhancedApplication - WARNING - ⚠️ GUI system not available, creating fallback
+2025-09-14 18:06:46,354 - core.app.EnhancedApplication - INFO - Connecting subsystem signals...
+2025-09-14 18:06:46,354 - core.app.EnhancedApplication - INFO - ✅ Signals connected
+2025-09-14 18:06:46,354 - core.app.EnhancedApplication - INFO - MMPA Enhanced Application initialized
+2025-09-14 18:06:46,439 - __main__ - INFO - MMPA initialized successfully
+2025-09-14 18:06:54,732 - core.app.EnhancedApplication - INFO - Stopping MMPA subsystems...
+2025-09-14 18:06:54,733 - core.app.EnhancedApplication - INFO - ✅ Configuration saved
+2025-09-14 18:06:54,733 - core.app.EnhancedApplication - INFO - ✅ MMPA shutdown complete

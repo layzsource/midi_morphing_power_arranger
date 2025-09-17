@@ -1,0 +1,331 @@
+2025-09-14 17:05:46,642 - __main__ - INFO - 🚀 Initializing Complete MMPA Application
+2025-09-14 17:05:46,642 - __main__ - INFO - ✅ Performance monitor initialized
+2025-09-14 17:05:46,647 - __main__ - INFO - ✅ Visual systems initialized
+2025-09-14 17:05:46,648 - fig.audio.audio_handler.AudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:05:46,648 - __main__ - INFO - ✅ Audio system initialized
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:05:46,662 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:05:46,662 - __main__ - INFO - ✅ MIDI system initialized
+2025-09-14 17:05:46,662 - __main__ - INFO - ✅ Performance recorder initialized
+2025-09-14 17:05:46,791 - fig.gui.main_window.MMPAMainWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:05:46,959 - fig.gui.main_window.MMPAMainWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Main window initialized
+2025-09-14 17:05:46,959 - __main__ - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Performance monitor connected
+2025-09-14 17:05:46,959 - __main__ - INFO - ✅ Recorder data sources connected
+2025-09-14 17:06:14,002 - __main__ - INFO - 🚀 Initializing Complete MMPA Application
+2025-09-14 17:06:14,002 - __main__ - INFO - ✅ Performance monitor initialized
+2025-09-14 17:06:14,006 - __main__ - INFO - ✅ Visual systems initialized
+2025-09-14 17:06:14,006 - fig.audio.audio_handler.AudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:06:14,006 - __main__ - INFO - ✅ Audio system initialized
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:06:14,020 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:06:14,020 - __main__ - INFO - ✅ MIDI system initialized
+2025-09-14 17:06:14,020 - __main__ - INFO - ✅ Performance recorder initialized
+2025-09-14 17:06:14,097 - fig.gui.main_window.MMPAMainWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:06:14,186 - fig.gui.main_window.MMPAMainWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Main window initialized
+2025-09-14 17:06:14,186 - __main__ - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Performance monitor connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Recorder data sources connected
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ GUI connections established
+2025-09-14 17:06:14,186 - __main__ - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:06:14,186 - __main__ - INFO - ============================================================
+2025-09-14 17:06:14,186 - __main__ - INFO - 🚀 Starting MMPA systems
+2025-09-14 17:06:14,186 - __main__ - INFO - ✅ Performance monitor started
+2025-09-14 17:06:14,186 - fig.audio.audio_handler.AudioHandler - INFO - Available audio devices: 3
+2025-09-14 17:06:14,217 - fig.audio.audio_handler.AudioHandler - INFO - Audio processing loop started
+2025-09-14 17:06:14,217 - fig.audio.audio_handler.AudioHandler - INFO - ✅ SoundDevice stream started
+2025-09-14 17:06:14,217 - __main__ - INFO - ✅ Audio processing started
+2025-09-14 17:06:14,228 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:06:14,228 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:06:14,228 - __main__ - INFO - ✅ MIDI processing started
+2025-09-14 17:06:14,228 - __main__ - INFO - ✅ Scene manager started
+2025-09-14 17:06:14,228 - __main__ - INFO - ✅ Particle system started
+2025-09-14 17:06:14,228 - __main__ - INFO - ✅ Lighting system started
+2025-09-14 17:06:14,296 - __main__ - INFO - ✅ Main window displayed
+2025-09-14 17:06:14,297 - __main__ - INFO - ✅ Default scene applied
+2025-09-14 17:06:14,297 - __main__ - INFO - 🎉 MMPA startup complete: 6/6 systems active
+2025-09-14 17:06:14,298 - __main__ - INFO - 🎵 MMPA is now running - make some music!
+2025-09-14 17:11:30,740 - run_complete_mmpa - INFO - 🚀 Initializing Complete MMPA Application
+2025-09-14 17:11:30,741 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:11:30,744 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:11:30,744 - fig.audio.audio_handler.AudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:11:30,744 - run_complete_mmpa - INFO - ✅ Audio system initialized
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:11:30,760 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:11:30,760 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:11:30,760 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:11:30,895 - fig.gui.main_window.MMPAMainWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:11:31,056 - fig.gui.main_window.MMPAMainWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Main window initialized
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:11:31,056 - run_complete_mmpa - INFO - ✅ GUI connections established
+2025-09-14 17:12:06,017 - run_complete_mmpa - INFO - 🚀 Initializing Complete MMPA Application
+2025-09-14 17:12:06,017 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:12:06,020 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:12:06,020 - fig.audio.audio_handler.AudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:12:06,020 - run_complete_mmpa - INFO - ✅ Audio system initialized
+2025-09-14 17:12:06,035 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:12:06,035 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:12:06,035 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:12:06,035 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:12:06,036 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:12:06,036 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:12:06,036 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:12:06,036 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:12:06,036 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:12:06,161 - fig.gui.enhanced_main_window.EnhancedMMPAMainWindow - INFO - ✅ Enhanced OpenGL renderer created
+2025-09-14 17:12:06,290 - fig.gui.enhanced_main_window.EnhancedMMPAMainWindow - INFO - Enhanced MMPA Main Window initialized
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Enhanced main window initialized
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ GUI connections established
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ============================================================
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - 🚀 Starting MMPA systems
+2025-09-14 17:12:06,290 - run_complete_mmpa - INFO - ✅ Performance monitor started
+2025-09-14 17:12:06,290 - fig.audio.audio_handler.AudioHandler - INFO - Available audio devices: 3
+2025-09-14 17:12:06,322 - fig.audio.audio_handler.AudioHandler - INFO - Audio processing loop started
+2025-09-14 17:12:06,322 - fig.audio.audio_handler.AudioHandler - INFO - ✅ SoundDevice stream started
+2025-09-14 17:12:06,323 - run_complete_mmpa - INFO - ✅ Audio processing started
+2025-09-14 17:12:06,332 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:12:06,332 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:12:06,332 - run_complete_mmpa - INFO - ✅ MIDI processing started
+2025-09-14 17:12:06,332 - run_complete_mmpa - INFO - ✅ Scene manager started
+2025-09-14 17:12:06,332 - run_complete_mmpa - INFO - ✅ Particle system started
+2025-09-14 17:12:06,332 - run_complete_mmpa - INFO - ✅ Lighting system started
+2025-09-14 17:12:06,397 - run_complete_mmpa - INFO - ✅ Main window displayed
+2025-09-14 17:12:06,397 - run_complete_mmpa - INFO - ✅ Default scene applied
+2025-09-14 17:12:06,397 - run_complete_mmpa - INFO - 🎉 MMPA startup complete: 6/6 systems active
+2025-09-14 17:12:06,397 - run_complete_mmpa - INFO - 🎵 MMPA is now running - make some music!
+2025-09-14 17:20:35,555 - run_complete_mmpa - INFO - 🚀 Initializing Professional MMPA Application
+2025-09-14 17:20:35,556 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:20:35,561 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:20:35,563 - fig.audio.audio_handler.ProfessionalAudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:20:35,564 - fig.audio.professional_audio_handler - INFO - ✅ Professional audio handler initialized
+2025-09-14 17:20:35,564 - run_complete_mmpa - INFO - ✅ Professional audio system initialized
+2025-09-14 17:20:35,580 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:20:35,581 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:20:35,581 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:20:35,581 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:20:35,743 - fig.gui.main_window.ProfessionalMMPAMainWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:20:35,983 - fig.gui.main_window.ProfessionalMMPAMainWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:20:35,986 - run_complete_mmpa - ERROR - ❌ Professional main window failed: 'ProfessionalMMPAMainWindow' object has no attribute 'central_widget'
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ============================================================
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - 🚀 Starting MMPA systems
+2025-09-14 17:20:35,988 - run_complete_mmpa - INFO - ✅ Performance monitor started
+2025-09-14 17:20:35,988 - fig.audio.professional_audio_handler - INFO - Available audio devices: 3
+2025-09-14 17:20:36,036 - fig.audio.professional_audio_handler - INFO - Audio processing loop started
+2025-09-14 17:20:36,036 - fig.audio.professional_audio_handler - INFO - ✅ SoundDevice stream started
+2025-09-14 17:20:36,037 - run_complete_mmpa - INFO - ✅ Audio processing started
+2025-09-14 17:20:36,043 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:20:36,043 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:20:36,043 - run_complete_mmpa - INFO - ✅ MIDI processing started
+2025-09-14 17:20:36,043 - run_complete_mmpa - INFO - ✅ Scene manager started
+2025-09-14 17:20:36,043 - run_complete_mmpa - INFO - ✅ Particle system started
+2025-09-14 17:20:36,043 - run_complete_mmpa - INFO - ✅ Lighting system started
+2025-09-14 17:20:36,077 - run_complete_mmpa - INFO - ✅ Main window displayed
+2025-09-14 17:20:36,077 - run_complete_mmpa - INFO - ✅ Default scene applied
+2025-09-14 17:20:36,077 - run_complete_mmpa - INFO - 🎉 MMPA startup complete: 6/6 systems active
+2025-09-14 17:20:36,077 - run_complete_mmpa - INFO - 🎵 MMPA is now running - make some music!
+2025-09-14 17:23:39,920 - run_complete_mmpa - INFO - 🚀 Initializing Hybrid MMPA Application
+2025-09-14 17:23:39,927 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:23:39,940 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:23:39,941 - fig.audio.audio_handler.ProfessionalAudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:23:39,942 - fig.audio.professional_audio_handler - INFO - ✅ Professional audio handler initialized
+2025-09-14 17:23:39,942 - run_complete_mmpa - INFO - ✅ Advanced professional audio system initialized
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:23:39,969 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:23:39,969 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:23:39,972 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:23:40,458 - fig.gui.main_window.HybridMMPAMainWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:23:40,602 - fig.gui.main_window.HybridMMPAMainWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:23:40,603 - fig.gui.hybrid_main_window - INFO - ✅ Hybrid main window initialized
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Hybrid main window initialized
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:23:40,603 - fig.gui.hybrid_main_window - INFO - ✅ Advanced spectral analysis signals connected
+2025-09-14 17:23:40,603 - fig.gui.hybrid_main_window - INFO - ✅ Hybrid GUI signals connected
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ✅ GUI connections established
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:23:40,603 - run_complete_mmpa - INFO - ============================================================
+2025-09-14 17:23:40,604 - run_complete_mmpa - INFO - 🚀 Starting MMPA systems
+2025-09-14 17:23:40,604 - run_complete_mmpa - INFO - ✅ Performance monitor started
+2025-09-14 17:23:40,604 - fig.audio.professional_audio_handler - INFO - Available audio devices: 3
+2025-09-14 17:23:40,640 - fig.audio.professional_audio_handler - INFO - Audio processing loop started
+2025-09-14 17:23:40,640 - fig.audio.professional_audio_handler - INFO - ✅ SoundDevice stream started
+2025-09-14 17:23:40,640 - run_complete_mmpa - INFO - ✅ Audio processing started
+2025-09-14 17:23:40,648 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:23:40,648 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:23:40,648 - run_complete_mmpa - INFO - ✅ MIDI processing started
+2025-09-14 17:23:40,648 - run_complete_mmpa - INFO - ✅ Scene manager started
+2025-09-14 17:23:40,648 - run_complete_mmpa - INFO - ✅ Particle system started
+2025-09-14 17:23:40,648 - run_complete_mmpa - INFO - ✅ Lighting system started
+2025-09-14 17:23:40,839 - run_complete_mmpa - INFO - ✅ Main window displayed
+2025-09-14 17:23:40,840 - run_complete_mmpa - INFO - ✅ Default scene applied
+2025-09-14 17:23:40,841 - run_complete_mmpa - INFO - 🎉 MMPA startup complete: 6/6 systems active
+2025-09-14 17:23:40,841 - run_complete_mmpa - INFO - 🎵 MMPA is now running - make some music!
+2025-09-14 17:29:19,820 - run_complete_mmpa - INFO - 🚀 Initializing Minimal Advanced MMPA Application
+2025-09-14 17:29:19,825 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:29:19,849 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:29:19,854 - fig.audio.audio_handler.ProfessionalAudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:29:19,854 - fig.audio.professional_audio_handler - INFO - ✅ Professional audio handler initialized
+2025-09-14 17:29:19,854 - run_complete_mmpa - INFO - ✅ Advanced professional audio system initialized
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:29:19,910 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:29:19,910 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:29:19,915 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:29:20,230 - fig.gui.main_window.SimpleAdvancedWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:29:20,491 - fig.gui.main_window.SimpleAdvancedWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:29:20,492 - fig.gui.simple_advanced_window - INFO - ✅ Simple advanced window initialized
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Simple advanced window initialized
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:29:20,492 - fig.gui.simple_advanced_window - INFO - ✅ Advanced audio signals connected
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ GUI connections established
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ============================================================
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - 🚀 Starting MMPA systems
+2025-09-14 17:29:20,492 - run_complete_mmpa - INFO - ✅ Performance monitor started
+2025-09-14 17:29:20,493 - fig.audio.professional_audio_handler - INFO - Available audio devices: 3
+2025-09-14 17:29:20,560 - fig.audio.professional_audio_handler - INFO - Audio processing loop started
+2025-09-14 17:29:20,560 - fig.audio.professional_audio_handler - INFO - ✅ SoundDevice stream started
+2025-09-14 17:29:20,560 - run_complete_mmpa - INFO - ✅ Audio processing started
+2025-09-14 17:29:20,586 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:29:20,586 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:29:20,586 - run_complete_mmpa - INFO - ✅ MIDI processing started
+2025-09-14 17:29:20,586 - run_complete_mmpa - INFO - ✅ Scene manager started
+2025-09-14 17:29:20,586 - run_complete_mmpa - INFO - ✅ Particle system started
+2025-09-14 17:29:20,586 - run_complete_mmpa - INFO - ✅ Lighting system started
+2025-09-14 17:29:20,677 - run_complete_mmpa - INFO - ✅ Main window displayed
+2025-09-14 17:29:20,678 - run_complete_mmpa - INFO - ✅ Default scene applied
+2025-09-14 17:29:20,678 - run_complete_mmpa - INFO - 🎉 MMPA startup complete: 6/6 systems active
+2025-09-14 17:29:20,687 - run_complete_mmpa - INFO - 🎵 MMPA is now running - make some music!
+2025-09-14 17:32:56,366 - run_complete_mmpa - INFO - 🚀 Initializing Minimal Advanced MMPA Application
+2025-09-14 17:32:56,371 - run_complete_mmpa - INFO - ✅ Performance monitor initialized
+2025-09-14 17:32:56,392 - run_complete_mmpa - INFO - ✅ Visual systems initialized
+2025-09-14 17:32:56,393 - fig.audio.audio_handler.ProfessionalAudioHandler - INFO - Selected audio backend: sounddevice
+2025-09-14 17:32:56,393 - fig.audio.professional_audio_handler - INFO - ✅ Professional audio handler initialized
+2025-09-14 17:32:56,393 - run_complete_mmpa - INFO - ✅ Advanced professional audio system initialized (STOPPED)
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: MPK mini
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Bus 1
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Python Midi
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: IAC Driver Morphing Virtual Port
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 1
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI device detected: from Max 2
+2025-09-14 17:32:56,417 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI system initialized
+2025-09-14 17:32:56,417 - run_complete_mmpa - INFO - ✅ MIDI system initialized
+2025-09-14 17:32:56,421 - run_complete_mmpa - INFO - ✅ Performance recorder initialized
+2025-09-14 17:32:56,803 - fig.gui.main_window.SimpleAdvancedWindow - INFO - ✅ OpenGL renderer created
+2025-09-14 17:32:56,953 - fig.gui.main_window.SimpleAdvancedWindow - INFO - MMPA Main Window initialized
+2025-09-14 17:32:56,953 - fig.gui.simple_advanced_window - INFO - ✅ Simple advanced window initialized
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Simple advanced window initialized
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - 🔗 Connecting MMPA systems
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Audio → Scene Manager connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Audio → Particle System connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Audio → Lighting System connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ MIDI → Scene Manager connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ MIDI → Particle System connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ MIDI → Lighting System connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Performance monitor connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ Recorder data sources connected
+2025-09-14 17:32:56,953 - fig.gui.simple_advanced_window - INFO - ✅ Advanced audio signals connected
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - ✅ GUI connections established
+2025-09-14 17:32:56,953 - run_complete_mmpa - INFO - 🎼 MMPA - The Language of Signals Becoming Form
+2025-09-14 17:32:56,954 - run_complete_mmpa - INFO - ============================================================
+2025-09-14 17:32:56,954 - run_complete_mmpa - INFO - 🚀 Starting MMPA systems (Audio: Manual Toggle)
+2025-09-14 17:32:56,954 - run_complete_mmpa - INFO - ✅ Performance monitor started
+2025-09-14 17:32:56,954 - run_complete_mmpa - INFO - ⏸️ Audio system ready (use toggle to start)
+2025-09-14 17:32:56,959 - fig.midi.midi_handler.MIDIHandler - INFO - Connected to MIDI device: MPK mini
+2025-09-14 17:32:56,959 - fig.midi.midi_handler.MIDIHandler - INFO - MIDI processing started
+2025-09-14 17:32:56,959 - run_complete_mmpa - INFO - ✅ MIDI processing started
+2025-09-14 17:32:56,959 - run_complete_mmpa - INFO - ✅ Scene manager started
+2025-09-14 17:32:56,960 - run_complete_mmpa - INFO - ✅ Particle system started
+2025-09-14 17:32:56,960 - run_complete_mmpa - INFO - ✅ Lighting system started
+2025-09-14 17:32:57,052 - run_complete_mmpa - INFO - ✅ Main window displayed
+2025-09-14 17:32:57,053 - run_complete_mmpa - INFO - ✅ Default scene applied
+2025-09-14 17:32:57,053 - run_complete_mmpa - INFO - 🎉 MMPA startup complete: 5/6 systems active
+2025-09-14 17:32:57,053 - run_complete_mmpa - INFO - 🔊 Use Audio Toggle button to start audio processing
+2025-09-14 17:32:57,054 - run_complete_mmpa - INFO - 🎵 MMPA is now running - make some music!
