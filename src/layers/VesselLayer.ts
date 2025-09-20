@@ -3,11 +3,13 @@ import * as THREE from 'three';
 export class VesselLayer {
     private scene: THREE.Scene;
     private group: THREE.Group;
-    private cube: THREE.Mesh;
-    private sphere: THREE.Mesh;
-    private wireframe: THREE.LineSegments;
+    private wireframeCube: THREE.LineSegments;
+    private rings: THREE.Mesh[] = [];
+    private triangleFacets: THREE.Mesh[] = [];
     private intensity = 0.6;
     private pulseRate = 1.0;
+    private isInMotion = false;
+    private rotationSpeed = 0.2;
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
@@ -17,137 +19,172 @@ export class VesselLayer {
     }
 
     private initGeometry() {
-        // Walter Russell's cube-sphere cosmology
-        // The cube represents material form, the sphere represents spiritual essence
+        // Create wireframe cube with rings in each face
+        // Each ring's edges touch all four sides of its square face
 
-        // Create cube (material form) - 2026+ Quantum-state material
-        const cubeGeometry = new THREE.BoxGeometry(1.8, 1.8, 1.8, 8, 8, 8);
-        const cubeMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x00d4ff,
+        const cubeSize = 3.0;
+        const halfCube = cubeSize / 2;
+        const ringRadius = halfCube; // Ring radius = half cube size so edges touch sides
+        const tubeRadius = 0.06;
+        const tubularSegments = 32;
+        const radialSegments = 8;
+
+        // 1. Wireframe cube removed - now just the 6 rings
+
+        // 2. Ring material
+        const ringMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x00ffff,
             transparent: true,
-            opacity: 0.08,
-            roughness: 0.0,
-            metalness: 0.0,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.0,
-            transmission: 0.95,
-            thickness: 0.02,
-            ior: 2.4,
-            envMapIntensity: 4.0,
-            emissive: 0x0099cc,
+            opacity: 0.7,
+            roughness: 0.1,
+            metalness: 0.8,
+            emissive: 0x002244,
             emissiveIntensity: 0.2,
-            iridescence: 1.0,
-            iridescenceIOR: 2.1,
-            iridescenceThicknessRange: [50, 1200],
-            sheenColor: 0x00ffff,
-            sheen: 1.0,
-            sheenRoughness: 0.0
-        });
-        this.cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-
-        // Create sphere (spiritual essence) - 2025 volumetric/holographic
-        const sphereGeometry = new THREE.SphereGeometry(1.2, 128, 128);
-        const sphereMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x6366f1,
-            transparent: true,
-            opacity: 0.04,
-            roughness: 0.0,
-            metalness: 0.95,
             clearcoat: 1.0,
             clearcoatRoughness: 0.0,
-            transmission: 0.98,
-            thickness: 0.05,
-            ior: 1.52,
-            envMapIntensity: 3.0,
-            emissive: 0x8b5cf6,
-            emissiveIntensity: 0.15,
-            iridescence: 1.0,
-            iridescenceIOR: 1.3,
-            iridescenceThicknessRange: [100, 800]
+            iridescence: 0.6,
+            iridescenceIOR: 1.4,
+            iridescenceThicknessRange: [100, 400]
         });
-        this.sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
-        // Create wireframe - Minimal clean lines
-        const wireframeGeometry = new THREE.EdgesGeometry(cubeGeometry);
-        const wireframeMaterial = new THREE.LineBasicMaterial({
-            color: 0x64b5f6,
+        // 3. Triangle facet material
+        const facetMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x004466,
             transparent: true,
-            opacity: 0.3,
-            linewidth: 1
+            opacity: 0.4,
+            roughness: 0.2,
+            metalness: 0.5,
+            side: THREE.DoubleSide
         });
-        this.wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
 
-        this.group.add(this.cube);
-        this.group.add(this.sphere);
-        this.group.add(this.wireframe);
+        // 4. Create rings for all 6 faces of the cube
+        const ellipse = new THREE.EllipseCurve(
+            0, 0,
+            ringRadius, ringRadius,
+            0, 2 * Math.PI,
+            false,
+            0
+        );
 
-        // Vessel is the container - center everything
+        const points = ellipse.getPoints(64);
+        const points3d = points.map(p => new THREE.Vector3(p.x, p.y, 0));
+        const curve3d = new THREE.CatmullRomCurve3(points3d, true);
+
+        const tubeGeometry = new THREE.TubeGeometry(
+            curve3d,
+            tubularSegments,
+            tubeRadius,
+            radialSegments,
+            true
+        );
+
+        // Front face ring (YZ plane)
+        const frontRing = new THREE.Mesh(tubeGeometry, ringMaterial);
+        frontRing.position.set(0, 0, halfCube);
+        frontRing.rotation.set(0, 0, 0);
+        this.rings.push(frontRing);
+        this.group.add(frontRing);
+
+        // Back face ring (YZ plane)
+        const backRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
+        backRing.position.set(0, 0, -halfCube);
+        backRing.rotation.set(0, 0, 0);
+        this.rings.push(backRing);
+        this.group.add(backRing);
+
+        // Right face ring (XZ plane)
+        const rightRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
+        rightRing.position.set(halfCube, 0, 0);
+        rightRing.rotation.set(0, Math.PI/2, 0);
+        this.rings.push(rightRing);
+        this.group.add(rightRing);
+
+        // Left face ring (XZ plane)
+        const leftRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
+        leftRing.position.set(-halfCube, 0, 0);
+        leftRing.rotation.set(0, Math.PI/2, 0);
+        this.rings.push(leftRing);
+        this.group.add(leftRing);
+
+        // Top face ring (XY plane)
+        const topRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
+        topRing.position.set(0, halfCube, 0);
+        topRing.rotation.set(Math.PI/2, 0, 0);
+        this.rings.push(topRing);
+        this.group.add(topRing);
+
+        // Bottom face ring (XY plane)
+        const bottomRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
+        bottomRing.position.set(0, -halfCube, 0);
+        bottomRing.rotation.set(Math.PI/2, 0, 0);
+        this.rings.push(bottomRing);
+        this.group.add(bottomRing);
+
+        // 5. Create 4 triangle facets connecting ring to front face corners
+        const frontFaceCorners = [
+            new THREE.Vector3(-halfCube, -halfCube, halfCube), // Bottom left
+            new THREE.Vector3(halfCube, -halfCube, halfCube),  // Bottom right
+            new THREE.Vector3(halfCube, halfCube, halfCube),   // Top right
+            new THREE.Vector3(-halfCube, halfCube, halfCube)   // Top left
+        ];
+
+        const ringTouchPoints = [
+            new THREE.Vector3(0, -ringRadius, halfCube),      // Bottom touch point
+            new THREE.Vector3(ringRadius, 0, halfCube),       // Right touch point
+            new THREE.Vector3(0, ringRadius, halfCube),       // Top touch point
+            new THREE.Vector3(-ringRadius, 0, halfCube)       // Left touch point
+        ];
+
+        for (let i = 0; i < 4; i++) {
+            const triangleGeometry = new THREE.BufferGeometry();
+            const vertices = new Float32Array([
+                // Ring touch point
+                ringTouchPoints[i].x, ringTouchPoints[i].y, ringTouchPoints[i].z,
+                // Corner
+                frontFaceCorners[i].x, frontFaceCorners[i].y, frontFaceCorners[i].z,
+                // Next corner
+                frontFaceCorners[(i + 1) % 4].x, frontFaceCorners[(i + 1) % 4].y, frontFaceCorners[(i + 1) % 4].z
+            ]);
+
+            triangleGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            triangleGeometry.computeVertexNormals();
+
+            const triangle = new THREE.Mesh(triangleGeometry, facetMaterial.clone());
+            this.triangleFacets.push(triangle);
+            this.group.add(triangle);
+        }
+
         this.group.position.set(0, 0, 0);
-
-        // Make cube and sphere more prominent and visible
-        this.cube.scale.setScalar(0.8);
-        this.sphere.scale.setScalar(0.6);
     }
 
     public processFrequency(signal: any) {
-        // Map frequency to geometric transformations
-        const frequency = signal.frequency || 440;
-        const amplitude = signal.amplitude || 0.5;
-
-        // Cube responds to low frequencies (material resonance)
-        if (frequency < 200) {
-            const scale = 1 + (amplitude * 0.3);
-            this.cube.scale.setScalar(scale);
-        }
-
-        // Sphere responds to high frequencies (spiritual vibration)
-        if (frequency > 800) {
-            const scale = 1 + (amplitude * 0.2);
-            this.sphere.scale.setScalar(scale);
-        }
-
-        // Wireframe responds to mid frequencies
-        if (frequency >= 200 && frequency <= 800) {
-            const opacity = 0.8 + (amplitude * 0.2);
-            (this.wireframe.material as THREE.LineBasicMaterial).opacity = opacity;
-        }
+        // Empty
     }
 
     public setIntensity(intensity: number) {
-        this.intensity = Math.max(0.3, intensity); // Keep minimum visibility
-
-        // Adjust material properties based on intensity
-        (this.cube.material as THREE.MeshPhongMaterial).opacity = Math.max(0.4, 0.3 * intensity);
-        (this.sphere.material as THREE.MeshPhongMaterial).opacity = Math.max(0.3, 0.2 * intensity);
-        (this.wireframe.material as THREE.LineBasicMaterial).opacity = Math.max(0.6, 0.8 * intensity);
+        this.intensity = Math.max(0.3, intensity);
     }
 
     public update(deltaTime: number, elapsedTime: number) {
-        // Gentle rotation representing cosmic motion
-        this.group.rotation.y += deltaTime * 0.1 * this.intensity;
-        this.group.rotation.x += deltaTime * 0.05 * this.intensity;
+        if (this.isInMotion) {
+            // Slow rotation on Y axis
+            this.group.rotation.y += deltaTime * this.rotationSpeed;
 
-        // Pulsing effect for spiritual essence
-        const pulse = Math.sin(elapsedTime * 2 * this.pulseRate) * 0.1 + 1;
-        this.sphere.scale.setScalar(pulse * this.intensity);
+            // Gyration cycle - subtle tilting and oscillation
+            const gyrationSpeed = 0.3;
+            this.group.rotation.x = Math.sin(elapsedTime * gyrationSpeed) * 0.15;
+            this.group.rotation.z = Math.cos(elapsedTime * gyrationSpeed * 0.7) * 0.1;
 
-        // Subtle color shifts based on Russell's teachings about light
-        const hue = (elapsedTime * 0.1) % 1;
-        (this.cube.material as THREE.MeshPhongMaterial).color.setHSL(hue, 0.6, 0.5);
-        (this.sphere.material as THREE.MeshPhongMaterial).color.setHSL((hue + 0.5) % 1, 0.6, 0.5);
+            // Subtle position oscillation for breathing effect
+            const breathingAmplitude = 0.05;
+            this.group.position.y = Math.sin(elapsedTime * 0.5) * breathingAmplitude;
+        }
     }
 
     public reset() {
-        this.group.rotation.set(0, 0, 0);
-        this.cube.scale.setScalar(1);
-        this.sphere.scale.setScalar(1);
-
-        // Reset to original colors
-        (this.cube.material as THREE.MeshPhongMaterial).color.setHex(0x4a90e2);
-        (this.sphere.material as THREE.MeshPhongMaterial).color.setHex(0xe24a90);
+        // Empty
     }
 
-    // Conversation system methods
     public getCurrentIntensity(): number {
         return this.intensity;
     }
@@ -161,23 +198,39 @@ export class VesselLayer {
     }
 
     public triggerHarmony() {
-        // Create harmonic visual effect
-        const harmonicPulse = (elapsedTime: number) => {
-            const harmony = Math.sin(elapsedTime * 4) * Math.sin(elapsedTime * 6) * 0.2 + 1;
-            this.sphere.scale.setScalar(harmony * this.intensity);
-        };
-
-        // Apply harmonic colors
-        (this.cube.material as THREE.MeshPhongMaterial).color.setHSL(0.6, 0.8, 0.6);
-        (this.sphere.material as THREE.MeshPhongMaterial).color.setHSL(0.6, 0.8, 0.8);
+        // Empty
     }
 
     public triggerConflict() {
-        // Create conflicting visual patterns
-        this.pulseRate = 2.5; // Faster, more agitated pulsing
+        // Empty
+    }
 
-        // Apply conflict colors (reds and oranges)
-        (this.cube.material as THREE.MeshPhongMaterial).color.setHSL(0.0, 0.8, 0.5);
-        (this.sphere.material as THREE.MeshPhongMaterial).color.setHSL(0.1, 0.8, 0.6);
+    public getMorphingState() {
+        return {
+            isMorphing: false,
+            morphProgress: 0.0
+        };
+    }
+
+    public toggleMotion() {
+        this.isInMotion = !this.isInMotion;
+        if (!this.isInMotion) {
+            // Reset to static position
+            this.group.rotation.set(0, 0, 0);
+            this.group.position.set(0, 0, 0);
+        }
+    }
+
+    public setMotion(inMotion: boolean) {
+        this.isInMotion = inMotion;
+        if (!this.isInMotion) {
+            // Reset to static position
+            this.group.rotation.set(0, 0, 0);
+            this.group.position.set(0, 0, 0);
+        }
+    }
+
+    public getMotionState(): boolean {
+        return this.isInMotion;
     }
 }

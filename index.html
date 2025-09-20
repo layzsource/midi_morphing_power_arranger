@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Signal-to-Form Engine</title>
+    <title>MMPA - MIDI Morphing Power Arranger</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
@@ -42,6 +42,47 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            z-index: 1;
+        }
+
+        #morph-box-panel {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 350px;
+            height: 350px;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            z-index: 50;
+            box-shadow:
+                0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                0 32px 80px 0 rgba(13, 71, 161, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+
+        #morph-box-panel.active {
+            display: block;
+        }
+
+        #morph-box-panel:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+                0 16px 48px 0 rgba(0, 0, 0, 0.5),
+                0 48px 120px 0 rgba(13, 71, 161, 0.25);
+        }
+
+        #morph-canvas-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
         }
 
         #controls {
@@ -111,10 +152,28 @@
 <body>
     <div id="canvas-container"></div>
 
+    <!-- Morph Box Panel -->
+    <div id="morph-box-panel">
+        <div id="morph-canvas-container"></div>
+    </div>
+
     <div id="controls">
-        <div style="font-weight: 600; font-size: 20px; margin-bottom: 16px; background: linear-gradient(135deg, #00d4ff 0%, #a855f7 30%, #3b82f6 60%, #00f5ff 100%); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.4)); animation: quantum-shift 6s ease-in-out infinite;">
-            Neural Myth Engine
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 20px; background: linear-gradient(135deg, #ff0080 0%, #00ff80 30%, #8000ff 60%, #ff8000 100%); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 12px rgba(255, 0, 128, 0.4)); animation: quantum-shift 6s ease-in-out infinite;">
+                MMPA Power Arranger
+            </div>
+            <button id="controls-toggle" style="
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+                padding: 4px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.2s ease;
+            ">⬇️</button>
         </div>
+        <div id="controls-content">
 
         <style>
         @keyframes quantum-shift {
@@ -123,17 +182,17 @@
         }
         </style>
         <div style="margin-bottom: 16px; font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4;">
-            Interactive cultural memory system<br>
-            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">Press 1-9,0 to summon • Space for rhythm</span>
+            MIDI-driven morphing AV interface<br>
+            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">MIDI CC controls • Real-time morphing • VJ ready</span>
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;">
             <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);"></div>
             <div style="font-size: 12px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                <div style="width: 8px; height: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; box-shadow: 0 0 8px rgba(139, 92, 246, 0.6); animation: pulse 2s infinite;"></div>
-                <span id="active-thinker" style="color: #a5b4fc; font-weight: 400;">Neural network initialized</span>
+                <div style="width: 8px; height: 8px; background: linear-gradient(135deg, #ff0080, #8000ff); border-radius: 50%; box-shadow: 0 0 8px rgba(255, 0, 128, 0.6); animation: pulse 2s infinite;"></div>
+                <span id="active-thinker" style="color: #ff80c0; font-weight: 400;">MIDI morphing engine ready</span>
             </div>
-            <div id="hal-message" style="display: none; font-style: normal; font-size: 11px; color: #c7d2fe; line-height: 1.4; margin-top: 12px; padding: 12px; background: rgba(139, 92, 246, 0.08); border-radius: 12px; border-left: 2px solid rgba(139, 92, 246, 0.4);"></div>
+            <div id="hal-message" style="display: none; font-style: normal; font-size: 11px; color: #ffc0e0; line-height: 1.4; margin-top: 12px; padding: 12px; background: rgba(255, 0, 128, 0.08); border-radius: 12px; border-left: 2px solid rgba(255, 0, 128, 0.4);"></div>
         </div>
 
         <style>
@@ -144,23 +203,61 @@
         </style>
 
         <div class="mode-selector">
-            <button id="club-mode" class="active">Club</button>
-            <button id="installation-mode">Gallery</button>
+            <button id="club-mode" class="active">VJ Mode</button>
+            <button id="installation-mode">Install</button>
             <button id="instrument-mode">Studio</button>
         </div>
 
         <div style="font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.3;">
-            <div style="font-weight: 500; margin-bottom: 6px; color: rgba(255,255,255,0.8);">Archetypes</div>
+            <div style="font-weight: 500; margin-bottom: 6px; color: rgba(255,255,255,0.8);">Morphing Forms</div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; font-size: 10px;">
-                <div>1 Russell</div><div>2 Blake</div>
-                <div>3 Tesla</div><div>4 Beatles</div>
-                <div>5 Lead Belly</div><div>6 Hawking</div>
-                <div>7 Pranksters</div><div>8 Hoffman</div>
-                <div>9 Waas</div><div>0 Greiff</div>
+                <div>1 Blake</div><div>2 Tesla</div>
+                <div>3 Beatles</div><div>4 Green Bean</div>
+                <div>V VJ Interface</div><div>← → Portal</div>
             </div>
             <div style="margin: 8px 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px;">
-                <strong>Space</strong> Rhythm • <strong>F2</strong> Demo • <strong>R</strong> Reset
+                <strong>Space</strong> Morph • <strong>H</strong> Hide UI • <strong>V</strong> VJ Mode • <strong>R</strong> Reset
             </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <button id="vessel-motion-toggle" style="
+                background: rgba(255, 255, 255, 0.05);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 12px 20px;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 12px;
+                font-weight: 500;
+                border-radius: 12px;
+                transition: all 0.2s ease;
+                backdrop-filter: blur(10px);
+                width: 100%;
+                text-align: center;
+                margin-bottom: 8px;
+            ">
+                🎛️ Shadow Morphing: OFF
+            </button>
+
+            <button id="morph-box-toggle" style="
+                background: rgba(255, 255, 255, 0.05);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 12px 20px;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 12px;
+                font-weight: 500;
+                border-radius: 12px;
+                transition: all 0.2s ease;
+                backdrop-filter: blur(10px);
+                width: 100%;
+                text-align: center;
+            ">
+                📦 Morph Box: OFF
+            </button>
+        </div>
         </div>
     </div>
 

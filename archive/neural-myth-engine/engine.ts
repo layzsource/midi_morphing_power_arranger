@@ -9,9 +9,7 @@ import { AudioEngine } from './audio/AudioEngine';
 import { SequenceRecorder } from './performance/SequenceRecorder';
 import { PresetManager } from './performance/PresetManager';
 import { EasterEggRenderer } from './visuals/EasterEggRenderer';
-import { HALPersonas } from './ai/HALPersonas';
 import { TimeEvolution } from './temporal/TimeEvolution';
-import { ArchetypeConversations } from './interactions/ArchetypeConversations';
 
 export type PerformanceMode = 'club' | 'installation' | 'instrument';
 
@@ -34,9 +32,7 @@ export class Engine {
     private sequenceRecorder: SequenceRecorder;
     private presetManager: PresetManager;
     private easterEggRenderer: EasterEggRenderer;
-    private halPersonas: HALPersonas;
     private timeEvolution: TimeEvolution;
-    private archetypeConversations: ArchetypeConversations;
 
     // Performance state
     private currentMode: PerformanceMode = 'club';
@@ -101,10 +97,7 @@ export class Engine {
         this.sequenceRecorder = new SequenceRecorder();
         this.presetManager = new PresetManager();
         this.easterEggRenderer = new EasterEggRenderer(this.scene);
-        this.halPersonas = new HALPersonas();
         this.timeEvolution = new TimeEvolution();
-        this.archetypeConversations = new ArchetypeConversations();
-        this.setupArchetypeConversations();
 
         // Connect signal grammar to layers
         this.signalGrammar.onSignal(async (signal) => {
@@ -119,15 +112,6 @@ export class Engine {
         // Connect preset manager to apply presets
         this.presetManager.onPresetChange((preset) => {
             this.applyPreset(preset);
-        });
-
-        // Connect HAL Personas
-        this.halPersonas.onMessage((response) => {
-            this.displayHALMessage(response);
-        });
-
-        this.halPersonas.onAction((action) => {
-            this.executeHALAction(action);
         });
 
         // Connect time evolution
@@ -666,6 +650,10 @@ export class Engine {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    public setVesselMotion(enabled: boolean) {
+        this.vesselLayer.setMotion(enabled);
+    }
+
     private calculatePerformanceIntensity(): number {
         // Calculate overall performance intensity based on various factors
         let intensity = 0;
@@ -900,5 +888,24 @@ export class Engine {
                 this.emergentFormLayer.createConflictPattern();
                 break;
         }
+    }
+
+    /**
+     * Shadow Casting System Access for Microfiche Interface
+     */
+    public getShadowCastingSystem() {
+        return this.emergentFormLayer.getShadowCastingSystem();
+    }
+
+    public readShadowDataAtAngle(viewAngle: number, ringIndex?: number) {
+        return this.emergentFormLayer.readShadowDataAtAngle(viewAngle, ringIndex);
+    }
+
+    public getShadowStatistics() {
+        return this.emergentFormLayer.getShadowStatistics();
+    }
+
+    public clearShadowData() {
+        this.emergentFormLayer.clearShadowData();
     }
 }

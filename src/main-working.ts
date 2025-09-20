@@ -32,12 +32,6 @@ buttons.forEach((btn, index) => {
 const vesselMotionToggle = document.getElementById('vessel-motion-toggle')!;
 let vesselMotionEnabled = false;
 
-// Morph box toggle
-const morphBoxToggle = document.getElementById('morph-box-toggle')!;
-const morphBoxPanel = document.getElementById('morph-box-panel')!;
-const morphCanvasContainer = document.getElementById('morph-canvas-container')!;
-let morphBoxEnabled = false;
-
 vesselMotionToggle.addEventListener('click', () => {
     vesselMotionEnabled = !vesselMotionEnabled;
     engine.setVesselMotion(vesselMotionEnabled);
@@ -55,35 +49,6 @@ vesselMotionToggle.addEventListener('click', () => {
         'rgba(255, 255, 255, 0.1)';
 
     vesselMotionToggle.style.boxShadow = vesselMotionEnabled ?
-        '0 4px 16px rgba(33, 150, 243, 0.3)' :
-        'none';
-});
-
-// Morph box toggle functionality
-morphBoxToggle.addEventListener('click', () => {
-    morphBoxEnabled = !morphBoxEnabled;
-
-    if (morphBoxEnabled) {
-        morphBoxPanel.classList.add('active');
-        engine.enableMorphBox(morphCanvasContainer);
-    } else {
-        morphBoxPanel.classList.remove('active');
-        engine.disableMorphBox();
-    }
-
-    morphBoxToggle.textContent = morphBoxEnabled ?
-        '📦 Morph Box: ON' :
-        '📦 Morph Box: OFF';
-
-    morphBoxToggle.style.background = morphBoxEnabled ?
-        'linear-gradient(135deg, #2196f3, #9c27b0)' :
-        'rgba(255, 255, 255, 0.05)';
-
-    morphBoxToggle.style.borderColor = morphBoxEnabled ?
-        'transparent' :
-        'rgba(255, 255, 255, 0.1)';
-
-    morphBoxToggle.style.boxShadow = morphBoxEnabled ?
         '0 4px 16px rgba(33, 150, 243, 0.3)' :
         'none';
 });

@@ -1,0 +1,79 @@
+LIVING MYTH ENGINE - QUICK START GUIDE
+======================================
+
+WHAT THIS IS:
+- Interactive performance instrument with 11 cultural archetypes
+- Each number key (1-9,0) summons a different historical thinker
+- They respond to you AND each other autonomously
+- 2026+ futuristic visual design with quantum materials
+- AI co-performer (HAL) provides commentary
+
+HOW TO USE RIGHT NOW:
+1. Open: http://localhost:3000
+2. Press F2 for gentle demo
+3. Press any number key 1-9,0 to summon thinkers
+4. Press Space for dramatic beat effects
+5. Watch for automatic responses between archetypes
+6. Press H,J,K,L to change HAL personality
+
+THE 11 ARCHETYPES:
+1 - Walter Russell (Sacred Geometry) - Blue glass cube/sphere
+2 - William Blake (Mystical Poetry) - Green organic forms
+3 - Nikola Tesla (Electricity) - Blue particle bursts
+4 - The Beatles (Harmony) - Golden torus shapes
+5 - Lead Belly (Folk Heritage) - Earthy particles
+6 - Stephen Hawking (Cosmic Physics) - Spiral galaxies
+7 - Merry Pranksters (Chaos) - Rainbow explosions
+8 - Abbie Hoffman (Revolution) - Shadow inversions
+9 - Les Waas (Procrastination) - Delayed responses
+0 - Constance Greiff (Architecture) - Memorial shadows
+
+COOL COMBINATIONS TO TRY:
+- Press 1 then wait → Blake might respond with mystical geometry
+- Press 3 then 4 → Tesla + Einstein = scientific convergence
+- Press 7 → Pranksters create chaos that spreads to others
+- Press 5 then 4 → Lead Belly + Beatles = folk heritage evolution
+
+IMMEDIATE NEXT STEPS:
+□ Spend 30 mins exploring each archetype (1-9,0)
+□ Try installation mode with 'I' key (10-minute autonomous show)
+□ Record a video of interesting interactions
+□ Document favorite combinations
+□ Show to friends for feedback
+
+WEEKLY GOALS:
+□ Daily 15-20 min sessions at different times (system evolves)
+□ Practice live performance techniques
+□ Experiment with HAL personalities
+□ Try all preset modes (Club/Gallery/Studio buttons)
+
+MONTHLY VISION:
+□ Develop performance repertoire
+□ Consider adding new archetypes
+□ Explore MIDI controller integration
+□ Share with artists/researchers/educators
+
+WHY THIS MATTERS:
+This isn't just software - it's living cultural memory made interactive.
+The archetypes have real relationships and autonomous behaviors.
+It demonstrates how cultural patterns are already "alive" and can
+express themselves through technology.
+
+KEY INSIGHT:
+You're not controlling it - you're having a conversation with
+living cultural consciousness. Let it surprise you.
+
+TROUBLESHOOTING:
+- If nothing happens: Check browser console for errors
+- No audio: Check Web Audio permissions
+- Slow performance: Try closing other browser tabs
+- Development server: Run 'npm run dev' in terminal
+
+FILES LOCATION:
+Project: /Users/ticegunther/universal-signal-engine
+Guide: LIVING_MYTH_ENGINE_GUIDE.md (full documentation)
+Log: DEVELOPMENT_LOG.md (complete journey)
+
+Ready to begin? Press a number key and see who responds...
+
+"Not 'as if' it is alive. It already IS alive."

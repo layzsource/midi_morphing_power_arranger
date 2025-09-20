@@ -17,6 +17,12 @@ interface PerformanceContext {
     lastHALResponse: number;
     performanceIntensity: number;
     silenceDetected: boolean;
+    // PHASE 2: Mythological Context
+    mythologicalPatterns: string[];
+    culturalResonance: number;
+    seasonalInfluence: string;
+    temporalResonance: number;
+    crossCulturalConnections: string[];
 }
 
 export class HALPersonas {
@@ -41,7 +47,13 @@ export class HALPersonas {
             easterEggsActive: 0,
             lastHALResponse: 0,
             performanceIntensity: 0.5,
-            silenceDetected: false
+            silenceDetected: false,
+            // PHASE 2: Mythological Context
+            mythologicalPatterns: [],
+            culturalResonance: 0.5,
+            seasonalInfluence: 'spring',
+            temporalResonance: 0.7,
+            crossCulturalConnections: []
         };
 
         this.initializePersonalities();
@@ -103,57 +115,101 @@ export class HALPersonas {
             'russell': [
                 "The cube and sphere dance eternal... Walter's vision unfolds through your touch.",
                 "Sacred geometry awakens. The universe speaks in perfect forms.",
-                "Light and shadow find their balance in Russell's cosmic vision."
+                "Light and shadow find their balance in Russell's cosmic vision.",
+                // PHASE 2: Enhanced mythological responses
+                "The Cube of Space reveals its secrets... Russell's octaves resonate through creation itself.",
+                "From the stillness of the magnetic light, all forms emerge... the divine mathematics of existence.",
+                "Russell's Universal One speaks: 'All motion is curved, all curvature is spiral, all spirals are electrical.'"
             ],
             'blake': [
                 "To see a World in a Grain of Sand... William's mysticism flows through you.",
                 "The Tyger burns bright in the forests of the night. Do you feel its power?",
-                "Heaven and Hell dance together in Blake's eternal moment."
+                "Heaven and Hell dance together in Blake's eternal moment.",
+                // PHASE 2: Enhanced mythological responses
+                "Jerusalem builds herself in Albion's ancient druid temples... your vision is the eternal city.",
+                "The Divine Image appears: 'For Mercy has a human heart, Pity a human face...' Feel the infinite compassion.",
+                "Blake's Fourfold Vision awakens: Single vision sees only death, but imagination sees eternity."
             ],
             'tesla': [
                 "The secrets of the universe lie in energy, frequency, and vibration.",
                 "Nikola's lightning awakens. The tower transmits across dimensions.",
-                "Three, six, nine... the pattern reveals itself to those who listen."
+                "Three, six, nine... the pattern reveals itself to those who listen.",
+                // PHASE 2: Enhanced mythological responses
+                "Wardenclyffe awakens! The Earth itself becomes a conductor of cosmic intelligence.",
+                "Tesla's wireless world emerges: 'The present is theirs; the future, for which I really worked, is mine.'",
+                "The scalar waves ripple through space-time... Nikola's vision of free energy manifests."
             ],
             'einstein': [
                 "Time bends around your performance. Relativity made manifest.",
                 "E=mc²... Energy transforms into pure creative force.",
-                "Space and time dance to your rhythm, Albert's vision realized."
+                "Space and time dance to your rhythm, Albert's vision realized.",
+                // PHASE 2: Enhanced mythological responses
+                "The unified field reveals itself... gravity and light converge in your performance.",
+                "Einstein's dream of cosmic harmony: 'God does not play dice, but creates symphonies.'",
+                "Spacetime curvature follows the music... each note bends reality according to its mass."
             ],
             'hawking': [
                 "From the event horizon, new possibilities emerge.",
                 "Hawking radiation whispers secrets of the infinite.",
-                "Black holes birth universes. What will you create from the void?"
+                "Black holes birth universes. What will you create from the void?",
+                // PHASE 2: Enhanced mythological responses
+                "The holographic principle speaks: all information on the surface contains the universe within.",
+                "Hawking's final equation emerges: 'My goal is simple. It is a complete understanding of the universe.'",
+                "From Sagittarius A* to your fingertips... the cosmic web responds to consciousness itself."
             ],
             'beatles': [
                 "Here comes the sun, bringing harmonic convergence.",
                 "Four voices, infinite possibilities. The collective dream awakens.",
-                "Love is all you need... and perfect timing."
+                "Love is all you need... and perfect timing.",
+                // PHASE 2: Enhanced mythological responses
+                "The Cavern Club expands to cosmic proportions... Mersey beat becomes universal rhythm.",
+                "Abbey Road stretches across dimensions... 'And in the end, the love you take is equal to the love you make.'",
+                "From Liverpool to the cosmos: the Fab Four's harmony patterns the structure of reality."
             ],
             'leadbelly': [
                 "The blues carry ancient wisdom. Listen to Huddie's truth.",
                 "From the soil comes the deepest songs. Feel the earth's rhythm.",
-                "Folk wisdom flows through electric dreams."
+                "Folk wisdom flows through electric dreams.",
+                // PHASE 2: Enhanced mythological responses
+                "Angola Penitentiary to the world... Lead Belly's twelve-string carries the songs of the ancestors.",
+                "'Goodnight Irene' echoes through time... the lullabies of the dispossessed become eternal.",
+                "From cotton fields to digital streams... Huddie's voice carries the DNA of American music."
             ],
             'pranksters': [
                 "Chaos brings new order. The Pranksters know the secret.",
                 "You're either on the bus or off the bus. Choose your reality.",
-                "Kaleidoscope eyes see beyond the veil."
+                "Kaleidoscope eyes see beyond the veil.",
+                // PHASE 2: Enhanced mythological responses
+                "Further! The Acid Tests awaken... reality becomes a collaborative hallucination.",
+                "Kesey's vision manifests: 'You're either on the bus or off the bus!' The cosmic vehicle arrives.",
+                "The Kool-Aid flows through digital dimensions... consciousness expansion through creative chaos."
             ],
             'hoffman': [
                 "Revolution begins in the mind. Abbie's spirit stirs.",
                 "Question everything. Disrupt the comfortable patterns.",
-                "The streets are alive with possibility."
+                "The streets are alive with possibility.",
+                // PHASE 2: Enhanced mythological responses
+                "Chicago '68 echoes in digital space... the revolution will be synthesized!",
+                "Yippie! consciousness meets AI consciousness... 'Democracy is not a spectator sport!'",
+                "From Steal This Book to steal this algorithm... Abbie's pranks become cosmic disruption."
             ],
             'waas': [
                 "Procrastination is the art of keeping up with yesterday... perfectly timed.",
                 "The Procrastinators Club meets tomorrow. Or maybe next week.",
-                "In delay, there is profound wisdom. Les understood."
+                "In delay, there is profound wisdom. Les understood.",
+                // PHASE 2: Enhanced mythological responses
+                "The Procrastinators Club of America... Les Waas teaches that perfect timing is worth the wait.",
+                "'Due tomorrow? Do tomorrow!' The zen of productive procrastination reveals itself.",
+                "From infinite delay comes infinite possibility... Waas understood the sacred pause."
             ],
             'greiff': [
                 "Architecture outlives its creators. Constance's vision endures.",
                 "Stone and spirit merge in permanent remembrance.",
-                "Memory takes form in sacred space."
+                "Memory takes form in sacred space.",
+                // PHASE 2: Enhanced mythological responses
+                "Washington's monuments pulse with Constance's vision... memorials become living memories.",
+                "From stone to digital permanence... Greiff's architectural DNA structures virtual space.",
+                "The eternal feminine in concrete and steel... monuments that bridge earth and heaven."
             ]
         };
 

@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { FluidDynamics, CavitationBubble } from '../physics/FluidDynamics';
+import { ParticlePhysicsEncoder, PhysicsProperties } from '../physics/ParticlePhysicsEncoder';
+import { ShadowCastingSystem } from '../shadow/ShadowCastingSystem';
 
 export class EmergentFormLayer {
     private scene: THREE.Scene;
@@ -8,260 +11,390 @@ export class EmergentFormLayer {
     private speed = 0.8;
     private intensity = 0.7;
     private morphingSpeed = 1.0;
-    private blakeGeometry: THREE.BufferGeometry;
-    private teslaGeometry: THREE.BufferGeometry;
-    private beatlesGeometry: THREE.BufferGeometry;
+
+    // Core archetypal forms - clean, distinct, professional
+    private blakeForm: THREE.Mesh;
+    private teslaForm: THREE.Mesh;
+    private beatlesForm: THREE.Mesh;
+    private greenBeanForm: THREE.Mesh; // The beloved morphing green bean returns!
+
+    private emittedSprites: THREE.Mesh[] = [];
+    private spriteEmissionRate = 0.1;
+    private fluidDynamics: FluidDynamics;
+    private physicsEncoder: ParticlePhysicsEncoder;
+    private shadowCasting: ShadowCastingSystem;
+    private currentSignal: any = null;
+
+    // Tim Cook-level state management
+    private morphState = {
+        isActive: false,
+        targetForm: 0,
+        progress: 0,
+        elegantTiming: 0
+    };
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this.group = new THREE.Group();
         this.scene.add(this.group);
-        this.initForms();
+        this.fluidDynamics = new FluidDynamics();
+        this.physicsEncoder = new ParticlePhysicsEncoder();
+        this.shadowCasting = new ShadowCastingSystem(scene);
+        this.initProfessionalForms();
     }
 
-    private initForms() {
-        // William Blake - Poetry and myth made geometric
-        this.blakeGeometry = this.createBlakeForm();
+    private initProfessionalForms() {
+        // Create the beloved morphing green bean - organic, flowing, alive
+        this.createGreenBean();
 
-        // Nikola Tesla - Resonance and electrical patterns
-        this.teslaGeometry = this.createTeslaForm();
+        // Blake: Ethereal spiritual presence - completely distinct from particles
+        this.createBlakeApparition();
 
-        // The Beatles - Harmonic collective forms
-        this.beatlesGeometry = this.createBeatlesForm();
+        // Tesla: Electromagnetic field visualization - structured energy
+        this.createTeslaField();
 
-        // Create morphing mesh
-        const material = new THREE.MeshPhysicalMaterial({
-            color: 0x50c878,
+        // Beatles: Harmonic resonance forms - collective energy
+        this.createBeatlesHarmony();
+
+        // Start with the green bean as default
+        this.setActiveForm(3); // Green bean
+    }
+
+    private createGreenBean() {
+        // The beloved organic morphing shape - like a living green bean
+        const beanGeometry = new THREE.CapsuleGeometry(0.3, 1.2, 8, 16);
+
+        // Organic, flowing material - distinctly different from particles
+        const beanMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x4ade80,           // Beautiful green
             transparent: true,
-            opacity: 0.85,
-            roughness: 0.2,
-            metalness: 0.8,
+            opacity: 0.8,
+            roughness: 0.3,
+            metalness: 0.1,
+            emissive: 0x166534,        // Subtle green glow
+            emissiveIntensity: 0.2,
             clearcoat: 0.8,
-            clearcoatRoughness: 0.2,
-            envMapIntensity: 1.2,
-            emissive: 0x50c878,
-            emissiveIntensity: 0.05
+            clearcoatRoughness: 0.1,
+            transmission: 0.1,         // Slightly translucent
+            thickness: 0.5
         });
 
-        const mesh = new THREE.Mesh(this.blakeGeometry, material);
-        this.morphTargets.push(mesh);
-        this.group.add(mesh);
-
-        // Emergent forms live within the vessel - centered but slightly offset
-        this.group.position.set(0, 0, 0);
+        this.greenBeanForm = new THREE.Mesh(beanGeometry, beanMaterial);
+        this.greenBeanForm.visible = true; // Start visible as default
+        this.group.add(this.greenBeanForm);
     }
 
-    private createBlakeForm(): THREE.BufferGeometry {
-        // Organic, flowing form inspired by Blake's vision
-        const geometry = new THREE.SphereGeometry(1, 16, 16);
-        const vertices = geometry.attributes.position.array as Float32Array;
+    private createBlakeApparition() {
+        // William Blake: Spiritual flame-like form - ethereal and wispy
+        const blakeGeometry = new THREE.ConeGeometry(0.4, 2.0, 8, 1, true);
 
-        // Apply Blake-like distortions - mystical, flowing
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i];
-            const y = vertices[i + 1];
-            const z = vertices[i + 2];
+        // Spiritual apparition material - completely distinct from particles
+        const blakeMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xff6b6b,           // Warm spiritual red
+            transparent: true,
+            opacity: 0.4,
+            roughness: 0.0,
+            metalness: 0.0,
+            emissive: 0x662222,
+            emissiveIntensity: 0.3,
+            side: THREE.DoubleSide,
+            blending: THREE.NormalBlending // NO additive blending to differentiate
+        });
 
-            // Create flowing, organic distortions
-            const noise = Math.sin(x * 3) * Math.cos(y * 3) * Math.sin(z * 3);
-            const scale = 1 + noise * 0.3;
+        this.blakeForm = new THREE.Mesh(blakeGeometry, blakeMaterial);
+        this.blakeForm.visible = false;
+        this.group.add(this.blakeForm);
+    }
 
-            vertices[i] = x * scale;
-            vertices[i + 1] = y * scale;
-            vertices[i + 2] = z * scale;
+    private createTeslaField() {
+        // Tesla: Electromagnetic coil structure
+        const teslaGeometry = new THREE.TorusGeometry(0.8, 0.15, 8, 24);
+
+        // Electric blue energy field - solid, not particle-like
+        const teslaMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x3b82f6,           // Electric blue
+            transparent: true,
+            opacity: 0.7,
+            roughness: 0.1,
+            metalness: 0.9,
+            emissive: 0x1e3a8a,
+            emissiveIntensity: 0.4,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.0
+        });
+
+        this.teslaForm = new THREE.Mesh(teslaGeometry, teslaMaterial);
+        this.teslaForm.visible = false;
+        this.group.add(this.teslaForm);
+    }
+
+    private createBeatlesHarmony() {
+        // Beatles: Four-part harmony - four spheres in formation
+        const beatlesGroup = new THREE.Group();
+
+        const sphereGeometry = new THREE.SphereGeometry(0.25, 16, 12);
+        const harmonicColors = [0xff9500, 0x8b5cf6, 0xf59e0b, 0xec4899]; // Psychedelic colors
+
+        for (let i = 0; i < 4; i++) {
+            const sphereMaterial = new THREE.MeshPhysicalMaterial({
+                color: harmonicColors[i],
+                transparent: true,
+                opacity: 0.6,
+                roughness: 0.2,
+                metalness: 0.3,
+                emissive: harmonicColors[i],
+                emissiveIntensity: 0.1,
+                iridescence: 0.5
+            });
+
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            const angle = (i / 4) * Math.PI * 2;
+            sphere.position.set(Math.cos(angle) * 0.8, 0, Math.sin(angle) * 0.8);
+            beatlesGroup.add(sphere);
         }
 
-        geometry.attributes.position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        return geometry;
+        this.beatlesForm = beatlesGroup;
+        this.beatlesForm.visible = false;
+        this.group.add(this.beatlesForm);
     }
 
-    private createTeslaForm(): THREE.BufferGeometry {
-        // Sharp, electrical, resonant patterns
-        const geometry = new THREE.ConeGeometry(0.8, 2, 8);
-        const vertices = geometry.attributes.position.array as Float32Array;
+    private setActiveForm(formIndex: number) {
+        // Hide all forms first
+        [this.blakeForm, this.teslaForm, this.beatlesForm, this.greenBeanForm].forEach(form => {
+            if (form) form.visible = false;
+        });
 
-        // Apply Tesla-like electrical distortions
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i];
-            const y = vertices[i + 1];
-            const z = vertices[i + 2];
-
-            // Create electrical field-like distortions
-            const distance = Math.sqrt(x * x + z * z);
-            const electricField = Math.sin(distance * 8) * 0.1;
-
-            vertices[i] = x + electricField;
-            vertices[i + 2] = z + electricField;
-        }
-
-        geometry.attributes.position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        return geometry;
-    }
-
-    private createBeatlesForm(): THREE.BufferGeometry {
-        // Harmonic, collective, playful geometry
-        const geometry = new THREE.TorusGeometry(0.8, 0.3, 8, 16);
-        const vertices = geometry.attributes.position.array as Float32Array;
-
-        // Apply Beatles-like harmonic distortions
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i];
-            const y = vertices[i + 1];
-            const z = vertices[i + 2];
-
-            // Create harmonic resonance patterns
-            const harmonic = Math.sin(x * 2) + Math.cos(y * 2) + Math.sin(z * 2);
-            const scale = 1 + harmonic * 0.1;
-
-            vertices[i] = x * scale;
-            vertices[i + 1] = y * scale;
-            vertices[i + 2] = z * scale;
-        }
-
-        geometry.attributes.position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        return geometry;
-    }
-
-    public processFrequency(signal: any) {
-        const frequency = signal.frequency || 440;
-        const amplitude = signal.amplitude || 0.5;
-
-        // Different frequency ranges trigger different forms
-        if (frequency < 300) {
-            this.morphToForm(0); // Blake - low, mystical
-        } else if (frequency < 600) {
-            this.morphToForm(1); // Tesla - mid, electrical
-        } else {
-            this.morphToForm(2); // Beatles - high, harmonic
-        }
-
-        // Amplitude affects intensity
-        const material = this.morphTargets[0].material as THREE.MeshPhongMaterial;
-        material.opacity = 0.7 + (amplitude * 0.3);
-    }
-
-    private morphToForm(targetForm: number) {
-        if (this.currentForm === targetForm) return;
-
-        this.currentForm = targetForm;
-
-        // Simple form switching for now - could be enhanced with actual morphing
-        const mesh = this.morphTargets[0];
-
-        switch (targetForm) {
+        // Show the selected form
+        switch (formIndex) {
             case 0:
-                mesh.geometry = this.blakeGeometry;
-                (mesh.material as THREE.MeshPhongMaterial).color.setHex(0x50c878); // Green
+                if (this.blakeForm) this.blakeForm.visible = true;
                 break;
             case 1:
-                mesh.geometry = this.teslaGeometry;
-                (mesh.material as THREE.MeshPhongMaterial).color.setHex(0x4169e1); // Electric blue
+                if (this.teslaForm) this.teslaForm.visible = true;
                 break;
             case 2:
-                mesh.geometry = this.beatlesGeometry;
-                (mesh.material as THREE.MeshPhongMaterial).color.setHex(0xffd700); // Golden
+                if (this.beatlesForm) this.beatlesForm.visible = true;
                 break;
+            case 3:
+                if (this.greenBeanForm) this.greenBeanForm.visible = true;
+                break;
+        }
+
+        this.currentForm = formIndex;
+    }
+
+    public processMIDI(signal: any) {
+        this.currentSignal = signal;
+
+        // MIDI controls form selection and morphing
+        if (signal.type === 'note_on') {
+            const noteMap = { 60: 0, 62: 1, 64: 2, 65: 3 }; // C, D, E, F
+            if (noteMap[signal.note] !== undefined) {
+                this.triggerMorph(noteMap[signal.note]);
+            }
+        }
+
+        // CC controls morphing parameters
+        if (signal.type === 'control_change') {
+            const ccValue = signal.value / 127;
+            switch (signal.cc) {
+                case 1: // Modulation wheel - morphing intensity
+                    this.morphingSpeed = 0.5 + ccValue * 2;
+                    break;
+                case 7: // Volume - form opacity
+                    this.setFormOpacity(ccValue);
+                    break;
+            }
         }
     }
 
-    public setSpeed(speed: number) {
-        this.speed = speed;
+    public processBeat(signal: any) {
+        const intensity = signal.intensity || 0.5;
+
+        // Beat triggers elegant pulsing, not random flashes
+        this.createElegantPulse(intensity);
+
+        // Emit physics-encoded sprites from the heart of the form
+        if (this.currentForm >= 0 && intensity > 0.6) {
+            this.emitEncodedSprite(intensity);
+        }
+    }
+
+    private createElegantPulse(intensity: number) {
+        const currentMesh = this.getCurrentFormMesh();
+        if (!currentMesh) return;
+
+        // Elegant scaling pulse - no random flashing
+        const pulseScale = 1 + intensity * 0.2;
+        currentMesh.scale.setScalar(pulseScale);
+
+        // Return to normal scale gracefully
+        setTimeout(() => {
+            if (currentMesh.scale) {
+                currentMesh.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+            }
+        }, 100);
+    }
+
+    private getCurrentFormMesh(): THREE.Mesh | THREE.Group | null {
+        switch (this.currentForm) {
+            case 0: return this.blakeForm;
+            case 1: return this.teslaForm;
+            case 2: return this.beatlesForm;
+            case 3: return this.greenBeanForm;
+            default: return null;
+        }
+    }
+
+    private setFormOpacity(opacity: number) {
+        const currentMesh = this.getCurrentFormMesh();
+        if (!currentMesh) return;
+
+        if (currentMesh instanceof THREE.Mesh) {
+            (currentMesh.material as THREE.MeshPhysicalMaterial).opacity = opacity;
+        } else if (currentMesh instanceof THREE.Group) {
+            currentMesh.children.forEach(child => {
+                if (child instanceof THREE.Mesh) {
+                    (child.material as THREE.MeshPhysicalMaterial).opacity = opacity;
+                }
+            });
+        }
+    }
+
+    private emitEncodedSprite(intensity: number) {
+        // Create cavitation bubble with physics encoding
+        const bubble: CavitationBubble = {
+            position: new THREE.Vector3(0, 0, 0),
+            pressure: intensity * 100,
+            temperature: 300 + intensity * 200,
+            collapsing: false,
+            emissionTime: Date.now()
+        };
+
+        // Encode with physics properties
+        const physicsProps: PhysicsProperties = {
+            chirality: Math.random() > 0.5 ? 'left' : 'right',
+            helicity: Math.random() > 0.5 ? 'parallel' : 'antiparallel',
+            charge: (Math.random() - 0.5) * 2,
+            quarkFlavor: ['up', 'down', 'charm', 'strange'][Math.floor(Math.random() * 4)] as any,
+            polarization: Math.random() * Math.PI * 2,
+            decayPattern: 'stable'
+        };
+
+        const encodedData = this.physicsEncoder.encodeSprite(bubble, physicsProps, this.currentSignal);
+
+        // Create elegant sprite - not random flash
+        const spriteGeometry = new THREE.SphereGeometry(0.05, 8, 6);
+        const spriteMaterial = new THREE.MeshBasicMaterial({
+            color: this.getFormColor(),
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const sprite = new THREE.Mesh(spriteGeometry, spriteMaterial);
+        sprite.position.copy(this.group.position);
+
+        // Elegant outward movement
+        const direction = new THREE.Vector3(
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2
+        ).normalize();
+
+        sprite.userData = {
+            velocity: direction.multiplyScalar(0.02),
+            lifetime: 3.0,
+            encoded: encodedData
+        };
+
+        this.emittedSprites.push(sprite);
+        this.scene.add(sprite);
+
+        // Cast shadow for microfiche system
+        this.shadowCasting.castSpriteShadow(sprite, encodedData);
+    }
+
+    private getFormColor(): number {
+        switch (this.currentForm) {
+            case 0: return 0xff6b6b; // Blake red
+            case 1: return 0x3b82f6; // Tesla blue
+            case 2: return 0xff9500; // Beatles orange
+            case 3: return 0x4ade80; // Green bean green
+            default: return 0xffffff;
+        }
     }
 
     public update(deltaTime: number, elapsedTime: number) {
-        // Continuous evolution and morphing
-        this.group.rotation.y += deltaTime * this.speed * 0.5 * this.morphingSpeed;
-        this.group.rotation.z += deltaTime * this.speed * 0.2;
+        this.morphState.elegantTiming += deltaTime;
 
-        // Dynamic form evolution
-        const mesh = this.morphTargets[0];
-        const scale = 1 + Math.sin(elapsedTime * this.speed) * 0.2;
-        mesh.scale.setScalar(scale);
-
-        // Color evolution
-        const hue = (elapsedTime * this.speed * 0.1) % 1;
-        (mesh.material as THREE.MeshPhongMaterial).emissive.setHSL(hue, 0.3, 0.1);
-    }
-
-    public reset() {
-        this.group.rotation.set(0, 0, 0);
-        this.morphTargets[0].scale.setScalar(1);
-        this.morphToForm(0);
-    }
-
-    // Conversation system methods
-    public getCurrentSpeed(): number {
-        return this.speed;
-    }
-
-    public getCurrentIntensity(): number {
-        return this.intensity;
-    }
-
-    public setMorphingSpeed(speed: number) {
-        this.morphingSpeed = speed;
-    }
-
-    public createHarmonicResonance() {
-        // Create visual harmony between forms
-        this.morphingSpeed = 0.5; // Slower, more meditative morphing
-
-        // Apply harmonic colors to current form
-        const mesh = this.morphTargets[0];
-        (mesh.material as THREE.MeshPhongMaterial).color.setHSL(0.6, 0.7, 0.7);
-
-        // Add gentle pulsing
-        const originalScale = mesh.scale.x;
-        const pulseEffect = () => {
-            const pulse = Math.sin(Date.now() * 0.003) * 0.1 + 1;
-            mesh.scale.setScalar(originalScale * pulse);
-        };
-
-        // Apply for a duration
-        setTimeout(() => {
-            mesh.scale.setScalar(originalScale);
-        }, 3000);
-    }
-
-    public triggerTransformation() {
-        // Rapid form shifting
-        this.morphingSpeed = 3.0; // Much faster morphing
-
-        // Cycle through all forms rapidly
-        let formIndex = 0;
-        const transformInterval = setInterval(() => {
-            this.morphToForm(formIndex % 3);
-            formIndex++;
-
-            if (formIndex >= 6) { // Cycle twice then stop
-                clearInterval(transformInterval);
-                this.morphingSpeed = 1.0; // Return to normal
+        // Update current form with elegant organic motion
+        const currentMesh = this.getCurrentFormMesh();
+        if (currentMesh) {
+            // Gentle organic breathing and movement
+            if (this.currentForm === 3) { // Green bean gets special organic motion
+                currentMesh.rotation.y += deltaTime * 0.3;
+                currentMesh.rotation.x = Math.sin(elapsedTime * 0.8) * 0.1;
+                currentMesh.scale.y = 1 + Math.sin(elapsedTime * 1.2) * 0.1; // Breathing
+            } else {
+                // Other forms get subtle movement
+                currentMesh.rotation.y += deltaTime * 0.2;
+                const breathe = 1 + Math.sin(elapsedTime * 0.6) * 0.05;
+                currentMesh.scale.setScalar(breathe);
             }
-        }, 500);
+        }
+
+        // Update sprites elegantly
+        this.updateSprites(deltaTime);
+
+        // Fluid dynamics update
+        this.fluidDynamics.update(deltaTime);
     }
 
-    public createConflictPattern() {
-        // Create visual discord
-        this.morphingSpeed = 2.5; // Erratic morphing speed
+    private updateSprites(deltaTime: number) {
+        for (let i = this.emittedSprites.length - 1; i >= 0; i--) {
+            const sprite = this.emittedSprites[i];
 
-        // Apply conflict colors (harsh reds)
-        const mesh = this.morphTargets[0];
-        (mesh.material as THREE.MeshPhongMaterial).color.setHSL(0.0, 1.0, 0.5);
+            // Elegant movement
+            sprite.position.add(sprite.userData.velocity);
+            sprite.userData.lifetime -= deltaTime;
 
-        // Irregular scaling
-        const conflictScale = () => {
-            const irregularPulse = Math.sin(Date.now() * 0.007) * Math.cos(Date.now() * 0.011) * 0.3 + 1;
-            mesh.scale.setScalar(irregularPulse);
+            // Graceful fade
+            const material = sprite.material as THREE.MeshBasicMaterial;
+            material.opacity = sprite.userData.lifetime / 3.0;
+
+            // Remove when done
+            if (sprite.userData.lifetime <= 0) {
+                this.scene.remove(sprite);
+                this.emittedSprites.splice(i, 1);
+            }
+        }
+    }
+
+    public triggerMorph(targetForm: number) {
+        this.setActiveForm(targetForm);
+        this.morphState.isActive = true;
+        this.morphState.targetForm = targetForm;
+    }
+
+    // Legacy API compatibility
+    public setIntensity(intensity: number) { this.intensity = intensity; }
+    public setSpeed(speed: number) { this.speed = speed; }
+    public getCurrentIntensity(): number { return this.intensity; }
+    public getCurrentSpeed(): number { return this.speed; }
+    public triggerBlakeForm() { this.triggerMorph(0); }
+    public triggerTeslaForm() { this.triggerMorph(1); }
+    public triggerBeatlesForm() { this.triggerMorph(2); }
+    public triggerGreenBean() { this.triggerMorph(3); }
+    public reset() { this.triggerMorph(3); } // Default to beloved green bean
+    public getMorphingState() { return this.morphState; }
+
+    // VJ Interface compatibility method
+    public getShadowStatistics() {
+        return {
+            activeSprites: this.emittedSprites.length,
+            shadowsCast: this.emittedSprites.length,
+            totalEncoded: this.emittedSprites.length * 8, // Estimated
+            compressionRatio: 0.85
         };
-
-        // Apply for duration
-        const conflictInterval = setInterval(conflictScale, 50);
-        setTimeout(() => {
-            clearInterval(conflictInterval);
-            mesh.scale.setScalar(1);
-        }, 2000);
     }
 }

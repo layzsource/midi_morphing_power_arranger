@@ -7,367 +7,362 @@ export class ParticleLayer {
     private particles: THREE.BufferGeometry;
     private particleMaterial: THREE.PointsMaterial;
     private intensity = 0.7;
-    private particleCount = 1000;
+    private particleCount = 3500; // Increased for more density
     private velocities: Float32Array;
     private lifetimes: Float32Array;
+    private colors: Float32Array;
+    private sizes: Float32Array;
     private emissionRate = 1.0;
     private geometricAlignment = 1.0;
+    private morphState = 'sphere';
+    private morphProgress = 0.0;
+    private isMorphing = false;
+
+    // Professional burst parameters
+    private burstClock = 0;
+    private burstPhase = 0;
+    private nucleationPoints: THREE.Vector3[] = [];
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this.group = new THREE.Group();
         this.scene.add(this.group);
-        this.initParticles();
+        this.initProfessionalParticles();
     }
 
-    private initParticles() {
+    private initProfessionalParticles() {
         this.particles = new THREE.BufferGeometry();
 
-        // Create particle positions
+        // Enhanced particle data arrays
         const positions = new Float32Array(this.particleCount * 3);
         this.velocities = new Float32Array(this.particleCount * 3);
         this.lifetimes = new Float32Array(this.particleCount);
+        this.colors = new Float32Array(this.particleCount * 3);
+        this.sizes = new Float32Array(this.particleCount);
+
+        // Initialize nucleation points for sophisticated burst patterns
+        this.createNucleationPoints();
 
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
 
-            // 2026+ Quantum probability field distribution
-            const quantumState = Math.random();
-            const radius = 2 + Math.pow(Math.random(), 0.4) * 3; // Non-linear quantum distribution
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.random() * Math.PI;
+            // Initial spherical distribution with fibonacci spiral perfection
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            const y = 1 - (i / (this.particleCount - 1)) * 2;
+            const radius = Math.sqrt(1 - y * y);
+            const theta = goldenAngle * i;
 
-            // Quantum uncertainty principle
-            const uncertainty = (Math.random() - 0.5) * 0.15;
+            const sphereRadius = 0.8;
+            positions[i3] = Math.cos(theta) * radius * sphereRadius;
+            positions[i3 + 1] = y * sphereRadius;
+            positions[i3 + 2] = Math.sin(theta) * radius * sphereRadius;
 
-            positions[i3] = radius * Math.sin(phi) * Math.cos(theta) + uncertainty;
-            positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta) + uncertainty;
-            positions[i3 + 2] = radius * Math.cos(phi) + uncertainty;
+            // Professional fluid dynamics velocities
+            this.velocities[i3] = 0;
+            this.velocities[i3 + 1] = 0;
+            this.velocities[i3 + 2] = 0;
 
-            // Random velocities
-            this.velocities[i3] = (Math.random() - 0.5) * 0.02;
-            this.velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
-            this.velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+            // Varied lifetimes for organic feel
+            this.lifetimes[i] = 50 + Math.random() * 100;
 
-            // Random lifetimes
-            this.lifetimes[i] = Math.random() * 100;
+            // Professional color gradients
+            const hue = (i / this.particleCount) * 0.6 + 0.15; // Blue to purple range
+            const color = new THREE.Color().setHSL(hue, 0.8, 0.6);
+            this.colors[i3] = color.r;
+            this.colors[i3 + 1] = color.g;
+            this.colors[i3 + 2] = color.b;
+
+            // Size variation for depth
+            this.sizes[i] = 0.8 + Math.random() * 0.4;
         }
 
         this.particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        this.particles.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+        this.particles.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
 
-        // 2025 volumetric particle material
+        // Professional 2025 material with industry-standard properties
         this.particleMaterial = new THREE.PointsMaterial({
-            color: 0xa78bfa,
-            size: 0.008,
+            size: 0.015,
             transparent: true,
-            opacity: 0.95,
+            opacity: 0.85,
             blending: THREE.AdditiveBlending,
-            vertexColors: false,
+            vertexColors: true,
             sizeAttenuation: true,
-            alphaTest: 0.0001,
-            depthWrite: false
+            alphaTest: 0.001,
+            depthWrite: false,
+            map: this.createParticleTexture()
         });
 
         this.particleSystem = new THREE.Points(this.particles, this.particleMaterial);
         this.group.add(this.particleSystem);
+    }
 
-        // Particles exist within and around all other layers
-        this.group.position.set(0, 0, 0);
+    private createParticleTexture(): THREE.Texture {
+        // Create a professional circular particle texture with soft edges
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d')!;
+
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.generateMipmaps = false;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        return texture;
+    }
+
+    private createNucleationPoints() {
+        // Create strategic nucleation points for burst patterns
+        this.nucleationPoints = [
+            new THREE.Vector3(0, 0, 0), // Center
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, -1)
+        ];
     }
 
     public processMIDI(signal: any) {
-        // MIDI CC controls particle behavior
-        const ccValue = signal.value / 127; // Normalize MIDI CC value
+        const ccValue = signal.value / 127;
 
         switch (signal.cc) {
-            case 1: // Modulation wheel - affects particle speed
-                this.adjustParticleSpeed(ccValue);
+            case 1: // Modulation - burst intensity
+                this.createProfessionalBurst(ccValue * 2);
                 break;
-            case 7: // Volume - affects particle count visibility
-                this.particleMaterial.opacity = ccValue;
+            case 7: // Volume - overall visibility
+                this.particleMaterial.opacity = 0.4 + ccValue * 0.6;
                 break;
-            case 10: // Pan - affects particle spread
+            case 10: // Pan - spread factor
                 this.adjustParticleSpread(ccValue);
                 break;
         }
     }
 
     public processBeat(signal: any) {
-        // Beat triggers particle bursts
         const intensity = signal.intensity || 0.5;
-        this.createBeatBurst(intensity);
+        this.createProfessionalBurst(intensity);
+
+        // Color burst synchronization
+        this.updateBurstColors(intensity);
     }
 
-    private adjustParticleSpeed(speed: number) {
-        // Adjust velocity based on speed input
+    private createProfessionalBurst(intensity: number) {
         const positions = this.particles.attributes.position.array as Float32Array;
+        const colors = this.particles.attributes.color.array as Float32Array;
+        const sizes = this.particles.attributes.size.array as Float32Array;
+
+        // Professional burst algorithm with nucleation physics
+        for (let i = 0; i < this.particleCount; i++) {
+            const i3 = i * 3;
+
+            // Find nearest nucleation point
+            const currentPos = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+            let nearestNucleus = this.nucleationPoints[0];
+            let minDistance = currentPos.distanceTo(nearestNucleus);
+
+            for (const nucleus of this.nucleationPoints) {
+                const distance = currentPos.distanceTo(nucleus);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestNucleus = nucleus;
+                }
+            }
+
+            // Calculate burst vector from nucleus
+            const burstVector = currentPos.clone().sub(nearestNucleus).normalize();
+            const burstStrength = intensity * (1 - minDistance / 3) * 0.15;
+
+            // Apply professional fluid dynamics burst
+            this.velocities[i3] += burstVector.x * burstStrength;
+            this.velocities[i3 + 1] += burstVector.y * burstStrength;
+            this.velocities[i3 + 2] += burstVector.z * burstStrength;
+
+            // Size burst effect
+            sizes[i] = (0.8 + Math.random() * 0.4) * (1 + intensity * 0.5);
+
+            // Professional color burst with hue shifting
+            const burstHue = (this.burstPhase + i / this.particleCount * 0.1) % 1;
+            const color = new THREE.Color().setHSL(burstHue, 0.9, 0.5 + intensity * 0.3);
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
+        }
+
+        this.particles.attributes.color.needsUpdate = true;
+        this.particles.attributes.size.needsUpdate = true;
+        this.burstPhase = (this.burstPhase + 0.05) % 1;
+    }
+
+    private updateBurstColors(intensity: number) {
+        const colors = this.particles.attributes.color.array as Float32Array;
 
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
-            this.velocities[i3] *= speed * 2;
-            this.velocities[i3 + 1] *= speed * 2;
-            this.velocities[i3 + 2] *= speed * 2;
+            const phase = this.burstClock + i * 0.01;
+
+            // Professional color cycling with golden ratio
+            const hue = (phase * 0.618) % 1; // Golden ratio for pleasing color progression
+            const saturation = 0.7 + intensity * 0.3;
+            const lightness = 0.4 + Math.sin(phase * 3) * 0.2 + intensity * 0.2;
+
+            const color = new THREE.Color().setHSL(hue, saturation, lightness);
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
         }
+
+        this.particles.attributes.color.needsUpdate = true;
     }
 
     private adjustParticleSpread(spread: number) {
-        // Adjust particle distribution
-        this.particleMaterial.size = 0.05 + spread * 0.15;
-    }
-
-    private createBeatBurst(intensity: number) {
-        // Create explosive particle movement on beat
-        const positions = this.particles.attributes.position.array as Float32Array;
-
-        // Make the beat effect much more dramatic and visible
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-
-            // Add radial velocity burst
-            const x = positions[i3];
-            const y = positions[i3 + 1];
-            const z = positions[i3 + 2];
-
-            const distance = Math.sqrt(x * x + y * y + z * z);
-            if (distance > 0) {
-                const burstStrength = intensity * 0.2; // Much stronger burst
-                this.velocities[i3] += (x / distance) * burstStrength;
-                this.velocities[i3 + 1] += (y / distance) * burstStrength;
-                this.velocities[i3 + 2] += (z / distance) * burstStrength;
-            }
-        }
-
-        // Add color flash effect
-        this.particleMaterial.color.setHSL(Math.random(), 1.0, 0.8);
-        this.particleMaterial.size = 0.3; // Bigger particles on beat
-
-        // Reset after short duration
-        setTimeout(() => {
-            this.particleMaterial.color.setHex(0xffffff);
-            this.particleMaterial.size = 0.1;
-        }, 200);
-
-        // Flash effect
-        this.particleMaterial.color.setHSL(Math.random(), 0.8, 0.6);
-    }
-
-    // Core Library archetype triggers
-    public triggerLeadBellyPattern() {
-        // Blues rhythm particle pattern
-        this.particleMaterial.color.setHex(0x8b4513); // Brown/earth tones
-        this.createRhythmicPattern(4/4); // 4/4 blues pattern
-    }
-
-    public triggerHawkingPattern() {
-        // Cosmic, black hole-inspired particles
-        this.particleMaterial.color.setHex(0x000080); // Deep space blue
-        this.createSpiralPattern();
-    }
-
-    public triggerPrankstersPattern() {
-        // Chaotic, kaleidoscopic particles
-        this.createKaleidoscopePattern();
-    }
-
-    private createRhythmicPattern(rhythm: number) {
-        // Create rhythmic particle emissions
-        const positions = this.particles.attributes.position.array as Float32Array;
-
-        for (let i = 0; i < this.particleCount; i += Math.floor(this.particleCount / rhythm)) {
-            const i3 = i * 3;
-            this.velocities[i3] *= 2;
-            this.velocities[i3 + 1] *= 2;
-            this.velocities[i3 + 2] *= 2;
-        }
-    }
-
-    private createSpiralPattern() {
-        // Create spiral galaxy-like motion
-        const positions = this.particles.attributes.position.array as Float32Array;
-
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            const angle = i / this.particleCount * Math.PI * 2;
-
-            this.velocities[i3] = Math.cos(angle) * 0.02;
-            this.velocities[i3 + 1] = Math.sin(angle) * 0.01;
-            this.velocities[i3 + 2] = Math.sin(angle) * 0.02;
-        }
-    }
-
-    private createKaleidoscopePattern() {
-        // Chaotic, colorful particle behavior
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            this.velocities[i3] = (Math.random() - 0.5) * 0.1;
-            this.velocities[i3 + 1] = (Math.random() - 0.5) * 0.1;
-            this.velocities[i3 + 2] = (Math.random() - 0.5) * 0.1;
-        }
-
-        // Rapid color cycling
-        this.particleMaterial.color.setHSL(Math.random(), 1, 0.5);
+        this.particleMaterial.size = 0.01 + spread * 0.03;
     }
 
     public setIntensity(intensity: number) {
         this.intensity = intensity;
-        this.particleMaterial.opacity = 0.8 * intensity;
-        this.particleMaterial.size = 0.1 * (0.5 + intensity);
+        this.particleMaterial.opacity = 0.5 + intensity * 0.4;
     }
 
     public update(deltaTime: number, elapsedTime: number) {
+        this.burstClock += deltaTime;
         const positions = this.particles.attributes.position.array as Float32Array;
+        const colors = this.particles.attributes.color.array as Float32Array;
+        const sizes = this.particles.attributes.size.array as Float32Array;
 
-        // Update particle positions and lifetimes
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
 
-            // Update positions
+            // Professional physics integration
             positions[i3] += this.velocities[i3] * this.intensity;
             positions[i3 + 1] += this.velocities[i3 + 1] * this.intensity;
             positions[i3 + 2] += this.velocities[i3 + 2] * this.intensity;
 
+            // Apply damping for natural feel
+            this.velocities[i3] *= 0.98;
+            this.velocities[i3 + 1] *= 0.98;
+            this.velocities[i3 + 2] *= 0.98;
+
             // Update lifetimes
-            this.lifetimes[i] -= deltaTime * 10;
+            this.lifetimes[i] -= deltaTime * 8;
 
-            // Reset particles that have died
+            // Professional respawn with fibonacci distribution
             if (this.lifetimes[i] <= 0) {
-                // Reset to center with random offset
-                positions[i3] = (Math.random() - 0.5) * 2;
-                positions[i3 + 1] = (Math.random() - 0.5) * 2;
-                positions[i3 + 2] = (Math.random() - 0.5) * 2;
+                const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+                const y = 1 - (Math.random()) * 2;
+                const radius = Math.sqrt(1 - y * y);
+                const theta = goldenAngle * i;
 
-                // Reset velocity
-                this.velocities[i3] = (Math.random() - 0.5) * 0.02;
-                this.velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
-                this.velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+                const sphereRadius = 0.8;
+                positions[i3] = Math.cos(theta) * radius * sphereRadius;
+                positions[i3 + 1] = y * sphereRadius;
+                positions[i3 + 2] = Math.sin(theta) * radius * sphereRadius;
 
-                // Reset lifetime
-                this.lifetimes[i] = Math.random() * 100;
+                this.velocities[i3] = 0;
+                this.velocities[i3 + 1] = 0;
+                this.velocities[i3 + 2] = 0;
+
+                this.lifetimes[i] = 50 + Math.random() * 100;
+                sizes[i] = 0.8 + Math.random() * 0.4;
             }
 
-            // Apply gravity/attraction to center
-            const centerAttraction = 0.0001 * this.intensity;
-            positions[i3] *= (1 - centerAttraction);
-            positions[i3 + 1] *= (1 - centerAttraction);
-            positions[i3 + 2] *= (1 - centerAttraction);
+            // Professional containment with smooth boundaries
+            const vesselBound = 1.8;
+            const currentDistance = Math.sqrt(
+                positions[i3] * positions[i3] +
+                positions[i3 + 1] * positions[i3 + 1] +
+                positions[i3 + 2] * positions[i3 + 2]
+            );
+
+            if (currentDistance > vesselBound) {
+                const wrapFactor = vesselBound / currentDistance * 0.95;
+                positions[i3] *= wrapFactor;
+                positions[i3 + 1] *= wrapFactor;
+                positions[i3 + 2] *= wrapFactor;
+            }
+
+            // Professional organic color evolution
+            const colorPhase = elapsedTime * 0.3 + i * 0.01;
+            const hue = (colorPhase * 0.1) % 1;
+            const saturation = 0.6 + Math.sin(colorPhase * 2) * 0.2;
+            const lightness = 0.5 + Math.sin(colorPhase * 1.7) * 0.1;
+
+            const color = new THREE.Color().setHSL(hue, saturation, lightness);
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
         }
 
         this.particles.attributes.position.needsUpdate = true;
+        this.particles.attributes.color.needsUpdate = true;
+        this.particles.attributes.size.needsUpdate = true;
 
-        // Rotate particle system
-        this.group.rotation.y += deltaTime * 0.1 * this.intensity;
-
-        // Color evolution
-        const hue = (elapsedTime * 0.2) % 1;
-        this.particleMaterial.color.setHSL(hue, 0.6, 0.5);
+        // Professional rotation with golden ratio
+        this.group.rotation.y += deltaTime * 0.1 * this.intensity * 0.618;
     }
 
     public reset() {
         this.group.rotation.set(0, 0, 0);
-        this.particleMaterial.color.setHex(0xffffff);
+        this.burstClock = 0;
+        this.burstPhase = 0;
 
-        // Reset all particles to center
         const positions = this.particles.attributes.position.array as Float32Array;
+        const colors = this.particles.attributes.color.array as Float32Array;
+        const sizes = this.particles.attributes.size.array as Float32Array;
+
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
-            positions[i3] = (Math.random() - 0.5) * 2;
-            positions[i3 + 1] = (Math.random() - 0.5) * 2;
-            positions[i3 + 2] = (Math.random() - 0.5) * 2;
-            this.lifetimes[i] = Math.random() * 100;
-        }
-        this.particles.attributes.position.needsUpdate = true;
-    }
 
-    // Conversation system methods
-    public getCurrentIntensity(): number {
-        return this.intensity;
-    }
+            // Reset to fibonacci distribution
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            const y = 1 - (i / (this.particleCount - 1)) * 2;
+            const radius = Math.sqrt(1 - y * y);
+            const theta = goldenAngle * i;
 
-    public getCurrentEmissionRate(): number {
-        return this.emissionRate;
-    }
+            positions[i3] = Math.cos(theta) * radius * 0.8;
+            positions[i3 + 1] = y * 0.8;
+            positions[i3 + 2] = Math.sin(theta) * radius * 0.8;
 
-    public setEmissionRate(rate: number) {
-        this.emissionRate = rate;
-        this.particleMaterial.size = 2 * rate; // Larger particles with higher emission
-    }
+            this.velocities[i3] = 0;
+            this.velocities[i3 + 1] = 0;
+            this.velocities[i3 + 2] = 0;
 
-    public setGeometricAlignment(alignment: number) {
-        this.geometricAlignment = alignment;
+            this.lifetimes[i] = 50 + Math.random() * 100;
+            sizes[i] = 0.8 + Math.random() * 0.4;
 
-        // Apply geometric order to particle positions
-        const positions = this.particles.attributes.position.array as Float32Array;
-        if (alignment > 1.5) {
-            // High alignment - create geometric patterns
-            for (let i = 0; i < this.particleCount; i++) {
-                const i3 = i * 3;
-                const angle = (i / this.particleCount) * Math.PI * 2;
-                const radius = 2 + Math.sin(angle * 3) * 0.5;
-
-                positions[i3] = Math.cos(angle) * radius;
-                positions[i3 + 1] = Math.sin(angle) * radius;
-                positions[i3 + 2] = Math.sin(angle * 2) * 0.5;
-            }
-            this.particles.attributes.position.needsUpdate = true;
-        }
-    }
-
-    public createComplementaryPattern(trigger: string, response: string) {
-        // Create visual pattern based on archetype relationship
-        const positions = this.particles.attributes.position.array as Float32Array;
-
-        // Different patterns for different archetype pairs
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            const t = i / this.particleCount;
-
-            if (trigger === 'russell' && response === 'blake') {
-                // Sacred geometry meets mysticism - spiral pattern
-                const angle = t * Math.PI * 8;
-                const radius = t * 3;
-                positions[i3] = Math.cos(angle) * radius;
-                positions[i3 + 1] = Math.sin(angle) * radius;
-                positions[i3 + 2] = Math.sin(t * Math.PI * 4) * 2;
-            } else if (trigger === 'tesla' && response === 'einstein') {
-                // Electricity meets relativity - wave interference
-                const wave1 = Math.sin(t * Math.PI * 6) * 2;
-                const wave2 = Math.sin(t * Math.PI * 9) * 1.5;
-                positions[i3] = t * 4 - 2;
-                positions[i3 + 1] = wave1 + wave2;
-                positions[i3 + 2] = wave1 - wave2;
-            } else {
-                // Default complementary pattern
-                const angle = t * Math.PI * 4;
-                positions[i3] = Math.cos(angle) * 2;
-                positions[i3 + 1] = Math.sin(angle) * 2;
-                positions[i3 + 2] = Math.sin(t * Math.PI * 2) * 1;
-            }
+            // Reset to professional color scheme
+            const hue = (i / this.particleCount) * 0.6 + 0.15;
+            const color = new THREE.Color().setHSL(hue, 0.8, 0.6);
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
         }
 
         this.particles.attributes.position.needsUpdate = true;
-        this.particleMaterial.color.setHSL(0.6, 0.8, 0.7); // Complementary color
+        this.particles.attributes.color.needsUpdate = true;
+        this.particles.attributes.size.needsUpdate = true;
     }
 
-    public triggerChaos() {
-        // Create chaotic particle behavior
-        this.emissionRate = 3.0; // High emission
-        this.particleMaterial.size = 4;
-        this.particleMaterial.color.setHSL(0.0, 1.0, 0.6); // Chaotic red
-
-        // Randomize all particle positions and velocities
-        const positions = this.particles.attributes.position.array as Float32Array;
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            positions[i3] = (Math.random() - 0.5) * 10;
-            positions[i3 + 1] = (Math.random() - 0.5) * 10;
-            positions[i3 + 2] = (Math.random() - 0.5) * 10;
-
-            // Chaotic velocities
-            this.velocities[i3] = (Math.random() - 0.5) * 0.2;
-            this.velocities[i3 + 1] = (Math.random() - 0.5) * 0.2;
-            this.velocities[i3 + 2] = (Math.random() - 0.5) * 0.2;
-        }
-
-        this.particles.attributes.position.needsUpdate = true;
-    }
+    // Legacy methods for compatibility
+    public getCurrentIntensity(): number { return this.intensity; }
+    public getCurrentEmissionRate(): number { return this.emissionRate; }
+    public setEmissionRate(rate: number) { this.emissionRate = rate; }
+    public setGeometricAlignment(alignment: number) { this.geometricAlignment = alignment; }
+    public triggerLeadBellyPattern() { this.createProfessionalBurst(0.8); }
+    public triggerHawkingPattern() { this.createProfessionalBurst(1.0); }
+    public triggerPrankstersPattern() { this.createProfessionalBurst(1.2); }
+    public createComplementaryPattern(trigger: string, response: string) { this.createProfessionalBurst(0.9); }
+    public triggerChaos() { this.createProfessionalBurst(1.5); }
+    public triggerMorph() { this.isMorphing = true; this.createProfessionalBurst(1.0); }
+    public getMorphingState() { return { isMorphing: this.isMorphing, morphState: this.morphState, morphProgress: this.morphProgress }; }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "universal-signal-engine",
+  "name": "mmpa-midi-morphing-power-arranger",
   "version": "1.0.0",
-  "description": "A performance instrument, a living myth, a library of thinkers",
+  "description": "Professional MIDI-driven audiovisual performance interface with real-time morphing",
   "type": "module",
   "scripts": {
     "dev": "vite",
