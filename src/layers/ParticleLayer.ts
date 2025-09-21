@@ -365,4 +365,8 @@ export class ParticleLayer {
     public triggerChaos() { this.createProfessionalBurst(1.5); }
     public triggerMorph() { this.isMorphing = true; this.createProfessionalBurst(1.0); }
     public getMorphingState() { return { isMorphing: this.isMorphing, morphState: this.morphState, morphProgress: this.morphProgress }; }
+
+    public setVisible(visible: boolean) {
+        this.group.visible = visible;
+    }
 }

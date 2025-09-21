@@ -36,6 +36,7 @@ let vesselMotionEnabled = false;
 const morphBoxToggle = document.getElementById('morph-box-toggle')!;
 const morphBoxPanel = document.getElementById('morph-box-panel')!;
 const morphCanvasContainer = document.getElementById('morph-canvas-container')!;
+const midiRoutingText = document.getElementById('midi-routing-text')!;
 let morphBoxEnabled = false;
 
 vesselMotionToggle.addEventListener('click', () => {
@@ -66,9 +67,13 @@ morphBoxToggle.addEventListener('click', () => {
     if (morphBoxEnabled) {
         morphBoxPanel.classList.add('active');
         engine.enableMorphBox(morphCanvasContainer);
+        midiRoutingText.textContent = 'Morph Box Panel (Box ON)';
+        midiRoutingText.style.color = '#00ff80';
     } else {
         morphBoxPanel.classList.remove('active');
         engine.disableMorphBox();
+        midiRoutingText.textContent = 'Main Scene (Box OFF)';
+        midiRoutingText.style.color = 'rgba(255,255,255,0.6)';
     }
 
     morphBoxToggle.textContent = morphBoxEnabled ?

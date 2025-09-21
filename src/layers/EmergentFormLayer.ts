@@ -397,4 +397,8 @@ export class EmergentFormLayer {
             compressionRatio: 0.85
         };
     }
+
+    public setVisible(visible: boolean) {
+        this.group.visible = visible;
+    }
 }

@@ -233,4 +233,8 @@ export class VesselLayer {
     public getMotionState(): boolean {
         return this.isInMotion;
     }
+
+    public setVisible(visible: boolean) {
+        this.group.visible = visible;
+    }
 }

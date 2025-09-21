@@ -160,8 +160,14 @@ export class MMPAEngine {
             this.particleLayer.update(deltaTime, elapsedTime);
             this.shadowLayer.update(deltaTime, elapsedTime);
 
-            // Render main scene
+            // Render main scene (hide morph shapes if box is enabled)
+            if (this.morphBoxEnabled) {
+                this.hideMainSceneMorphShapes();
+            }
             this.renderer.render(this.scene, this.camera);
+            if (this.morphBoxEnabled) {
+                this.showMainSceneMorphShapes();
+            }
 
             // Render morph box if enabled
             if (this.morphBoxEnabled && this.morphBoxRenderer && this.morphBoxCamera) {
@@ -284,6 +290,93 @@ export class MMPAEngine {
     private handleMIDICC(ccNumber: number, value: number) {
         const normalizedValue = value / 127;
 
+        // Route MIDI CC to morph box if enabled, otherwise to main scene
+        if (this.morphBoxEnabled) {
+            this.handleMorphBoxMIDICC(ccNumber, normalizedValue);
+        } else {
+            this.handleMainSceneMIDICC(ccNumber, normalizedValue);
+        }
+    }
+
+    private handleMorphBoxMIDICC(ccNumber: number, normalizedValue: number) {
+        // MIDI CC controls specifically for morph box panel
+        switch (ccNumber) {
+            case 1: // Modulation wheel - box camera rotation (horizontal)
+                if (this.morphBoxCamera) {
+                    const horizontalAngle = normalizedValue * Math.PI * 2;
+                    const distance = 5; // Fixed distance
+                    const currentVerticalAngle = Math.asin(this.morphBoxCamera.position.y / this.morphBoxCamera.position.length());
+
+                    this.morphBoxCamera.position.x = Math.sin(horizontalAngle) * Math.cos(currentVerticalAngle) * distance;
+                    this.morphBoxCamera.position.z = Math.cos(horizontalAngle) * Math.cos(currentVerticalAngle) * distance;
+                    this.morphBoxCamera.position.y = Math.sin(currentVerticalAngle) * distance;
+                    this.morphBoxCamera.lookAt(0, 0, 0);
+                }
+                break;
+            case 2: // Modulation wheel 2 - box camera vertical rotation
+                if (this.morphBoxCamera) {
+                    const verticalAngle = (normalizedValue - 0.5) * Math.PI; // ±90 degrees
+                    const distance = 5; // Fixed distance
+                    const currentHorizontalAngle = Math.atan2(this.morphBoxCamera.position.x, this.morphBoxCamera.position.z);
+
+                    this.morphBoxCamera.position.y = Math.sin(verticalAngle) * distance;
+                    this.morphBoxCamera.position.x = Math.sin(currentHorizontalAngle) * Math.cos(verticalAngle) * distance;
+                    this.morphBoxCamera.position.z = Math.cos(currentHorizontalAngle) * Math.cos(verticalAngle) * distance;
+                    this.morphBoxCamera.lookAt(0, 0, 0);
+                }
+                break;
+            case 3: // CC3 - box camera roll rotation (z-axis)
+                if (this.morphBoxCamera) {
+                    const rollAngle = normalizedValue * Math.PI * 2; // 0-360 degrees
+                    const up = new THREE.Vector3(0, 1, 0);
+                    const forward = new THREE.Vector3(0, 0, 0).sub(this.morphBoxCamera.position).normalize();
+                    const right = new THREE.Vector3().crossVectors(forward, up).normalize();
+                    const newUp = new THREE.Vector3().crossVectors(right, forward).normalize();
+
+                    // Apply roll rotation around the forward axis
+                    const rollMatrix = new THREE.Matrix4().makeRotationAxis(forward, rollAngle);
+                    newUp.applyMatrix4(rollMatrix);
+
+                    this.morphBoxCamera.up.copy(newUp);
+                    this.morphBoxCamera.lookAt(0, 0, 0);
+                }
+                break;
+            case 7: // Volume - box scene intensity only
+                this.vesselLayer.setIntensity(normalizedValue);
+                this.emergentFormLayer.setIntensity(normalizedValue);
+                this.particleLayer.setIntensity(normalizedValue);
+                this.shadowLayer.setIntensity(normalizedValue);
+                break;
+            case 10: // Pan - form selection (affects box only)
+                if (normalizedValue < 0.33) {
+                    this.morphToForm(0);
+                } else if (normalizedValue < 0.66) {
+                    this.morphToForm(1);
+                } else {
+                    this.morphToForm(2);
+                }
+                break;
+            case 74: // Filter cutoff - box camera zoom
+                if (this.morphBoxCamera) {
+                    const zoomDistance = 2 + (1 - normalizedValue) * 6; // 2-8 range
+                    this.morphBoxCamera.position.setLength(zoomDistance);
+                }
+                break;
+            case 8: // CC8 - Acid hue shift
+                this.acidHueShift = normalizedValue * 360; // 0-360 degrees
+                this.updateAcidEffects();
+                break;
+            case 9: // CC9 - Acid saturation boost
+                this.acidSaturation = 1 + normalizedValue * 2; // 1-3x saturation
+                this.updateAcidEffects();
+                break;
+        }
+
+        this.updateActiveThinker(`Morph box CC${ccNumber}: ${Math.round(normalizedValue * 100)}%`);
+    }
+
+    private handleMainSceneMIDICC(ccNumber: number, normalizedValue: number) {
+        // Original MIDI CC controls for main scene
         switch (ccNumber) {
             case 1: // Modulation wheel - portal warp
                 this.setPortalWarp(normalizedValue);
@@ -393,6 +486,10 @@ export class MMPAEngine {
     private morphBoxCamera: THREE.PerspectiveCamera | null = null;
     private morphBoxEnabled = false;
 
+    // Acid effects for morph box
+    private acidHueShift = 0;
+    private acidSaturation = 1;
+
     public enableMorphBox(container: HTMLElement) {
         if (this.morphBoxEnabled) return;
 
@@ -440,5 +537,32 @@ export class MMPAEngine {
 
         this.updateActiveThinker('Morph box disabled');
         console.log('📦 Morph box renderer removed');
+    }
+
+    private updateAcidEffects() {
+        if (!this.morphBoxRenderer) return;
+
+        // Apply CSS filters to the morph box canvas for acid effects
+        const canvas = this.morphBoxRenderer.domElement;
+        canvas.style.filter = `
+            hue-rotate(${this.acidHueShift}deg)
+            saturate(${this.acidSaturation})
+            contrast(${1 + this.acidSaturation * 0.2})
+            brightness(${1 + this.acidSaturation * 0.1})
+        `;
+    }
+
+    private hideMainSceneMorphShapes() {
+        // Temporarily hide morph shapes from main scene
+        this.vesselLayer.setVisible(false);
+        this.emergentFormLayer.setVisible(false);
+        this.particleLayer.setVisible(false);
+    }
+
+    private showMainSceneMorphShapes() {
+        // Restore morph shapes to main scene
+        this.vesselLayer.setVisible(true);
+        this.emergentFormLayer.setVisible(true);
+        this.particleLayer.setVisible(true);
     }
 }
