@@ -78,12 +78,11 @@ function updateModeSpecificUIs(mode: string) {
 const vesselMotionToggle = document.getElementById('vessel-motion-toggle')!;
 let vesselMotionEnabled = false;
 
-// Morph box toggle
-const morphBoxToggle = document.getElementById('morph-box-toggle')!;
+// Morph box (always enabled)
 const morphBoxPanel = document.getElementById('morph-box-panel')!;
 const morphCanvasContainer = document.getElementById('morph-canvas-container')!;
 const midiRoutingText = document.getElementById('midi-routing-text')!;
-let morphBoxEnabled = false;
+let morphBoxEnabled = true; // Always enabled
 
 vesselMotionToggle.addEventListener('click', () => {
     vesselMotionEnabled = !vesselMotionEnabled;
@@ -106,38 +105,37 @@ vesselMotionToggle.addEventListener('click', () => {
         'none';
 });
 
-// Morph box toggle functionality
-morphBoxToggle.addEventListener('click', () => {
-    morphBoxEnabled = !morphBoxEnabled;
+// Initialize morph box as enabled by default
+engine.enableMorphBox(morphCanvasContainer);
+midiRoutingText.textContent = 'Morph Box Panel (Always ON)';
+midiRoutingText.style.color = '#00ff80';
 
-    if (morphBoxEnabled) {
-        morphBoxPanel.classList.add('active');
-        engine.enableMorphBox(morphCanvasContainer);
-        midiRoutingText.textContent = 'Morph Box Panel (Box ON)';
-        midiRoutingText.style.color = '#00ff80';
-    } else {
-        morphBoxPanel.classList.remove('active');
-        engine.disableMorphBox();
-        midiRoutingText.textContent = 'Main Scene (Box OFF)';
-        midiRoutingText.style.color = 'rgba(255,255,255,0.6)';
+// Click the toolbar's Morph Box button to show the panel
+setTimeout(() => {
+    const toolbarMorphBoxButton = document.getElementById('toggle-morph-box');
+    if (toolbarMorphBoxButton) {
+        toolbarMorphBoxButton.click();
     }
+}, 200);
 
-    morphBoxToggle.textContent = morphBoxEnabled ?
-        '📦 Morph Box: ON' :
-        '📦 Morph Box: OFF';
+// Morph box collapse functionality
+const morphBoxCollapse = document.getElementById('morph-box-collapse')!;
+const morphBoxHeader = document.getElementById('morph-box-header')!;
+let morphBoxCollapsed = false;
 
-    morphBoxToggle.style.background = morphBoxEnabled ?
-        'linear-gradient(135deg, #2196f3, #9c27b0)' :
-        'rgba(255, 255, 255, 0.05)';
+morphBoxHeader.addEventListener('click', () => {
+    morphBoxCollapsed = !morphBoxCollapsed;
 
-    morphBoxToggle.style.borderColor = morphBoxEnabled ?
-        'transparent' :
-        'rgba(255, 255, 255, 0.1)';
-
-    morphBoxToggle.style.boxShadow = morphBoxEnabled ?
-        '0 4px 16px rgba(33, 150, 243, 0.3)' :
-        'none';
+    if (morphBoxCollapsed) {
+        morphBoxPanel.classList.add('collapsed');
+        morphBoxCollapse.textContent = '▶';
+    } else {
+        morphBoxPanel.classList.remove('collapsed');
+        morphBoxCollapse.textContent = '▼';
+    }
 });
+
+// Morph box is now always enabled - no toggle needed
 
 // Controls collapse/expand functionality - now completely hides panel
 const controlsToggle = document.getElementById('controls-toggle')!;

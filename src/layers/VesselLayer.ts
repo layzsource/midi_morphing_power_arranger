@@ -19,8 +19,8 @@ export class VesselLayer {
     }
 
     private initGeometry() {
-        // Create wireframe cube with rings in each face
-        // Each ring's edges touch all four sides of its square face
+        // Create 6 rings in perfect cube formation per VESSEL_SCAFFOLDING_COMPLETE.md
+        // No visible cube wireframe - pure ring geometry maintaining cubic spatial relationship
 
         const cubeSize = 3.0;
         const halfCube = cubeSize / 2;
@@ -29,9 +29,7 @@ export class VesselLayer {
         const tubularSegments = 32;
         const radialSegments = 8;
 
-        // 1. Wireframe cube removed - now just the 6 rings
-
-        // 2. Ring material
+        // Ring material - iridescent cyan tubes
         const ringMaterial = new THREE.MeshPhysicalMaterial({
             color: 0x00ffff,
             transparent: true,
@@ -47,17 +45,7 @@ export class VesselLayer {
             iridescenceThicknessRange: [100, 400]
         });
 
-        // 3. Triangle facet material
-        const facetMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x004466,
-            transparent: true,
-            opacity: 0.4,
-            roughness: 0.2,
-            metalness: 0.5,
-            side: THREE.DoubleSide
-        });
-
-        // 4. Create rings for all 6 faces of the cube
+        // Create ring geometry using ellipse curve
         const ellipse = new THREE.EllipseCurve(
             0, 0,
             ringRadius, ringRadius,
@@ -78,82 +66,51 @@ export class VesselLayer {
             true
         );
 
-        // Front face ring (YZ plane)
+        // Create 6 rings for all cube faces
+
+        // Front face ring (YZ plane at Z = +halfCube)
         const frontRing = new THREE.Mesh(tubeGeometry, ringMaterial);
         frontRing.position.set(0, 0, halfCube);
         frontRing.rotation.set(0, 0, 0);
         this.rings.push(frontRing);
         this.group.add(frontRing);
 
-        // Back face ring (YZ plane)
+        // Back face ring (YZ plane at Z = -halfCube)
         const backRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
         backRing.position.set(0, 0, -halfCube);
         backRing.rotation.set(0, 0, 0);
         this.rings.push(backRing);
         this.group.add(backRing);
 
-        // Right face ring (XZ plane)
+        // Right face ring (XZ plane at X = +halfCube)
         const rightRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
         rightRing.position.set(halfCube, 0, 0);
         rightRing.rotation.set(0, Math.PI/2, 0);
         this.rings.push(rightRing);
         this.group.add(rightRing);
 
-        // Left face ring (XZ plane)
+        // Left face ring (XZ plane at X = -halfCube)
         const leftRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
         leftRing.position.set(-halfCube, 0, 0);
         leftRing.rotation.set(0, Math.PI/2, 0);
         this.rings.push(leftRing);
         this.group.add(leftRing);
 
-        // Top face ring (XY plane)
+        // Top face ring (XY plane at Y = +halfCube)
         const topRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
         topRing.position.set(0, halfCube, 0);
         topRing.rotation.set(Math.PI/2, 0, 0);
         this.rings.push(topRing);
         this.group.add(topRing);
 
-        // Bottom face ring (XY plane)
+        // Bottom face ring (XY plane at Y = -halfCube)
         const bottomRing = new THREE.Mesh(tubeGeometry, ringMaterial.clone());
         bottomRing.position.set(0, -halfCube, 0);
         bottomRing.rotation.set(Math.PI/2, 0, 0);
         this.rings.push(bottomRing);
         this.group.add(bottomRing);
 
-        // 5. Create 4 triangle facets connecting ring to front face corners
-        const frontFaceCorners = [
-            new THREE.Vector3(-halfCube, -halfCube, halfCube), // Bottom left
-            new THREE.Vector3(halfCube, -halfCube, halfCube),  // Bottom right
-            new THREE.Vector3(halfCube, halfCube, halfCube),   // Top right
-            new THREE.Vector3(-halfCube, halfCube, halfCube)   // Top left
-        ];
-
-        const ringTouchPoints = [
-            new THREE.Vector3(0, -ringRadius, halfCube),      // Bottom touch point
-            new THREE.Vector3(ringRadius, 0, halfCube),       // Right touch point
-            new THREE.Vector3(0, ringRadius, halfCube),       // Top touch point
-            new THREE.Vector3(-ringRadius, 0, halfCube)       // Left touch point
-        ];
-
-        for (let i = 0; i < 4; i++) {
-            const triangleGeometry = new THREE.BufferGeometry();
-            const vertices = new Float32Array([
-                // Ring touch point
-                ringTouchPoints[i].x, ringTouchPoints[i].y, ringTouchPoints[i].z,
-                // Corner
-                frontFaceCorners[i].x, frontFaceCorners[i].y, frontFaceCorners[i].z,
-                // Next corner
-                frontFaceCorners[(i + 1) % 4].x, frontFaceCorners[(i + 1) % 4].y, frontFaceCorners[(i + 1) % 4].z
-            ]);
-
-            triangleGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-            triangleGeometry.computeVertexNormals();
-
-            const triangle = new THREE.Mesh(triangleGeometry, facetMaterial.clone());
-            this.triangleFacets.push(triangle);
-            this.group.add(triangle);
-        }
-
+        // Position the vessel scaffolding at origin
         this.group.position.set(0, 0, 0);
     }
 

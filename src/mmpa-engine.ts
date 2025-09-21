@@ -161,17 +161,30 @@ export class MMPAEngine {
             this.shadowLayer.update(deltaTime, elapsedTime);
 
             // Render main scene (hide morph shapes if box is enabled)
+            // Hide all morph shapes from main scene when morph box is enabled
             if (this.morphBoxEnabled) {
-                this.hideMainSceneMorphShapes();
-            }
-            this.renderer.render(this.scene, this.camera);
-            if (this.morphBoxEnabled) {
-                this.showMainSceneMorphShapes();
+                this.vesselLayer.setVisible(false);
+                this.emergentFormLayer.setVisible(false);
+                this.particleLayer.setVisible(false);
+            } else {
+                // When morph box disabled, show everything in main scene except vessel
+                this.vesselLayer.setVisible(false); // Vessel never in main scene
+                this.emergentFormLayer.setVisible(true);
+                this.particleLayer.setVisible(true);
             }
 
-            // Render morph box if enabled
+            this.renderer.render(this.scene, this.camera);
+
+            // Render morph box if enabled - all morph shapes appear here
             if (this.morphBoxEnabled && this.morphBoxRenderer && this.morphBoxCamera) {
+                this.vesselLayer.setVisible(true);
+                this.emergentFormLayer.setVisible(true);
+                this.particleLayer.setVisible(true);
                 this.morphBoxRenderer.render(this.scene, this.morphBoxCamera);
+                // Hide them again after rendering
+                this.vesselLayer.setVisible(false);
+                this.emergentFormLayer.setVisible(false);
+                this.particleLayer.setVisible(false);
             }
         } catch (error) {
             console.error('❌ Animation loop error:', error);
