@@ -237,4 +237,28 @@ export class VesselLayer {
     public setVisible(visible: boolean) {
         this.group.visible = visible;
     }
+
+    public rotateX(angle: number) {
+        this.group.rotation.x += angle;
+    }
+
+    public rotateY(angle: number) {
+        this.group.rotation.y += angle;
+    }
+
+    public rotateZ(angle: number) {
+        this.group.rotation.z += angle;
+    }
+
+    public setRotation(x: number, y: number, z: number) {
+        this.group.rotation.set(x, y, z);
+    }
+
+    public getRotation() {
+        return {
+            x: this.group.rotation.x,
+            y: this.group.rotation.y,
+            z: this.group.rotation.z
+        };
+    }
 }

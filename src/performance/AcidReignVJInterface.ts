@@ -151,16 +151,17 @@ export class AcidReignVJInterface {
         `;
 
         const collapseButton = document.createElement('button');
-        collapseButton.textContent = '⬇️';
+        collapseButton.textContent = '✕';
+        collapseButton.title = 'Hide panel (use toolbar to show again)';
         collapseButton.className = 'vj-button';
         collapseButton.style.cssText = `
             padding: 4px 8px;
-            background: rgba(255, 0, 255, 0.2);
-            border: 1px solid #ff00ff;
-            color: #ff00ff;
+            background: rgba(255, 100, 100, 0.2);
+            border: 1px solid #ff6464;
+            color: #ff6464;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 10px;
         `;
 
         titleBar.appendChild(title);
@@ -193,12 +194,14 @@ export class AcidReignVJInterface {
 
         vjContainer.appendChild(contentWrapper);
 
-        // Add collapse functionality
-        let collapsed = false;
+        // Add close functionality - hide entire panel
         collapseButton.onclick = () => {
-            collapsed = !collapsed;
-            contentWrapper.style.display = collapsed ? 'none' : 'block';
-            collapseButton.textContent = collapsed ? '⬆️' : '⬇️';
+            vjContainer.style.display = 'none';
+
+            // Trigger a global event so the toolbar can update
+            window.dispatchEvent(new CustomEvent('panelClosed', {
+                detail: { selector: '.acid-reign-vj-interface' }
+            }));
         };
 
         // Add CSS animations

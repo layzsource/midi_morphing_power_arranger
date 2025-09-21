@@ -204,6 +204,75 @@ export class MMPAEngine {
         this.updateActiveThinker(`Shadow morphing: ${enabled ? 'ON' : 'OFF'}`);
     }
 
+    public rotateVessel(axis: 'x' | 'y' | 'z', angle: number) {
+        switch (axis) {
+            case 'x':
+                this.vesselLayer.rotateX(angle);
+                break;
+            case 'y':
+                this.vesselLayer.rotateY(angle);
+                break;
+            case 'z':
+                this.vesselLayer.rotateZ(angle);
+                break;
+        }
+    }
+
+    public setVesselRotation(x: number, y: number, z: number) {
+        this.vesselLayer.setRotation(x, y, z);
+    }
+
+    public getVesselRotation() {
+        return this.vesselLayer.getRotation();
+    }
+
+    public processMIDIMessage(event: { data: number[] }) {
+        this.handleMIDIMessage(event);
+    }
+
+    public processAudioAnalysis(analysis: { frequency: Float32Array, waveform: Float32Array, rms: number, peak: number, pitch: number }) {
+        // Convert audio analysis to visual parameters
+        const normalizedRMS = Math.min(analysis.rms * 10, 1.0); // Scale RMS for visual intensity
+        const normalizedPeak = Math.min(analysis.peak, 1.0);
+
+        // Drive vessel intensity with audio levels
+        this.vesselLayer.setIntensity(0.3 + normalizedRMS * 0.7);
+
+        // Use frequency data to drive particle effects
+        if (analysis.frequency && analysis.frequency.length > 0) {
+            const lowFreq = this.getFrequencyBand(analysis.frequency, 0, 0.1); // Bass
+            const midFreq = this.getFrequencyBand(analysis.frequency, 0.1, 0.5); // Mids
+            const highFreq = this.getFrequencyBand(analysis.frequency, 0.5, 1.0); // Highs
+
+            // Map frequency bands to visual layers
+            this.particleLayer.setIntensity(lowFreq);
+            this.emergentFormLayer.setMorphProgress(midFreq);
+
+            // Use pitch for vessel rotation speed if in motion
+            if (this.vesselLayer.getMotionState() && analysis.pitch > 0) {
+                const pitchNormalized = Math.log(analysis.pitch / 440) / Math.log(2); // Octaves from A4
+                this.vesselLayer.setPulseRate(1.0 + pitchNormalized * 0.5);
+            }
+        }
+    }
+
+    private getFrequencyBand(frequencyData: Float32Array, startPercent: number, endPercent: number): number {
+        const startIndex = Math.floor(startPercent * frequencyData.length);
+        const endIndex = Math.floor(endPercent * frequencyData.length);
+
+        let sum = 0;
+        let count = 0;
+
+        for (let i = startIndex; i < endIndex && i < frequencyData.length; i++) {
+            // Convert from dB to linear scale
+            const linearValue = Math.pow(10, frequencyData[i] / 20);
+            sum += linearValue;
+            count++;
+        }
+
+        return count > 0 ? Math.min(sum / count, 1.0) : 0;
+    }
+
     public async handleKeyPress(key: string) {
         switch (key) {
             case '1':

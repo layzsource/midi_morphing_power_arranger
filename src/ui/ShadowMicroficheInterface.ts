@@ -21,6 +21,8 @@ export class ShadowMicroficheInterface {
     private engine: any; // Reference to main engine
     private controls: MicroficheControls;
     private updateCallback?: (data: any) => void;
+    private interfaceElement: HTMLElement | null = null;
+    private isVisible: boolean = true;
 
     // UI Elements
     private shadowDataDisplay: HTMLElement;
@@ -87,15 +89,16 @@ export class ShadowMicroficheInterface {
         `;
 
         const collapseButton = document.createElement('button');
-        collapseButton.textContent = '⬇️';
+        collapseButton.textContent = '✕';
+        collapseButton.title = 'Hide panel (use toolbar to show again)';
         collapseButton.style.cssText = `
-            background: rgba(0, 255, 255, 0.2);
-            border: 1px solid #00ffff;
-            color: #00ffff;
+            background: rgba(255, 100, 100, 0.2);
+            border: 1px solid #ff6464;
+            color: #ff6464;
             padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 10px;
         `;
 
         titleBar.appendChild(title);
@@ -126,13 +129,17 @@ export class ShadowMicroficheInterface {
         collapseButton.textContent = '⬆️'; // Start with up arrow
 
         collapseButton.onclick = () => {
-            collapsed = !collapsed;
-            contentWrapper.style.display = collapsed ? 'none' : 'block';
-            collapseButton.textContent = collapsed ? '⬆️' : '⬇️';
-            interfaceContainer.style.height = collapsed ? 'auto' : 'auto';
+            // Hide the entire panel instead of just collapsing
+            interfaceContainer.style.display = 'none';
+
+            // Trigger a global event so the toolbar can update
+            window.dispatchEvent(new CustomEvent('panelClosed', {
+                detail: { selector: '.shadow-microfiche-interface' }
+            }));
         };
 
         this.container.appendChild(interfaceContainer);
+        this.interfaceElement = interfaceContainer;
     }
 
     private createControlPanel(): HTMLElement {
@@ -550,5 +557,24 @@ export class ShadowMicroficheInterface {
 
     public getCurrentControls(): MicroficheControls {
         return { ...this.controls };
+    }
+
+    public toggleVisibility(): boolean {
+        this.isVisible = !this.isVisible;
+        if (this.interfaceElement) {
+            this.interfaceElement.style.display = this.isVisible ? 'block' : 'none';
+        }
+        return this.isVisible;
+    }
+
+    public setVisibility(visible: boolean): void {
+        this.isVisible = visible;
+        if (this.interfaceElement) {
+            this.interfaceElement.style.display = this.isVisible ? 'block' : 'none';
+        }
+    }
+
+    public isInterfaceVisible(): boolean {
+        return this.isVisible;
     }
 }

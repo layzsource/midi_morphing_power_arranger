@@ -90,21 +90,26 @@
             top: 32px;
             left: 32px;
             color: #ffffff;
-            z-index: 100;
+            z-index: 50;
             background: rgba(3, 7, 18, 0.9);
             backdrop-filter: blur(40px) saturate(150%);
             -webkit-backdrop-filter: blur(40px) saturate(150%);
-            padding: 24px;
-            border-radius: 24px;
+            padding: 16px;
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 13px;
+            font-size: 12px;
             box-shadow:
                 0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
                 0 1px 3px 0 rgba(0, 0, 0, 0.4),
                 0 8px 24px 0 rgba(0, 0, 0, 0.5),
                 0 32px 80px 0 rgba(13, 71, 161, 0.15);
-            max-width: 320px;
+            max-width: 280px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #controls.collapsed {
+            padding: 12px;
+            max-width: 200px;
         }
 
         #controls:hover {
@@ -169,9 +174,9 @@
                 padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 12px;
+                font-size: 10px;
                 transition: all 0.2s ease;
-            ">⬇️</button>
+            " title="Hide panel (use toolbar to show again)">✕</button>
         </div>
         <div id="controls-content">
 
@@ -216,7 +221,7 @@
                 <div>V VJ Interface</div><div>← → Portal</div>
             </div>
             <div style="margin: 8px 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px;">
-                <strong>Space</strong> Morph • <strong>H</strong> Hide UI • <strong>V</strong> VJ Mode • <strong>R</strong> Reset
+                <strong>Arrows</strong> Rotate • <strong>A</strong> Audio Input • <strong>K</strong> Virtual MIDI • <strong>H</strong> Hide UI
             </div>
             <div id="midi-routing-indicator" style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 10px; color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.05);">
                 <div style="font-weight: 500; margin-bottom: 4px;">MIDI CC Routing:</div>
