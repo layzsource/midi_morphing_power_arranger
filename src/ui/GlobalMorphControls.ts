@@ -99,10 +99,21 @@ export class GlobalMorphControls {
 
         console.log(`Applying global morph: ${targetShape} @ ${morphAmount * 100}%`);
 
-        // Get the skybox layer and apply morphing
-        const skyboxLayer = this.engine.getSkyboxLayer();
-        if (skyboxLayer && skyboxLayer.morphPanelSquareToCircle) {
-            skyboxLayer.morphPanelSquareToCircle(morphAmount);
+        // Route through ParamGraph for MIDI/touch coexistence
+        const paramGraphIntegration = this.engine.getParamGraphIntegration();
+        if (paramGraphIntegration) {
+            // Get active viewport to ensure isolation
+            const activeViewport = paramGraphIntegration.getActiveViewport();
+            const morphPath = `viewport/${activeViewport}/morph/axis_blend`;
+
+            // Use touch input to avoid conflicts with MIDI
+            paramGraphIntegration.setTouchInput(morphPath, morphAmount);
+        } else {
+            // Fallback to direct control if ParamGraph not available
+            const skyboxLayer = this.engine.getSkyboxLayer();
+            if (skyboxLayer && skyboxLayer.morphPanelSquareToCircle) {
+                skyboxLayer.morphPanelSquareToCircle(morphAmount);
+            }
         }
 
         // Update engine with current morph state

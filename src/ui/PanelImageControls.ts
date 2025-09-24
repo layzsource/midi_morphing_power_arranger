@@ -12,12 +12,21 @@ export class PanelImageControls {
     private eastImageInput!: HTMLInputElement;
     private westImageInput!: HTMLInputElement;
 
+    // Panel fit selectors
+    private floorFitSelect!: HTMLSelectElement;
+    private ceilingFitSelect!: HTMLSelectElement;
+    private northFitSelect!: HTMLSelectElement;
+    private southFitSelect!: HTMLSelectElement;
+    private eastFitSelect!: HTMLSelectElement;
+    private westFitSelect!: HTMLSelectElement;
+
     // Control buttons
     private clearAllImagesButton!: HTMLButtonElement;
     private resetToCubeButton!: HTMLButtonElement;
 
     // Panel mapping
     private panelInputs: { [key: string]: HTMLInputElement } = {};
+    private panelFitSelectors: { [key: string]: HTMLSelectElement } = {};
 
     constructor(container: HTMLElement, engine: MMPAEngine) {
         this.container = container;
@@ -35,6 +44,14 @@ export class PanelImageControls {
         this.eastImageInput = document.getElementById('east-image') as HTMLInputElement;
         this.westImageInput = document.getElementById('west-image') as HTMLInputElement;
 
+        // Get panel fit selectors
+        this.floorFitSelect = document.getElementById('floor-fit') as HTMLSelectElement;
+        this.ceilingFitSelect = document.getElementById('ceiling-fit') as HTMLSelectElement;
+        this.northFitSelect = document.getElementById('north-fit') as HTMLSelectElement;
+        this.southFitSelect = document.getElementById('south-fit') as HTMLSelectElement;
+        this.eastFitSelect = document.getElementById('east-fit') as HTMLSelectElement;
+        this.westFitSelect = document.getElementById('west-fit') as HTMLSelectElement;
+
         // Get control buttons
         this.clearAllImagesButton = document.getElementById('clear-all-images') as HTMLButtonElement;
         this.resetToCubeButton = document.getElementById('reset-to-cube') as HTMLButtonElement;
@@ -48,6 +65,16 @@ export class PanelImageControls {
             'east': this.eastImageInput,        // Panel 4 - Yellow
             'west': this.westImageInput         // Panel 5 - Magenta
         };
+
+        // Map panel fit selectors for easier access
+        this.panelFitSelectors = {
+            'floor': this.floorFitSelect,
+            'ceiling': this.ceilingFitSelect,
+            'north': this.northFitSelect,
+            'south': this.southFitSelect,
+            'east': this.eastFitSelect,
+            'west': this.westFitSelect
+        };
     }
 
     private setupEventListeners(): void {
@@ -55,6 +82,13 @@ export class PanelImageControls {
         Object.entries(this.panelInputs).forEach(([panelName, input]) => {
             input.addEventListener('change', (e) => {
                 this.handlePanelImageChange(panelName, e.target as HTMLInputElement);
+            });
+        });
+
+        // Set up fit selector listeners for each panel
+        Object.entries(this.panelFitSelectors).forEach(([panelName, selector]) => {
+            selector.addEventListener('change', (e) => {
+                this.handlePanelFitChange(panelName, e.target as HTMLSelectElement);
             });
         });
 
@@ -102,13 +136,16 @@ export class PanelImageControls {
                 return;
             }
 
-            // Apply image to the specific panel
+            // Get the current fit mode
+            const fitMode = this.panelFitSelectors[panelName]?.value || 'cover';
+
+            // Apply image to the specific panel with fit mode
             if (skyboxLayer.setPanelTexture) {
-                await skyboxLayer.setPanelTexture(panelIndex, imageUrl);
-                console.log(`✅ Applied image to ${panelName} panel (index ${panelIndex})`);
+                await skyboxLayer.setPanelTexture(panelIndex, imageUrl, fitMode);
+                console.log(`✅ Applied image to ${panelName} panel (index ${panelIndex}) with fit: ${fitMode}`);
 
                 // Show feedback
-                this.showFeedback(`Image applied to ${panelName.toUpperCase()} panel`);
+                this.showFeedback(`Image applied to ${panelName.toUpperCase()} panel (${fitMode})`);
             } else {
                 console.error('setPanelTexture method not available on skybox layer');
             }
@@ -117,6 +154,20 @@ export class PanelImageControls {
             console.error(`Error loading image for ${panelName}:`, error);
             this.showFeedback(`Error loading ${panelName} image`, true);
         }
+    }
+
+    private handlePanelFitChange(panelName: string, selector: HTMLSelectElement): void {
+        const fitMode = selector.value;
+        console.log(`Fit mode changed for ${panelName}: ${fitMode}`);
+
+        // If panel has an image, reapply it with the new fit mode
+        const input = this.panelInputs[panelName];
+        if (input?.files && input.files[0]) {
+            this.handlePanelImageChange(panelName, input);
+        }
+
+        // Show feedback
+        this.showFeedback(`${panelName.toUpperCase()} fit mode: ${fitMode}`);
     }
 
     private clearAllImages(): void {
@@ -236,7 +287,9 @@ export class PanelImageControls {
 
             const panelIndex = panelIndexMap[panelName];
             if (panelIndex !== undefined && skyboxLayer && skyboxLayer.setPanelTexture) {
+                // Clear texture (null will restore original color)
                 skyboxLayer.setPanelTexture(panelIndex, null);
+                console.log(`Cleared ${panelName} panel and restored original color`);
             }
         }
     }

@@ -81,7 +81,7 @@ export class SkyboxCubeLayer {
     private navigationState = {
         rotationX: 0,
         rotationY: 0,
-        zoom: 100
+        zoom: 250
     };
 
     // MIDI Control State
@@ -91,7 +91,7 @@ export class SkyboxCubeLayer {
         rotationX: 0,     // CC2 - X-axis rotation
         shadowIntensity: 1.0, // CC3
         rotationY: 0,     // CC4 - Y-axis rotation
-        zoom: 100,        // CC5
+        zoom: 250,        // CC5
         shapeRotation: 0, // CC7
         rotationAxisToggle: 0 // CC8
     };
@@ -894,6 +894,7 @@ export class SkyboxCubeLayer {
     // 🎛️ MIDI CONTROL INTEGRATION
     public handleMIDIControl(ccNumber: number, value: number): void {
         const normalizedValue = value / 127;
+        console.log(`🎛️ MIDI CC${ccNumber}: ${value} -> ${normalizedValue.toFixed(3)}`);
 
         switch (ccNumber) {
             case 1: // Modulation wheel - cube to sphere subdivision morphing
@@ -908,8 +909,9 @@ export class SkyboxCubeLayer {
                 this.midiControls.rotationY = normalizedValue * Math.PI * 2;
                 this.updateCubeRotation();
                 break;
-            case 5: // CC5 - Zoom control (1% to 250%)
-                this.midiControls.zoom = 1 + normalizedValue * 249;
+            case 5: // CC5 - Zoom control (300% at -100, 10% at +100)
+                this.midiControls.zoom = 300 - normalizedValue * 290; // Inverted: 300% -> 10%
+                console.log(`🔍 CC5 Zoom: ${normalizedValue.toFixed(3)} -> ${this.midiControls.zoom.toFixed(1)}%`);
                 this.updateNavigation();
                 break;
             case 7: // Volume - overall opacity
@@ -935,8 +937,7 @@ export class SkyboxCubeLayer {
             this.group.rotation.x += (rotX - Math.sign(rotX) * deadZone) * 0.02;
         }
 
-        // Apply zoom
-        this.group.scale.setScalar(this.midiControls.zoom / 100);
+        // Zoom handled by main engine camera Z-axis movement
 
         // Store navigation state
         this.navigationState.rotationX = this.group.rotation.x;
@@ -1046,9 +1047,8 @@ export class SkyboxCubeLayer {
             material.opacity = 0.8; // Semi-transparent for see-through effect
             material.alphaMap = texture; // Use texture alpha channel
 
-            // Maintain color tint while showing texture
-            material.color.copy(new THREE.Color(this.panelColors[panelIndex]));
-            material.color.multiplyScalar(0.3); // Subtle color tint
+            // Set panel color to white when image is added (consistent with individual loading)
+            material.color.setHex(0xffffff);
 
             material.needsUpdate = true;
             this.panelTextures[panelIndex] = texture;

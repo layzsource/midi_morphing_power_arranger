@@ -13,7 +13,6 @@ import { ShadowLayer } from './layers/ShadowLayer';
 import { AudioEngine } from './audio/AudioEngine';
 import { SkyboxMorphIntegration, createSkyboxMorphIntegration } from './mmpa/SkyboxMorphIntegration';
 import { SkyboxCubeLayer, createSkyboxCubeLayer } from './layers/SkyboxCubeLayer_v5_testing';
-import { paramGraphIntegration, MMPA_PARAM_PATHS } from './paramgraph/ParamGraphIntegration';
 
 export type PerformanceMode = 'vj' | 'installation' | 'studio';
 
@@ -148,64 +147,6 @@ export class MMPAEngine {
         console.log('🌀 Complete skybox cube system connected');
         console.log('🎭 6-panel cube with 12-tone fractal system ready');
         console.log('🧙 Wizard spells and consciousness navigation active');
-
-        // Initialize ParamGraph integration
-        this.initParamGraph();
-    }
-
-    private async initParamGraph() {
-        try {
-            await paramGraphIntegration.initialize();
-
-            // Set up parameter change callbacks
-            this.setupParamGraphCallbacks();
-
-            console.log('🎛️ ParamGraph system integrated with MMPA');
-        } catch (error) {
-            console.warn('⚠️ ParamGraph initialization failed:', error);
-        }
-    }
-
-    private setupParamGraphCallbacks() {
-        // Cube to sphere morphing
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.CUBE_SPHERE, (value) => {
-            this.skyboxCubeLayer.handleMIDIControl(1, value * 127);
-        });
-
-        // Main viewport morphing
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.MAIN_MORPH_BLEND, (value) => {
-            // Route to skybox layer's morph function
-            if (this.skyboxCubeLayer && this.skyboxCubeLayer.morphPanelSquareToCircle) {
-                this.skyboxCubeLayer.morphPanelSquareToCircle(value);
-            }
-        });
-
-        // Aux viewport morphing
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.AUX_MORPH_BLEND, (value) => {
-            // Route to aux viewport morph when active
-            if (paramGraphIntegration.getActiveViewport() === 'aux') {
-                if (this.skyboxCubeLayer && this.skyboxCubeLayer.morphPanelSquareToCircle) {
-                    this.skyboxCubeLayer.morphPanelSquareToCircle(value);
-                }
-            }
-        });
-
-        // Main viewport rotations
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.MAIN_VESSEL_ROT_X, (value) => {
-            this.skyboxCubeLayer.handleMIDIControl(2, (value / 360) * 127);
-        });
-
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.MAIN_VESSEL_ROT_Y, (value) => {
-            this.skyboxCubeLayer.handleMIDIControl(4, (value / 360) * 127);
-        });
-
-        // Aux viewport rotations (morph box)
-        paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.AUX_VESSEL_ROT_Y, (value) => {
-            // Route to aux viewport when active
-            if (paramGraphIntegration.getActiveViewport() === 'aux') {
-                this.skyboxCubeLayer.handleMIDIControl(4, (value / 360) * 127);
-            }
-        });
     }
 
     private initAudio() {
@@ -464,11 +405,10 @@ export class MMPAEngine {
         const normalizedValue = value / 127;
         console.log(`🎛️ ENGINE MIDI CC${ccNumber}: ${value} -> ${normalizedValue.toFixed(3)}`);
 
-        // Route CC1 through ParamGraph system
+        // CC1 (modwheel) bypass - let skybox layer handle it directly
         if (ccNumber === 1) {
-            paramGraphIntegration.setMIDIInput(ccNumber, value);
-            console.log(`🎛️ CC1 routed through ParamGraph to active viewport`);
-            return;
+            console.log(`CC1 bypassed - letting skybox layer handle morphing`);
+            return; // Skip main engine processing for CC1
         }
 
         // Route MIDI CC to morph box if enabled, otherwise to main scene
@@ -555,7 +495,7 @@ export class MMPAEngine {
                 break;
             case 5: // CC5 - Main camera Z-axis zoom
                 // Move camera along Z-axis: min = far back, max = close but not inside
-                const zPosition = 999 - (normalizedValue * 998); // 999 -> 1 (stay outside cube)
+                const zPosition = 999 - (normalizedValue * 994); // 999 -> 5 (stay outside cube)
                 this.camera.position.z = zPosition;
                 console.log(`🔍 CC5 Z-axis: ${normalizedValue.toFixed(3)} -> z=${zPosition.toFixed(1)}`);
                 // Still forward to skybox layer for internal state
@@ -587,7 +527,7 @@ export class MMPAEngine {
                 break;
             case 5: // CC5 - Main camera Z-axis zoom
                 // Move camera along Z-axis: min = far back, max = close but not inside
-                const zPosition = 999 - (normalizedValue * 998); // 999 -> 1 (stay outside cube)
+                const zPosition = 999 - (normalizedValue * 994); // 999 -> 5 (stay outside cube)
                 this.camera.position.z = zPosition;
                 console.log(`🔍 CC5 Z-axis: ${normalizedValue.toFixed(3)} -> z=${zPosition.toFixed(1)}`);
                 // Still forward to skybox layer for internal state
@@ -916,11 +856,6 @@ export class MMPAEngine {
 
     public getSkyboxLayer(): SkyboxCubeLayer {
         return this.skyboxCubeLayer;
-    }
-
-    // Public access method for ParamGraph integration
-    public getParamGraphIntegration() {
-        return paramGraphIntegration;
     }
 
     public castWizardSpell(spellName: string, parameters: any = {}): void {

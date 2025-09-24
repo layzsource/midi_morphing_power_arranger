@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MMPAEngine } from './mmpa-engine';
+import { paramGraphUI } from './ui/ParamGraphUI';
 import { ShadowMicroficheInterface } from './ui/ShadowMicroficheInterface';
 import { AcidReignVJInterface } from './performance/AcidReignVJInterface';
 import { SpaceMorphToolbox } from './ui/SpaceMorphToolbox';
@@ -52,6 +53,9 @@ const globalMorphControls = new GlobalMorphControls(container, engine);
 
 // Initialize Panel Image Controls
 const panelImageControls = new PanelImageControls(container, engine);
+
+// Initialize ParamGraph UI
+paramGraphUI.initialize();
 
 // Initialize Gesture Choreography System
 const gestureChoreographer = new AdvancedGestureChoreographer();
@@ -268,17 +272,8 @@ if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess().then((midiAccess) => {
         engine.connectMIDI(midiAccess);
 
-        // Connect VJ MIDI controls
-        for (const input of midiAccess.inputs.values()) {
-            input.addEventListener('midimessage', (event: any) => {
-                const [status, ccNumber, value] = event.data;
-
-                // Handle MIDI CC messages (status 176 = CC on channel 1)
-                if (status === 176) {
-                    acidReignVJ.handleMIDICC(ccNumber, value);
-                }
-            });
-        }
+        // VJ MIDI handled through main engine ParamGraph integration
+        // Removed duplicate MIDI listener to prevent cross-talk between viewports
 
         console.log('🎛️ Acid Reign VJ MIDI interface connected');
     }).catch((error) => {

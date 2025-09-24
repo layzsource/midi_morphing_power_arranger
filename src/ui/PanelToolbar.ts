@@ -12,6 +12,7 @@ export class PanelToolbar {
     // Panel configurations with their display names and selectors
     private panels = [
         { name: 'MMPA Power Arranger', id: 'controls', selector: '#controls' },
+        { name: 'ParamGraph System', id: 'paramgraph', selector: '#paramgraph-controls' },
         { name: 'Microfiche Reader', id: 'microfiche', selector: '.shadow-microfiche-interface' },
         { name: 'VJ Interface', id: 'vj', selector: '.acid-reign-vj-interface' },
         { name: 'Space Tools', id: 'space-tools', selector: '.space-morph-toolbox' },
@@ -44,7 +45,7 @@ export class PanelToolbar {
             display: flex;
             gap: 8px;
             align-items: center;
-            z-index: 25;
+            z-index: 10000;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 11px;
             color: #ffffff;

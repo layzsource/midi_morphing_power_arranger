@@ -126,8 +126,37 @@
                 0 1px 3px 0 rgba(0, 0, 0, 0.4),
                 0 8px 24px 0 rgba(0, 0, 0, 0.5),
                 0 32px 80px 0 rgba(13, 71, 161, 0.15);
-            max-width: 280px;
+            max-width: 320px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            overflow-x: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Custom scrollbar styling for controls panel */
+        #controls::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #controls::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        #controls::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        #controls::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* For Firefox */
+        #controls {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
         }
 
         #controls.collapsed {
@@ -189,6 +218,199 @@
         <div id="morph-box-content">
             <div id="morph-canvas-container"></div>
         </div>
+    </div>
+
+    <!-- ParamGraph System Panel -->
+    <div id="paramgraph-controls" class="paramgraph-system-panel" style="
+        position: fixed;
+        top: 120px;
+        left: 20px;
+        width: 320px;
+        max-height: calc(100vh - 160px);
+        background: rgba(3, 7, 18, 0.85);
+        backdrop-filter: blur(20px) saturate(120%);
+        -webkit-backdrop-filter: blur(20px) saturate(120%);
+        border: 1px solid rgba(150, 0, 255, 0.2);
+        border-radius: 16px;
+        z-index: 50;
+        box-shadow:
+            0 1px 0 0 rgba(150, 0, 255, 0.1) inset,
+            0 8px 32px 0 rgba(0, 0, 0, 0.6),
+            0 32px 80px 0 rgba(150, 0, 255, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: block;
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 12px;
+        color: #ffffff;
+        padding: 20px;
+    ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 16px; background: linear-gradient(135deg, #9600ff 0%, #00ffff 100%); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 12px rgba(150, 0, 255, 0.4));">
+                🎛️ ParamGraph System
+            </div>
+            <button id="paramgraph-close" style="
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+                padding: 4px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 10px;
+                transition: all 0.2s ease;
+            " title="Close ParamGraph panel">✕</button>
+        </div>
+
+        <!-- Viewport Selector -->
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 8px; display: block; font-weight: 500;">Active Viewport:</label>
+            <div style="display: flex; gap: 8px;">
+                <button id="viewport-main" class="viewport-btn active" style="
+                    flex: 1;
+                    background: rgba(33, 150, 243, 0.2);
+                    color: #2196f3;
+                    border: 1px solid rgba(33, 150, 243, 0.3);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    font-weight: 500;
+                ">🖥️ Main Scene</button>
+                <button id="viewport-aux" class="viewport-btn" style="
+                    flex: 1;
+                    background: rgba(255, 255, 255, 0.05);
+                    color: rgba(255,255,255,0.7);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    font-weight: 500;
+                ">📦 Morph Box</button>
+            </div>
+        </div>
+
+        <!-- Parameter Controls -->
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 8px; display: block; font-weight: 500;">Cube ⇄ Sphere Morph:</label>
+            <input type="range" id="paramgraph-morph" min="0" max="1" step="0.01" value="0" style="
+                width: 100%;
+                height: 6px;
+                background: rgba(150, 0, 255, 0.2);
+                border-radius: 3px;
+                outline: none;
+                cursor: pointer;
+                margin-bottom: 4px;
+            " />
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.6);">
+                <span>Cube</span>
+                <span id="morph-value" style="color: #9600ff; font-weight: 500;">0%</span>
+                <span>Sphere</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 8px; display: block; font-weight: 500;">Vessel Rotation Y:</label>
+            <input type="range" id="paramgraph-rot-y" min="0" max="360" step="1" value="0" style="
+                width: 100%;
+                height: 6px;
+                background: rgba(0, 255, 255, 0.2);
+                border-radius: 3px;
+                outline: none;
+                cursor: pointer;
+                margin-bottom: 4px;
+            " />
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.6);">
+                <span>0°</span>
+                <span id="rot-y-value" style="color: #00ffff; font-weight: 500;">0°</span>
+                <span>360°</span>
+            </div>
+        </div>
+
+        <!-- Source Priority Indicator -->
+        <div style="margin-bottom: 16px; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="font-size: 11px; font-weight: 500; margin-bottom: 8px; color: rgba(255,255,255,0.8);">Input Sources:</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="source-badge" data-source="midi" style="font-size: 10px; padding: 4px 8px; background: rgba(255, 0, 128, 0.15); color: #ff6b9d; border-radius: 6px; border: 1px solid rgba(255, 107, 157, 0.3); font-weight: 500;">MIDI (7)</span>
+                <span class="source-badge" data-source="touch" style="font-size: 10px; padding: 4px 8px; background: rgba(0, 255, 255, 0.15); color: #6bcf7f; border-radius: 6px; border: 1px solid rgba(107, 207, 127, 0.3); font-weight: 500;">Touch (6)</span>
+                <span class="source-badge" data-source="voice" style="font-size: 10px; padding: 4px 8px; background: rgba(255, 255, 0, 0.15); color: #ffeb3b; border-radius: 6px; border: 1px solid rgba(255, 235, 59, 0.3); font-weight: 500;">Voice (5)</span>
+                <span class="source-badge" data-source="auto" style="font-size: 10px; padding: 4px 8px; background: rgba(128, 128, 128, 0.15); color: #9e9e9e; border-radius: 6px; border: 1px solid rgba(158, 158, 158, 0.3); font-weight: 500;">Auto (1)</span>
+            </div>
+        </div>
+
+        <!-- Voice Control Toggle -->
+        <div style="margin-bottom: 16px;">
+            <button id="voice-control-toggle" style="
+                width: 100%;
+                background: rgba(255, 255, 0, 0.1);
+                color: #ffeb3b;
+                border: 1px solid rgba(255, 235, 59, 0.3);
+                padding: 12px 16px;
+                border-radius: 10px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-weight: 500;
+            ">🎤 Voice Control: OFF</button>
+        </div>
+
+        <!-- Presets -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+            <button id="save-preset" style="
+                background: rgba(0, 255, 0, 0.1);
+                color: #6bcf7f;
+                border: 1px solid rgba(107, 207, 127, 0.3);
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-weight: 500;
+            ">💾 Save Preset</button>
+            <button id="load-preset" style="
+                background: rgba(255, 165, 0, 0.1);
+                color: #ffab40;
+                border: 1px solid rgba(255, 171, 64, 0.3);
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-weight: 500;
+            ">📂 Load Preset</button>
+        </div>
+
+        <!-- Status Display -->
+        <div style="padding: 12px; background: rgba(150, 0, 255, 0.05); border-radius: 8px; border: 1px solid rgba(150, 0, 255, 0.1);">
+            <div style="font-size: 10px; font-weight: 500; margin-bottom: 6px; color: rgba(255,255,255,0.8);">System Status:</div>
+            <div id="paramgraph-status" style="font-size: 10px; color: rgba(255,255,255,0.6);">
+                <div>Active Viewport: <span style="color: #9600ff;">Main Scene</span></div>
+                <div>CC1 Target: <span style="color: #00ffff;">viewport/main/vessel/rotY</span></div>
+                <div>Voice Control: <span style="color: #ffeb3b;">Disabled</span></div>
+            </div>
+        </div>
+
+        <!-- Custom scrollbar for ParamGraph panel -->
+        <style>
+            .paramgraph-system-panel::-webkit-scrollbar {
+                width: 8px;
+            }
+            .paramgraph-system-panel::-webkit-scrollbar-track {
+                background: rgba(150, 0, 255, 0.1);
+                border-radius: 4px;
+            }
+            .paramgraph-system-panel::-webkit-scrollbar-thumb {
+                background: rgba(150, 0, 255, 0.3);
+                border-radius: 4px;
+                transition: background 0.2s ease;
+            }
+            .paramgraph-system-panel::-webkit-scrollbar-thumb:hover {
+                background: rgba(150, 0, 255, 0.5);
+            }
+        </style>
     </div>
 
     <div id="controls">
@@ -257,6 +479,7 @@
                 <div id="midi-routing-text">Main Scene (Box OFF)</div>
             </div>
         </div>
+
 
         <!-- Global Morph Controls -->
         <div style="margin-top: 16px; background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
@@ -347,27 +570,57 @@
                 <div id="panel-image-controls" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px;">
                     <div style="background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px;">
                         <div style="color: #ffffff; margin-bottom: 4px;">⬜ Floor (White)</div>
-                        <input type="file" id="floor-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="floor-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="floor-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                     <div style="background: rgba(0,100,255,0.05); padding: 6px; border-radius: 6px;">
                         <div style="color: #6bb6ff; margin-bottom: 4px;">🟦 Ceiling (Blue)</div>
-                        <input type="file" id="ceiling-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="ceiling-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="ceiling-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                     <div style="background: rgba(255,0,0,0.05); padding: 6px; border-radius: 6px;">
                         <div style="color: #ff6b6b; margin-bottom: 4px;">🟥 North (Red)</div>
-                        <input type="file" id="north-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="north-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="north-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                     <div style="background: rgba(0,255,0,0.05); padding: 6px; border-radius: 6px;">
                         <div style="color: #6bcf7f; margin-bottom: 4px;">🟩 South (Green)</div>
-                        <input type="file" id="south-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="south-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="south-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                     <div style="background: rgba(255,255,0,0.05); padding: 6px; border-radius: 6px;">
                         <div style="color: #ffeb3b; margin-bottom: 4px;">🟨 East (Yellow)</div>
-                        <input type="file" id="east-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="east-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="east-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                     <div style="background: rgba(255,0,255,0.05); padding: 6px; border-radius: 6px;">
                         <div style="color: #e91e63; margin-bottom: 4px;">🟪 West (Magenta)</div>
-                        <input type="file" id="west-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                        <input type="file" id="west-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; margin-bottom: 2px;">
+                        <select id="west-fit" style="width: 100%; font-size: 8px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 1px;">
+                            <option value="cover">Fill (Cover)</option>
+                            <option value="contain">Fit (Contain)</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
                     </div>
                 </div>
                 <button id="clear-all-images" style="
@@ -438,6 +691,11 @@
         </div>
         </div>
     </div>
+
+    <!-- ParamGraph System -->
+    <script src="/paramgraph/paramgraph.js"></script>
+    <script src="/paramgraph/midi_plugin.js"></script>
+    <script src="/paramgraph/voice_plugin.js"></script>
 
     <script type="module" src="/src/main.ts"></script>
 </body>
