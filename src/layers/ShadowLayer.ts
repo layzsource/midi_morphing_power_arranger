@@ -44,6 +44,9 @@ export class ShadowLayer {
             shadowPlane.position.set(0, -3 - i * 0.2, 0);
             shadowPlane.rotation.x = -Math.PI / 2;
 
+            // Set shadow to main scene layer (layer 0) to avoid morph box rendering
+            shadowPlane.layers.set(0);
+
             this.shadowPlanes.push(shadowPlane);
             this.group.add(shadowPlane);
         }
@@ -62,6 +65,10 @@ export class ShadowLayer {
         this.negativeSpace = new THREE.Mesh(geometry, material);
         // Negative space surrounds the vessel at center
         this.negativeSpace.position.set(0, 0, 0);
+
+        // Set negative space to main scene layer (layer 0) to avoid morph box rendering
+        this.negativeSpace.layers.set(0);
+
         this.group.add(this.negativeSpace);
     }
 

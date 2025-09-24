@@ -6,6 +6,13 @@ import { SpaceMorphToolbox } from './ui/SpaceMorphToolbox';
 import { VirtualMIDIKeyboard } from './ui/VirtualMIDIKeyboard';
 import { AudioInputSelector } from './ui/AudioInputSelector';
 import { PanelToolbar } from './ui/PanelToolbar';
+import { MicrotonalMorphControls } from './ui/MicrotonalMorphControls';
+import { GlobalMorphControls } from './ui/GlobalMorphControls';
+import { PanelImageControls } from './ui/PanelImageControls';
+import { createMainDisplayPanel } from './ui/MainDisplayPanel';
+import { GestureChoreographyPanel } from './ui/GestureChoreographyPanel';
+import { AdvancedGestureChoreographer } from './input/AdvancedGestureChoreographer';
+import { GesturePresetMapper } from './input/GesturePresetMapper';
 
 const container = document.getElementById('canvas-container')!;
 const engine = new MMPAEngine(container);
@@ -32,6 +39,24 @@ const spaceMorphToolbox = new SpaceMorphToolbox(container, engine, microficheInt
 
 // Initialize Panel Toolbar
 const panelToolbar = new PanelToolbar(container);
+
+// Initialize Microtonal Morph Controls and connect to SkyboxCubeLayer
+const skyboxLayer = engine.getSkyboxLayer();
+const microtonalMorphControls = new MicrotonalMorphControls(container, skyboxLayer);
+
+// Initialize Main Display Panel (Skybox Controls)
+const mainDisplayPanel = createMainDisplayPanel(container, skyboxLayer);
+
+// Initialize Global Morph Controls
+const globalMorphControls = new GlobalMorphControls(container, engine);
+
+// Initialize Panel Image Controls
+const panelImageControls = new PanelImageControls(container, engine);
+
+// Initialize Gesture Choreography System
+const gestureChoreographer = new AdvancedGestureChoreographer();
+const gesturePresetMapper = new GesturePresetMapper();
+const gestureChoreographyPanel = new GestureChoreographyPanel(gestureChoreographer, gesturePresetMapper);
 
 // Mode switching
 const vjBtn = document.getElementById('club-mode')!;
@@ -110,13 +135,7 @@ engine.enableMorphBox(morphCanvasContainer);
 midiRoutingText.textContent = 'Morph Box Panel (Always ON)';
 midiRoutingText.style.color = '#00ff80';
 
-// Click the toolbar's Morph Box button to show the panel
-setTimeout(() => {
-    const toolbarMorphBoxButton = document.getElementById('toggle-morph-box');
-    if (toolbarMorphBoxButton) {
-        toolbarMorphBoxButton.click();
-    }
-}, 200);
+// Morph box panel now starts hidden like all other panels
 
 // Morph box collapse functionality
 const morphBoxCollapse = document.getElementById('morph-box-collapse')!;
@@ -149,8 +168,8 @@ controlsToggle.addEventListener('click', () => {
     panelToolbar.refreshButtonStates();
 });
 
-// Initialize default mode state (VJ mode is default)
-updateModeSpecificUIs('vj');
+// Initialize with all panels hidden - clean start
+panelToolbar.hideAllPanels();
 
 // Start the engine
 engine.start();
@@ -266,3 +285,4 @@ if (navigator.requestMIDIAccess) {
         console.log('MIDI access denied:', error);
     });
 }
+

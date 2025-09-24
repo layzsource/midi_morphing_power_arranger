@@ -258,6 +258,163 @@
             </div>
         </div>
 
+        <!-- Global Morph Controls -->
+        <div style="margin-top: 16px; background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-weight: 500; margin-bottom: 12px; color: rgba(255,255,255,0.9); font-size: 12px;">
+                🎛️ Global Morphing Controls
+            </div>
+
+            <!-- Target Shape Selector -->
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 4px; display: block;">Target Shape:</label>
+                <select id="target-shape-selector" style="
+                    width: 100%;
+                    background: rgba(255, 255, 255, 0.05);
+                    color: #ffffff;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-family: inherit;
+                    font-size: 12px;
+                    cursor: pointer;
+                ">
+                    <option value="sphere">Sphere</option>
+                    <option value="cube" selected>Cube</option>
+                    <option value="cylinder">Cylinder</option>
+                    <option value="torus">Torus</option>
+                </select>
+            </div>
+
+            <!-- Morph Amount Slider -->
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="font-size: 11px; color: rgba(255,255,255,0.7);">Morph Amount:</label>
+                    <span id="morph-value-display" style="font-size: 11px; color: #00ffff; font-weight: 500;">0%</span>
+                </div>
+                <input type="range" id="global-morph-slider" min="0" max="100" value="0" style="
+                    width: 100%;
+                    height: 4px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 2px;
+                    outline: none;
+                    cursor: pointer;
+                " />
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button id="clear-all-notes" style="
+                    background: rgba(255, 64, 64, 0.1);
+                    color: #ff6b6b;
+                    border: 1px solid rgba(255, 107, 107, 0.2);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                ">Clear Notes</button>
+
+                <button id="midi-reconnect" style="
+                    background: rgba(64, 255, 64, 0.1);
+                    color: #6bcf7f;
+                    border: 1px solid rgba(107, 207, 127, 0.2);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                ">MIDI Reconnect</button>
+            </div>
+
+            <!-- Audio Analysis Toggle -->
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.7); cursor: pointer;">
+                    <input type="checkbox" id="audio-analysis-toggle" style="
+                        width: 16px;
+                        height: 16px;
+                        accent-color: #00ffff;
+                        cursor: pointer;
+                    " />
+                    Enable Audio Analysis
+                </label>
+            </div>
+
+            <!-- Panel Image Controls -->
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-weight: 500; margin-bottom: 8px; color: rgba(255,255,255,0.9); font-size: 12px;">
+                    🖼️ Individual Panel Images
+                </div>
+                <div id="panel-image-controls" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px;">
+                        <div style="color: #ffffff; margin-bottom: 4px;">⬜ Floor (White)</div>
+                        <input type="file" id="floor-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                    <div style="background: rgba(0,100,255,0.05); padding: 6px; border-radius: 6px;">
+                        <div style="color: #6bb6ff; margin-bottom: 4px;">🟦 Ceiling (Blue)</div>
+                        <input type="file" id="ceiling-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                    <div style="background: rgba(255,0,0,0.05); padding: 6px; border-radius: 6px;">
+                        <div style="color: #ff6b6b; margin-bottom: 4px;">🟥 North (Red)</div>
+                        <input type="file" id="north-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                    <div style="background: rgba(0,255,0,0.05); padding: 6px; border-radius: 6px;">
+                        <div style="color: #6bcf7f; margin-bottom: 4px;">🟩 South (Green)</div>
+                        <input type="file" id="south-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                    <div style="background: rgba(255,255,0,0.05); padding: 6px; border-radius: 6px;">
+                        <div style="color: #ffeb3b; margin-bottom: 4px;">🟨 East (Yellow)</div>
+                        <input type="file" id="east-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                    <div style="background: rgba(255,0,255,0.05); padding: 6px; border-radius: 6px;">
+                        <div style="color: #e91e63; margin-bottom: 4px;">🟪 West (Magenta)</div>
+                        <input type="file" id="west-image" accept="image/*,video/*" style="width: 100%; font-size: 9px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px;">
+                    </div>
+                </div>
+                <button id="clear-all-images" style="
+                    width: 100%;
+                    margin-top: 8px;
+                    background: rgba(255, 64, 64, 0.1);
+                    color: #ff6b6b;
+                    border: 1px solid rgba(255, 107, 107, 0.2);
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-size: 10px;
+                    cursor: pointer;
+                ">Clear All Images</button>
+            </div>
+
+            <!-- Reset Controls -->
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button id="reset-to-cube" style="
+                    width: 100%;
+                    background: rgba(0, 255, 255, 0.1);
+                    color: #00ffff;
+                    border: 1px solid rgba(0, 255, 255, 0.2);
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    font-weight: 500;
+                ">🔄 Reset to Original Cube</button>
+            </div>
+
+            <!-- Status Display -->
+            <div id="scene-status" style="
+                margin-top: 12px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.02);
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.05);
+                font-size: 10px;
+                color: rgba(255,255,255,0.6);
+            ">
+                <div style="font-weight: 500; margin-bottom: 4px;">Scene Status:</div>
+                <div id="active-notes-display">Active Notes: None</div>
+                <div id="midi-status-display">MIDI: Ready</div>
+                <div id="audio-status-display">Audio: Disabled</div>
+            </div>
+        </div>
+
         <div style="margin-top: 16px;">
             <button id="vessel-motion-toggle" style="
                 background: rgba(255, 255, 255, 0.05);

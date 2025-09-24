@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Music Theory Engine - Layered Transparent Spheres System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Microtonal Morph Controls Panel */
+        #morph-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #00ff00;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .slider {
+            width: 100%;
+            background: #333;
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            height: 25px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 5px 8px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        .status-display {
+            font-size: 11px;
+            color: #00ffff;
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* Wizard Gesture Controller */
+        #gesture-controller {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 280px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff00ff;
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .gesture-zone {
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid #ff00ff;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff00ff;
+            font-size: 14px;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        .theremin-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.2) 0%, transparent 70%);
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <!-- Microtonal Morph Controls Panel -->
+    <div id="morph-controls">
+        <h3 style="margin: 0 0 10px; color: #00ff00; font-size: 14px;">🎵 MICROTONAL MORPH CONTROLS</h3>
+
+        <div class="control-group">
+            <label>Dewey Mode</label>
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="6-PANEL">6-PANEL</button>
+                <button class="mode-btn" data-mode="12-TONE">12-TONE</button>
+                <button class="mode-btn" data-mode="24-TET">24-TET</button>
+                <button class="mode-btn" data-mode="HYPERMICRO">HYPERMICRO</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Morph Progress: <span id="progress-value">0%</span></label>
+            <input type="range" class="slider" id="morph-progress" min="0" max="100" value="0">
+        </div>
+
+        <div class="control-group">
+            <label>Subdivision Level: <span id="subdivision-value">0</span></label>
+            <input type="range" class="slider" id="subdivision-level" min="0" max="8" value="0" step="0.1">
+        </div>
+
+        <button class="reset-btn" id="reset-btn">RESET TO CUBE</button>
+
+        <div class="status-display" id="status-display">
+            <div>Faces: <span id="face-count">6</span></div>
+            <div>Symbol: <span id="morph-symbol">■</span></div>
+            <div>Mode: <span id="current-mode">6-PANEL</span></div>
+        </div>
+    </div>
+
+    <!-- Wizard Gesture Controller -->
+    <div id="gesture-controller">
+        <h3 style="margin: 0 0 10px; color: #ff00ff; font-size: 14px;">🎭 WIZARD SPELL GESTURES</h3>
+
+        <div class="gesture-zone" id="gesture-zone">
+            <div class="theremin-field" id="theremin-field"></div>
+            <div>Move hands to cast spells</div>
+        </div>
+
+        <div class="status-display" style="color: #ff00ff;">
+            <div>Proximity: <span id="proximity-value">0%</span></div>
+            <div>Spell: <span id="current-spell">None</span></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Visual Music Theory Engine - Main System
+        class VisualMusicTheoryEngine {
+            constructor(container) {
+                this.container = container;
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+                this.setupRenderer();
+                this.setupLighting();
+                this.setupCamera();
+
+                // Layered Transparent Spheres System
+                this.cubePanels = [];
+                this.morphProgress = 0;
+                this.subdivisionLevel = 0;
+                this.deweyMode = '6-PANEL';
+                this.isResetting = false;
+
+                this.createCubePanelSystem();
+                this.setupControls();
+                this.animate();
+            }
+
+            setupRenderer() {
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor(0x000000, 0);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.container.appendChild(this.renderer.domElement);
+            }
+
+            setupLighting() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                this.scene.add(ambientLight);
+
+                // Directional light
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+                directionalLight.position.set(5, 5, 5);
+                directionalLight.castShadow = true;
+                this.scene.add(directionalLight);
+
+                // Point lights for mystical effect
+                const pointLight1 = new THREE.PointLight(0x00ff00, 0.5, 10);
+                pointLight1.position.set(2, 2, 2);
+                this.scene.add(pointLight1);
+
+                const pointLight2 = new THREE.PointLight(0xff00ff, 0.5, 10);
+                pointLight2.position.set(-2, -2, -2);
+                this.scene.add(pointLight2);
+            }
+
+            setupCamera() {
+                this.camera.position.set(0, 0, 5);
+                this.camera.lookAt(0, 0, 0);
+            }
+
+            createCubePanelSystem() {
+                // Create 6 cube panels that will morph into layered transparent spheres
+                const panelPositions = [
+                    { x: 1, y: 0, z: 0, name: 'right' },
+                    { x: -1, y: 0, z: 0, name: 'left' },
+                    { x: 0, y: 1, z: 0, name: 'top' },
+                    { x: 0, y: -1, z: 0, name: 'bottom' },
+                    { x: 0, y: 0, z: 1, name: 'front' },
+                    { x: 0, y: 0, z: -1, name: 'back' }
+                ];
+
+                panelPositions.forEach((pos, index) => {
+                    const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: this.getDeweyColor(index),
+                        transparent: true,
+                        opacity: 1.0,
+                        wireframe: false
+                    });
+
+                    const panel = new THREE.Mesh(geometry, material);
+                    panel.position.set(pos.x, pos.y, pos.z);
+                    panel.userData = {
+                        originalPosition: new THREE.Vector3(pos.x, pos.y, pos.z),
+                        panelIndex: index,
+                        name: pos.name,
+                        subdivisionGeometry: null
+                    };
+
+                    this.cubePanels.push(panel);
+                    this.scene.add(panel);
+                });
+            }
+
+            getDeweyColor(index) {
+                const colors = {
+                    '6-PANEL': [0x00ff00, 0xff0000, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff],
+                    '12-TONE': [0xffffff, 0xe0e0e0, 0xc0c0c0, 0xa0a0a0, 0x808080, 0x606060],
+                    '24-TET': [0xff6b6b, 0xff8e53, 0xff006e, 0xfb5607, 0xffbe0b, 0x8ecae6],
+                    'HYPERMICRO': [0x7209b7, 0x560bad, 0x480ca8, 0x3a0ca3, 0x3f37c9, 0x4361ee]
+                };
+                return colors[this.deweyMode][index] || 0x888888;
+            }
+
+            // Catmull-Clark Subdivision Implementation
+            createSubdivisionGeometry(level) {
+                // Start with cube geometry
+                let geometry = new THREE.BoxGeometry(1, 1, 1);
+
+                // Apply subdivision levels (approximate Catmull-Clark)
+                for (let i = 0; i < Math.floor(level); i++) {
+                    geometry = this.subdivideFaces(geometry);
+                }
+
+                // Spherify the result based on subdivision level
+                this.spherifyGeometry(geometry, level / 8);
+
+                return geometry;
+            }
+
+            subdivideFaces(geometry) {
+                // Simplified subdivision - doubles face count
+                const subdivided = new THREE.SphereGeometry(0.5, 8 * Math.pow(2, Math.min(3, Math.floor(this.subdivisionLevel))), 6 * Math.pow(2, Math.min(3, Math.floor(this.subdivisionLevel))));
+                return subdivided;
+            }
+
+            spherifyGeometry(geometry, factor) {
+                const positions = geometry.attributes.position.array;
+
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1];
+                    const z = positions[i + 2];
+
+                    const length = Math.sqrt(x * x + y * y + z * z);
+                    const sphereRadius = 0.5;
+
+                    // Interpolate between cube and sphere
+                    positions[i] = x + (x / length * sphereRadius - x) * factor;
+                    positions[i + 1] = y + (y / length * sphereRadius - y) * factor;
+                    positions[i + 2] = z + (z / length * sphereRadius - z) * factor;
+                }
+
+                geometry.attributes.position.needsUpdate = true;
+                geometry.computeVertexNormals();
+            }
+
+            updateMorphSystem() {
+                if (this.isResetting) return;
+
+                this.cubePanels.forEach((panel, index) => {
+                    // Update geometry based on subdivision level
+                    if (this.subdivisionLevel > 0) {
+                        const newGeometry = this.createSubdivisionGeometry(this.subdivisionLevel);
+                        panel.geometry.dispose();
+                        panel.geometry = newGeometry;
+                    }
+
+                    // Layered convergence - panels move toward center with transparency
+                    const convergenceFactor = this.morphProgress / 100;
+                    const targetPosition = new THREE.Vector3(0, 0, 0);
+                    const originalPosition = panel.userData.originalPosition;
+
+                    panel.position.lerpVectors(originalPosition, targetPosition, convergenceFactor);
+
+                    // Progressive transparency as they converge
+                    panel.material.opacity = 1.0 - (convergenceFactor * 0.7);
+
+                    // Update color based on mode
+                    panel.material.color.setHex(this.getDeweyColor(index));
+                });
+
+                this.updateStatusDisplay();
+            }
+
+            updateStatusDisplay() {
+                const faceCount = Math.floor(6 * Math.pow(4, Math.floor(this.subdivisionLevel)));
+                const symbols = ['■', '◐', '◑', '◒', '◓', '◔', '◕', '◖', '●'];
+                const symbol = symbols[Math.floor(this.subdivisionLevel)] || '●';
+
+                document.getElementById('face-count').textContent = faceCount;
+                document.getElementById('morph-symbol').textContent = symbol;
+                document.getElementById('current-mode').textContent = this.deweyMode;
+                document.getElementById('progress-value').textContent = Math.round(this.morphProgress) + '%';
+                document.getElementById('subdivision-value').textContent = this.subdivisionLevel.toFixed(1);
+            }
+
+            resetTocube() {
+                this.isResetting = true;
+                this.morphProgress = 0;
+                this.subdivisionLevel = 0;
+
+                this.cubePanels.forEach((panel, index) => {
+                    // Reset geometry
+                    panel.geometry.dispose();
+                    panel.geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95);
+
+                    // Reset position
+                    panel.position.copy(panel.userData.originalPosition);
+
+                    // Reset transparency
+                    panel.material.opacity = 1.0;
+                });
+
+                // Update UI
+                document.getElementById('morph-progress').value = 0;
+                document.getElementById('subdivision-level').value = 0;
+                this.updateStatusDisplay();
+
+                setTimeout(() => { this.isResetting = false; }, 100);
+            }
+
+            setupControls() {
+                // Mode selector
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.deweyMode = btn.dataset.mode;
+                        this.updateMorphSystem();
+                    });
+                });
+
+                // Morph progress slider
+                document.getElementById('morph-progress').addEventListener('input', (e) => {
+                    this.morphProgress = parseFloat(e.target.value);
+                    this.updateMorphSystem();
+                });
+
+                // Subdivision level slider
+                document.getElementById('subdivision-level').addEventListener('input', (e) => {
+                    this.subdivisionLevel = parseFloat(e.target.value);
+                    this.updateMorphSystem();
+                });
+
+                // Reset button
+                document.getElementById('reset-btn').addEventListener('click', () => {
+                    this.resetToCore();
+                });
+
+                // Theremin field control
+                const gestureZone = document.getElementById('gesture-zone');
+                const thereminField = document.getElementById('theremin-field');
+
+                gestureZone.addEventListener('mousemove', (e) => {
+                    const rect = gestureZone.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width;
+                    const y = (e.clientY - rect.top) / rect.height;
+
+                    // Distance from center controls subdivision
+                    const centerX = 0.5, centerY = 0.5;
+                    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                    const proximity = Math.min(distance * 2, 1);
+
+                    // Update theremin field visualization
+                    thereminField.style.opacity = 1 - proximity;
+
+                    // Control subdivision level with proximity
+                    this.subdivisionLevel = proximity * 8;
+                    document.getElementById('subdivision-level').value = this.subdivisionLevel;
+                    document.getElementById('proximity-value').textContent = Math.round((1 - proximity) * 100) + '%';
+
+                    this.updateMorphSystem();
+                });
+
+                gestureZone.addEventListener('mouseleave', () => {
+                    thereminField.style.opacity = 0;
+                });
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Subtle rotation for visual interest
+                this.cubePanels.forEach((panel, index) => {
+                    panel.rotation.x += 0.001;
+                    panel.rotation.y += 0.001;
+                });
+
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            // Handle window resize
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Initialize the Visual Music Theory Engine
+        const container = document.getElementById('canvas-container');
+        const engine = new VisualMusicTheoryEngine(container);
+
+        // Handle window resize
+        window.addEventListener('resize', () => engine.onWindowResize());
+
+        console.log('🎵 Visual Music Theory Engine - Layered Transparent Spheres System Initialized');
+        console.log('🎭 Features: Catmull-Clark subdivision, Theremin field control, Wizard gestures');
+        console.log('📊 Status: System Locked and Ready');
+    </script>
+</body>
+</html>

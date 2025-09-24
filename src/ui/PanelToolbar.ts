@@ -17,7 +17,10 @@ export class PanelToolbar {
         { name: 'Space Tools', id: 'space-tools', selector: '.space-morph-toolbox' },
         { name: 'Audio Input', id: 'audio', selector: '.audio-input-selector' },
         { name: 'Virtual MIDI', id: 'midi', selector: '.virtual-midi-keyboard' },
-        { name: 'Morph Box', id: 'morph-box', selector: '#morph-box-panel' }
+        { name: 'Morph Box', id: 'morph-box', selector: '#morph-box-panel' },
+        { name: 'Microtonal Morph', id: 'microtonal-morph', selector: '#microtonal-morph-panel' },
+        { name: 'Skybox Controls', id: 'main-display', selector: '#main-display-panel' },
+        { name: 'Gesture Choreography', id: 'gesture-choreography', selector: '.gesture-choreography-panel' }
     ];
 
     constructor(container: HTMLElement) {
@@ -72,6 +75,7 @@ export class PanelToolbar {
             };
 
             toolbar.appendChild(button);
+            console.log('🔧 Created toolbar button:', panel.name, 'ID:', button.id, 'Selector:', panel.selector);
         });
 
         this.container.appendChild(toolbar);
@@ -183,9 +187,7 @@ export class PanelToolbar {
 
     public hideAllPanels(): void {
         this.panels.forEach(panel => {
-            if (panel.selector !== '#controls') { // Keep main controls visible
-                this.hidePanel(panel.selector);
-            }
+            this.hidePanel(panel.selector);
         });
     }
 

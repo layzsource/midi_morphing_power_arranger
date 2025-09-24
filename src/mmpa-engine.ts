@@ -11,6 +11,8 @@ import { EmergentFormLayer } from './layers/EmergentFormLayer';
 import { ParticleLayer } from './layers/ParticleLayer';
 import { ShadowLayer } from './layers/ShadowLayer';
 import { AudioEngine } from './audio/AudioEngine';
+import { SkyboxMorphIntegration, createSkyboxMorphIntegration } from './mmpa/SkyboxMorphIntegration';
+import { SkyboxCubeLayer, createSkyboxCubeLayer } from './layers/SkyboxCubeLayer_v2_subdivision';
 
 export type PerformanceMode = 'vj' | 'installation' | 'studio';
 
@@ -29,6 +31,10 @@ export class MMPAEngine {
     // Audio and MIDI
     private audioEngine: AudioEngine;
 
+    // Complete skybox cube system
+    private skyboxCubeLayer: SkyboxCubeLayer;
+    private skyboxMorphIntegration: SkyboxMorphIntegration;
+
     // Performance state
     private currentMode: PerformanceMode = 'vj';
     private isRunning = false;
@@ -37,6 +43,10 @@ export class MMPAEngine {
     // MIDI state
     private midiAccess: any = null;
     private activeThinker = 'MMPA ready';
+
+    // Cube morphing state
+    private cubeMorphingActive = false;
+    private morphProgress = 0;
 
     constructor(container: HTMLElement) {
         console.log('🎛️ MMPA Engine starting...');
@@ -72,9 +82,12 @@ export class MMPAEngine {
             60,
             window.innerWidth / window.innerHeight,
             0.1,
-            100
+            1000
         );
-        this.camera.position.set(0, 0, 8);
+        this.camera.position.set(0, 0, 8); // True center position
+
+        // Enable layer 2 for cube visibility (main camera only, not morph box)
+        this.camera.layers.enable(2);
 
         // Renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -126,7 +139,14 @@ export class MMPAEngine {
         this.vesselLayer = new VesselLayer(this.scene);
         this.emergentFormLayer = new EmergentFormLayer(this.scene);
         this.particleLayer = new ParticleLayer(this.scene);
-        this.shadowLayer = new ShadowLayer(this.scene);
+        // DISABLED: this.shadowLayer = new ShadowLayer(this.scene); // REMOVED FLASHING TORUS AND SHADOW PLANES
+
+        // Initialize complete skybox cube system
+        this.skyboxCubeLayer = createSkyboxCubeLayer(this.scene);
+        this.skyboxMorphIntegration = createSkyboxMorphIntegration(this.scene);
+        console.log('🌀 Complete skybox cube system connected');
+        console.log('🎭 6-panel cube with 12-tone fractal system ready');
+        console.log('🧙 Wizard spells and consciousness navigation active');
     }
 
     private initAudio() {
@@ -158,7 +178,7 @@ export class MMPAEngine {
             this.vesselLayer.update(deltaTime, elapsedTime);
             this.emergentFormLayer.update(deltaTime, elapsedTime);
             this.particleLayer.update(deltaTime, elapsedTime);
-            this.shadowLayer.update(deltaTime, elapsedTime);
+            // DISABLED: this.shadowLayer.update(deltaTime, elapsedTime); // REMOVED FLASHING TORUS
 
             // Render main scene (hide morph shapes if box is enabled)
             // Hide all morph shapes from main scene when morph box is enabled
@@ -215,6 +235,13 @@ export class MMPAEngine {
     public setVesselMotion(enabled: boolean) {
         this.vesselLayer.setMotion(enabled);
         this.updateActiveThinker(`Shadow morphing: ${enabled ? 'ON' : 'OFF'}`);
+
+        // Connect to skybox cube morphing - when vessel moves, trigger cube/sphere morph
+        if (enabled) {
+            this.startCubeMorphing();
+        } else {
+            this.stopCubeMorphing();
+        }
     }
 
     public rotateVessel(axis: 'x' | 'y' | 'z', angle: number) {
@@ -338,6 +365,11 @@ export class MMPAEngine {
     private handleMIDIMessage(event: any) {
         const [status, data1, data2] = event.data;
 
+        // Forward MIDI to skybox cube layer for consciousness navigation
+        if (status === 176) { // Control change
+            this.skyboxCubeLayer.handleMIDIControl(data1, data2);
+        }
+
         // Note on/off (144/128)
         if (status === 144 || status === 128) {
             this.handleMIDINote(data1, data2, status === 144);
@@ -372,6 +404,12 @@ export class MMPAEngine {
     private handleMIDICC(ccNumber: number, value: number) {
         const normalizedValue = value / 127;
 
+        // CC1 (modwheel) bypass - let skybox layer handle it directly
+        if (ccNumber === 1) {
+            console.log(`CC1 bypassed - letting skybox layer handle morphing`);
+            return; // Skip main engine processing for CC1
+        }
+
         // Route MIDI CC to morph box if enabled, otherwise to main scene
         if (this.morphBoxEnabled) {
             this.handleMorphBoxMIDICC(ccNumber, normalizedValue);
@@ -380,20 +418,22 @@ export class MMPAEngine {
         }
     }
 
+    // Public method for external MIDI input (WebSocket bridge)
+    public handleExternalMIDICC(ccNumber: number, value: number) {
+        console.log(`External MIDI CC${ccNumber}: ${value}`);
+        this.handleMIDICC(ccNumber, value);
+    }
+
     private handleMorphBoxMIDICC(ccNumber: number, normalizedValue: number) {
         // MIDI CC controls specifically for morph box panel
-        switch (ccNumber) {
-            case 1: // Modulation wheel - box camera rotation (horizontal)
-                if (this.morphBoxCamera) {
-                    const horizontalAngle = normalizedValue * Math.PI * 2;
-                    const distance = 5; // Fixed distance
-                    const currentVerticalAngle = Math.asin(this.morphBoxCamera.position.y / this.morphBoxCamera.position.length());
+        // Only respond if morph box is properly enabled and initialized
+        if (!this.morphBoxEnabled || !this.morphBoxCamera || !this.morphBoxRenderer) {
+            return;
+        }
 
-                    this.morphBoxCamera.position.x = Math.sin(horizontalAngle) * Math.cos(currentVerticalAngle) * distance;
-                    this.morphBoxCamera.position.z = Math.cos(horizontalAngle) * Math.cos(currentVerticalAngle) * distance;
-                    this.morphBoxCamera.position.y = Math.sin(currentVerticalAngle) * distance;
-                    this.morphBoxCamera.lookAt(0, 0, 0);
-                }
+        switch (ccNumber) {
+            case 1: // Modulation wheel with deadband - vessel rotation (horizontal)
+                this.handleCC1WithDeadband(normalizedValue * 127, 'morphbox');
                 break;
             case 2: // Modulation wheel 2 - box camera vertical rotation
                 if (this.morphBoxCamera) {
@@ -427,7 +467,7 @@ export class MMPAEngine {
                 this.vesselLayer.setIntensity(normalizedValue);
                 this.emergentFormLayer.setIntensity(normalizedValue);
                 this.particleLayer.setIntensity(normalizedValue);
-                this.shadowLayer.setIntensity(normalizedValue);
+                // DISABLED: this.shadowLayer.setIntensity(normalizedValue); // REMOVED SHADOW LAYER
                 break;
             case 10: // Pan - form selection (affects box only)
                 if (normalizedValue < 0.33) {
@@ -460,8 +500,9 @@ export class MMPAEngine {
     private handleMainSceneMIDICC(ccNumber: number, normalizedValue: number) {
         // Original MIDI CC controls for main scene
         switch (ccNumber) {
-            case 1: // Modulation wheel - portal warp
-                this.setPortalWarp(normalizedValue);
+            case 1: // Modulation wheel - forward to skybox for morphing (no main engine processing)
+                // Let the skybox layer handle CC1 morphing directly
+                // this.handleCC1WithDeadband(normalizedValue * 127, 'main'); // DISABLED
                 break;
             case 7: // Volume - overall intensity
                 this.setGlobalIntensity(normalizedValue);
@@ -475,6 +516,10 @@ export class MMPAEngine {
                     this.morphToForm(2);
                 }
                 break;
+            case 5: // CC5 - Main camera zoom (forwarded to skybox layer)
+                // Forward zoom control to skybox layer for main camera
+                this.skyboxCubeLayer.handleMIDIControl(5, normalizedValue * 127);
+                break;
             case 74: // Filter cutoff - particle intensity
                 this.particleLayer.setIntensity(normalizedValue);
                 break;
@@ -486,16 +531,88 @@ export class MMPAEngine {
         const angle = (value - 0.5) * Math.PI; // ±90 degrees
         this.camera.position.x = Math.sin(angle) * 8;
         this.camera.position.z = Math.cos(angle) * 8;
+        this.camera.position.y = 0;
         this.camera.lookAt(0, 0, 0);
 
         this.updateActiveThinker(`Portal warp: ${Math.round(value * 100)}%`);
+    }
+
+    // Continuous motion state for MIDI CC1 deadband system
+    private cc1ContinuousMotion: { active: boolean, speed: number, mode: 'main' | 'morphbox' | null } = { active: false, speed: 0, mode: null };
+    private cc1AnimationFrame: number | null = null;
+
+    // MMPA Baseline MIDI CC1 Deadband System
+    // Based on /Users/ticegunther/Downloads/MMPA_Baseline/midi/mappings.json
+    private handleCC1WithDeadband(ccValue: number, mode: 'main' | 'morphbox') {
+        // MMPA Baseline deadband specification:
+        // Left: 0-52 → negative action (continuous motion)
+        // Hold: 53-73 → neutral/snap zone (stop motion)
+        // Right: 74-127 → positive action (continuous motion)
+
+        if (ccValue <= 52) {
+            // Left zone - start continuous rotation/action left
+            const normalizedLeft = ccValue / 52; // 0 to 1
+            this.startCC1ContinuousMotion(-normalizedLeft, mode);
+        } else if (ccValue >= 74) {
+            // Right zone - start continuous rotation/action right
+            const normalizedRight = (ccValue - 74) / (127 - 74); // 0 to 1
+            this.startCC1ContinuousMotion(normalizedRight, mode);
+        } else {
+            // Deadband zone (53-73) - stop continuous motion
+            this.stopCC1ContinuousMotion();
+        }
+    }
+
+    private startCC1ContinuousMotion(speed: number, mode: 'main' | 'morphbox') {
+        // Stop any existing motion
+        this.stopCC1ContinuousMotion();
+
+        // Start new continuous motion
+        this.cc1ContinuousMotion = { active: true, speed, mode };
+
+        const animate = () => {
+            if (this.cc1ContinuousMotion.active) {
+                this.applyCC1Action(this.cc1ContinuousMotion.speed, this.cc1ContinuousMotion.mode);
+                this.cc1AnimationFrame = requestAnimationFrame(animate);
+            }
+        };
+        animate();
+    }
+
+    private stopCC1ContinuousMotion() {
+        this.cc1ContinuousMotion.active = false;
+        if (this.cc1AnimationFrame !== null) {
+            cancelAnimationFrame(this.cc1AnimationFrame);
+            this.cc1AnimationFrame = null;
+        }
+    }
+
+    private applyCC1Action(normalizedValue: number, mode: 'main' | 'morphbox') {
+        if (mode === 'main') {
+            // Main scene: Portal warp with deadband
+            const portalValue = (normalizedValue + 1) / 2; // Convert -1,1 to 0,1
+            this.setPortalWarp(portalValue);
+        } else if (mode === 'morphbox') {
+            // Morph box: Vessel rotation with deadband
+            if (this.morphBoxCamera) {
+                // Bidirectional rotation based on normalized value
+                const rotationSpeed = 0.02; // Rotation speed factor
+                const currentAngle = Math.atan2(this.morphBoxCamera.position.x, this.morphBoxCamera.position.z);
+                const newAngle = currentAngle + (normalizedValue * rotationSpeed);
+                const distance = 5;
+
+                this.morphBoxCamera.position.x = Math.sin(newAngle) * distance;
+                this.morphBoxCamera.position.z = Math.cos(newAngle) * distance;
+                this.morphBoxCamera.lookAt(0, 0, 0);
+            }
+        }
     }
 
     private setGlobalIntensity(intensity: number) {
         this.vesselLayer.setIntensity(intensity);
         this.emergentFormLayer.setIntensity(intensity);
         this.particleLayer.setIntensity(intensity);
-        this.shadowLayer.setIntensity(intensity);
+        // DISABLED: this.shadowLayer.setIntensity(intensity); // REMOVED SHADOW LAYER
 
         this.updateActiveThinker(`Global intensity: ${Math.round(intensity * 100)}%`);
     }
@@ -504,7 +621,7 @@ export class MMPAEngine {
         this.vesselLayer.reset();
         this.emergentFormLayer.reset();
         this.particleLayer.reset();
-        this.shadowLayer.reset();
+        // DISABLED: this.shadowLayer.reset(); // REMOVED SHADOW LAYER
 
         this.camera.position.set(0, 0, 8);
         this.camera.lookAt(0, 0, 0);
@@ -646,5 +763,90 @@ export class MMPAEngine {
         this.vesselLayer.setVisible(true);
         this.emergentFormLayer.setVisible(true);
         this.particleLayer.setVisible(true);
+    }
+
+    private startCubeMorphing() {
+        this.cubeMorphingActive = true;
+
+        // Start immediate dramatic morphing
+        const morphAnimation = () => {
+            if (this.cubeMorphingActive && this.morphProgress < 1.0) {
+                this.morphProgress += 0.02; // Faster morph - 2 seconds to sphere
+                this.skyboxCubeLayer.setMorphProgress(this.morphProgress);
+                console.log(`🌀 Morphing progress: ${(this.morphProgress * 100).toFixed(1)}%`);
+                requestAnimationFrame(morphAnimation);
+            } else if (this.cubeMorphingActive && this.morphProgress >= 1.0) {
+                console.log('🌟 Cube→Sphere morph complete! Starting mode cycling...');
+                // Start cycling between modes
+                this.cycleMorphModes();
+            }
+        };
+
+        morphAnimation();
+        console.log('🎭 Cube→Sphere morphing started with progressive animation');
+    }
+
+    private stopCubeMorphing() {
+        this.cubeMorphingActive = false;
+        this.morphProgress = 0;
+        this.skyboxCubeLayer.setMorphProgress(0); // Reset to cube
+        console.log('🎭 Cube morphing stopped - reset to cube form');
+    }
+
+    private cycleMorphModes() {
+        if (!this.cubeMorphingActive) return;
+
+        // Cycle through different consciousness modes
+        const modes = ['cube', 'morphing', 'sphere', 'fractal'];
+        let currentModeIndex = 0;
+
+        const cycleMode = () => {
+            if (!this.cubeMorphingActive) return;
+
+            const mode = modes[currentModeIndex];
+
+            switch (mode) {
+                case 'cube':
+                    this.skyboxCubeLayer.setMorphProgress(0);
+                    this.skyboxCubeLayer.handleMicrotonalMorph(false);
+                    break;
+                case 'morphing':
+                    this.skyboxCubeLayer.setMorphProgress(0.5);
+                    break;
+                case 'sphere':
+                    this.skyboxCubeLayer.setMorphProgress(1.0);
+                    break;
+                case 'fractal':
+                    this.skyboxCubeLayer.handleMicrotonalMorph(true);
+                    this.skyboxCubeLayer.castWizardSpell('chromatic_resonance', { note: 'A' });
+                    break;
+            }
+
+            console.log(`🌀 Consciousness mode: ${mode}`);
+            currentModeIndex = (currentModeIndex + 1) % modes.length;
+
+            // Continue cycling every 4 seconds
+            setTimeout(() => {
+                if (this.cubeMorphingActive) {
+                    cycleMode();
+                }
+            }, 4000);
+        };
+
+        cycleMode();
+    }
+
+    // Public access methods for skybox cube layer
+    public getSkyboxCubeLayer(): SkyboxCubeLayer {
+        return this.skyboxCubeLayer;
+    }
+
+    public getSkyboxLayer(): SkyboxCubeLayer {
+        return this.skyboxCubeLayer;
+    }
+
+    public castWizardSpell(spellName: string, parameters: any = {}): void {
+        this.skyboxCubeLayer.castWizardSpell(spellName, parameters);
+        console.log(`🧙 Cast spell: ${spellName}`);
     }
 }
