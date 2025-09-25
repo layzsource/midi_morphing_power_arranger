@@ -1,6 +1,22 @@
 {
-  "1": "zeta",
-  "2": "pmw",
-  "3": "unity",
-  "4": "flatness"
+  "global": {
+    "1": "zeta",
+    "2": "pmw",
+    "3": "unity",
+    "4": "flatness"
+  },
+  "spectral": {
+    "5": "spectral_enabled",
+    "6": "spectral_mode",
+    "7": "spectral_fft_size"
+  },
+  "cymatic": {
+    "8": "pattern_intensity",
+    "9": "wave_speed",
+    "10": "resonance_freq"
+  },
+  "collaboration": {
+    "11": "chat_toggle",
+    "12": "preset_share"
+  }
 }

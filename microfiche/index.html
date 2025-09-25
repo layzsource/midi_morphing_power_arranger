@@ -464,6 +464,23 @@
       border-color: #f59e0b;
     }
 
+    /* MIDI Panel Indicator */
+    .midi-panel-indicator {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      margin-left: 8px;
+    }
+
+    .midi-panel-indicator.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
     .collab-notification {
       position: fixed;
       top: 80px;
@@ -741,6 +758,7 @@
   <div class="row">
     <span id="midi-status" class="status" style="color: #f59e0b;">MIDI: Disconnected</span>
     <span class="midi-indicator" id="midi-indicator"></span>
+    <span id="midi-panel-indicator" class="midi-panel-indicator" style="display: none;">Panel: <span id="active-panel-name">Global</span></span>
   </div>
   <div class="row">
     <span id="multiwindow-status" class="status" style="color: #38bdf8;">Multi-Window: Active</span>
@@ -772,6 +790,7 @@
 <div class="controls-help">
   <div><strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom ζ • <strong>Click sprite:</strong> Portal</div>
   <div><strong>Outside→Inside:</strong> Universe → Surface → Center POV</div>
+  <div><strong>MIDI Panels:</strong> Ctrl+1 Global • Ctrl+2 Spectral • Ctrl+3 Cymatic • Ctrl+4 Collab • Esc Clear</div>
 </div>
 
 <!-- Center Me Button -->
@@ -872,6 +891,11 @@ let midiPanelConfig = {}; // Extended MIDI panel configuration
 let midiConfigLastModified = null; // Track config file changes for hot-reload
 let presets = {}; // Preset configurations
 let midiActivity = {}; // Track recent MIDI activity for visual feedback
+
+// Panel focus tracking
+let activePanel = null; // Currently active panel for MIDI routing
+let panelMappings = {}; // Panel-specific CC mappings
+let globalMapping = {}; // Fallback global mapping
 
 // Multi-window synchronization
 let broadcastChannel = null;
@@ -1299,9 +1323,26 @@ async function loadMidiMapping() {
         return; // No changes, skip reload
       }
 
-      midiMapping = await response.json();
+      const rawMapping = await response.json();
       midiConfigLastModified = lastModified;
-      console.log('MIDI mapping loaded:', midiMapping);
+
+      // Check if new panel-based schema or legacy format
+      if (rawMapping.global || Object.keys(rawMapping).some(key => typeof rawMapping[key] === 'object')) {
+        // New panel-based schema
+        panelMappings = { ...rawMapping };
+        globalMapping = panelMappings.global || {};
+        midiMapping = globalMapping; // Start with global as default
+        console.log('🎛️ Panel-based MIDI mapping loaded:', panelMappings);
+      } else {
+        // Legacy format - treat as global mapping
+        globalMapping = { ...rawMapping };
+        midiMapping = globalMapping;
+        panelMappings = { global: globalMapping };
+        console.log('🎛️ Legacy MIDI mapping loaded:', midiMapping);
+      }
+
+      // Update panel indicator
+      updateMidiPanelIndicator();
     } else {
       console.warn('Could not load MIDI config files, using defaults');
       setDefaultMidiConfig();
@@ -1314,16 +1355,21 @@ async function loadMidiMapping() {
 
 // Set default MIDI configuration
 function setDefaultMidiConfig() {
-  midiMapping = {
+  globalMapping = {
     "1": "zeta",
     "2": "pmw",
     "3": "unity",
     "4": "flatness"
   };
+  midiMapping = globalMapping;
+  panelMappings = { global: globalMapping };
+  activePanel = null;
   presets = {
     "preset_outside": { name: "Outside", zeta: 0.0, pmw: 0.3, unity: 0.5, flatness: 0.4 },
     "preset_center": { name: "Center", zeta: 1.0, pmw: 0.9, unity: 0.8, flatness: 0.9 }
   };
+  console.log('Using default MIDI configuration');
+  updateMidiPanelIndicator();
 }
 
 // Periodically check for MIDI config changes
@@ -1331,6 +1377,51 @@ function startMidiConfigWatcher() {
   setInterval(async () => {
     await loadMidiMapping();
   }, 5000); // Check every 5 seconds
+}
+
+// Panel focus management
+function setActivePanel(panelName) {
+  activePanel = panelName;
+
+  // Update active mapping based on panel focus
+  if (panelName && panelMappings[panelName]) {
+    // Use panel-specific mapping, with global fallback
+    midiMapping = { ...globalMapping, ...panelMappings[panelName] };
+    console.log(`🎛️ MIDI Panel "${panelName}" activated:`, midiMapping);
+  } else {
+    // Fall back to global mapping
+    midiMapping = { ...globalMapping };
+    console.log('🎛️ MIDI Panel fallback to global mapping:', midiMapping);
+  }
+
+  updateMidiPanelIndicator();
+
+  // Broadcast panel change in collaborative mode
+  if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+    sendCollaborativeMessage('panel_change', {
+      panel: panelName || 'global',
+      timestamp: Date.now()
+    });
+  }
+}
+
+function clearActivePanel() {
+  setActivePanel(null);
+}
+
+function updateMidiPanelIndicator() {
+  const indicator = document.getElementById('midi-panel-indicator');
+  const panelName = document.getElementById('active-panel-name');
+
+  if (activePanel && panelMappings[activePanel]) {
+    indicator.style.display = 'inline';
+    indicator.classList.add('active');
+    panelName.textContent = activePanel.charAt(0).toUpperCase() + activePanel.slice(1);
+  } else {
+    indicator.style.display = 'inline';
+    indicator.classList.remove('active');
+    panelName.textContent = 'Global';
+  }
 }
 
 // Scale MIDI CC value (0-127) to parameter range (0.0-1.0)
@@ -2284,6 +2375,10 @@ function connectMidiWebSocket() {
           const ccString = data.cc.toString();
           const paramName = midiMapping[ccString];
 
+          // Enhanced logging with panel context
+          const panelContext = activePanel ? `panel:${activePanel}` : 'global';
+          console.log(`🎛️ MIDI CC${data.cc}=${data.value} (${panelContext}) → ${paramName || 'unmapped'}`);
+
           if (paramName) {
             // Apply velocity sensitivity if provided
             let finalValue = data.value;
@@ -2301,7 +2396,18 @@ function connectMidiWebSocket() {
             broadcastUpdate('parameter_update', {
               parameter: paramName,
               value: scaleMidiValue(finalValue),
-              source: 'midi'
+              source: 'midi',
+              panel: activePanel || 'global',
+              cc: data.cc
+            });
+
+            // Send collaborative parameter update if in collaborative mode
+            sendCollaborativeMessage('parameter_change', {
+              parameter: paramName,
+              value: scaleMidiValue(finalValue),
+              source: 'midi',
+              panel: activePanel || 'global',
+              cc: data.cc
             });
           } else {
             console.log(`Unmapped CC${data.cc}: ${data.value}`);
@@ -3061,6 +3167,44 @@ window.addEventListener('resize', onWindowResize);
 window.addEventListener('mousemove', onMouseMove);
 window.addEventListener('click', onMouseClick);
 window.addEventListener('wheel', onWheel, { passive: false });
+
+// Add panel switching keyboard shortcuts for demonstration
+window.addEventListener('keydown', (event) => {
+  // Only handle panel switching if not typing in an input
+  if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+    return;
+  }
+
+  switch (event.key) {
+    case '1':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('global');
+      }
+      break;
+    case '2':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('spectral');
+      }
+      break;
+    case '3':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('cymatic');
+      }
+      break;
+    case '4':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('collaboration');
+      }
+      break;
+    case 'Escape':
+      setActivePanel(null);
+      break;
+  }
+});
 
 onWindowResize();
 createShells();
