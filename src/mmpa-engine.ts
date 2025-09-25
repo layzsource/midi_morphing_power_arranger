@@ -16,6 +16,7 @@ import { SkyboxCubeLayer, createSkyboxCubeLayer } from './layers/SkyboxCubeLayer
 import { paramGraphIntegration, MMPA_PARAM_PATHS } from './paramgraph/ParamGraphIntegration';
 import { mmpaLogger } from './logging/MMPALogger';
 import { webSocketMIDI } from './midi/WebSocketMIDIClient';
+import { SpectralGraphEngine } from './signal-form/SpectralGraphEngine';
 
 export type PerformanceMode = 'vj' | 'installation' | 'studio';
 
@@ -37,6 +38,9 @@ export class MMPAEngine {
     // Complete skybox cube system
     private skyboxCubeLayer: SkyboxCubeLayer;
     private skyboxMorphIntegration: SkyboxMorphIntegration;
+
+    // Signal→Form spectral engine
+    private spectralEngine: SpectralGraphEngine;
 
     // Performance state
     private currentMode: PerformanceMode = 'vj';
