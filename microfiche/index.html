@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Signal→Form: Spherical POV Microfiche</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #eaeaea;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+    }
+
+    #hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 12px 16px;
+      border-radius: 16px;
+      min-width: 320px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #hud .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    #hud .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+
+    #hud .param {
+      font-size: 12px;
+      width: 100px;
+      color: #b8c6d1;
+    }
+
+    #hud input[type=range] {
+      width: 160px;
+      height: 4px;
+      background: #1f2937;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    #hud input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #60a5fa;
+      cursor: pointer;
+    }
+
+    #hud .value {
+      font-size: 11px;
+      color: #9ca3af;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    #hud .status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: #1f2937;
+      font-size: 11px;
+      color: #34d399;
+    }
+
+    #hud .meters {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #hud .meter {
+      flex: 1;
+      height: 24px;
+      background: #1f2937;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hud .meter .fill {
+      height: 100%;
+      transition: width 0.1s ease;
+      border-radius: 4px;
+    }
+
+    #hud .meter.unity .fill { background: #10b981; }
+    #hud .meter.entropy .fill { background: #3b82f6; }
+    #hud .meter.temporal .fill { background: #ef4444; }
+
+    #hud .meter .label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      color: #fff;
+      mix-blend-mode: difference;
+      font-weight: 500;
+    }
+
+    .controls-help {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #9ca3af;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #center-me {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    #center-me:hover {
+      background: rgba(239, 68, 68, 1);
+      transform: scale(1.05);
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .sprite-card {
+      position: absolute;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      pointer-events: none;
+      max-width: 200px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      z-index: 1000;
+    }
+
+    .sprite-card .id {
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 4px;
+    }
+
+    .sprite-card .palette {
+      display: flex;
+      gap: 2px;
+      margin-top: 4px;
+    }
+
+    .sprite-card .color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HUD Controls -->
+<div id="hud">
+  <div class="title">Signal→Form Spherical POV</div>
+
+  <div class="row">
+    <span class="param">Zoom (ζ)</span>
+    <input id="zeta" type="range" min="0" max="1" step="0.001" value="0.0">
+    <span id="zeta-val" class="value">0.000</span>
+  </div>
+
+  <div class="row">
+    <span class="param">PMW</span>
+    <input id="pmw" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="pmw-val" class="value">0.500</span>
+  </div>
+
+  <div class="row">
+    <span class="param">Unity (U)</span>
+    <input id="unity" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="unity-val" class="value">0.500</span>
+  </div>
+
+  <div class="row">
+    <span class="param">Flatness (F)</span>
+    <input id="flatness" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="flatness-val" class="value">0.500</span>
+  </div>
+
+  <!-- Telemetry Meters -->
+  <div class="meters">
+    <div class="meter unity">
+      <div class="fill" id="unity-meter" style="width: 50%"></div>
+      <div class="label">U</div>
+    </div>
+    <div class="meter entropy">
+      <div class="fill" id="entropy-meter" style="width: 40%"></div>
+      <div class="label">E</div>
+    </div>
+    <div class="meter temporal">
+      <div class="fill" id="temporal-meter" style="width: 20%"></div>
+      <div class="label">R</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span id="ws-status" class="status">Connecting...</span>
+  </div>
+</div>
+
+<!-- Controls Help -->
+<div class="controls-help">
+  <div><strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom ζ • <strong>Click sprite:</strong> Portal</div>
+  <div><strong>Outside→Inside:</strong> Universe → Surface → Center POV</div>
+</div>
+
+<!-- Center Me Button -->
+<button id="center-me">CENTER ME</button>
+
+<!-- Sprite Info Card -->
+<div id="sprite-card" class="sprite-card" style="display: none;">
+  <div class="id"></div>
+  <div class="type"></div>
+  <div class="palette"></div>
+</div>
+
+<!-- Main Canvas -->
+<canvas id="canvas"></canvas>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+// Configuration from microfiche_config.json
+const config = {
+  ws_telemetry: "ws://localhost:7070/telemetry",
+  http_control: "http://localhost:7070/control",
+  encoder_base: "http://localhost:7071",
+  collection_id: "home_cube",
+  shells: {
+    radii: [8.0, 4.0, 2.0],
+    membrane_enter: 0.45,
+    membrane_exit: 0.70,
+    center_view: 0.80
+  }
+};
+
+// Three.js setup
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 100);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+directionalLight.position.set(10, 10, 5);
+scene.add(directionalLight);
+
+// State
+let zeta = 0.0; // Outside→inside parameter [0,1]
+let pmw = 0.5;
+let collection = null;
+let sprites = [];
+let shells = [];
+let instrumentMesh = null;
+let ws = null;
+let telemetryData = {};
+
+// ζ-Camera system
+function updateCamera() {
+  const radii = config.shells.radii;
+  const R_out = radii[0]; // 8.0
+  const R_in = 0.01;
+
+  // Smooth transition with membrane easing
+  const membrane_t = smoothstep(config.shells.membrane_enter, config.shells.membrane_exit, zeta);
+  const r = lerp(R_out, R_in, zeta);
+
+  // Position camera along radius
+  const theta = Date.now() * 0.0003; // Subtle rotation
+  const x = r * Math.cos(theta);
+  const z = r * Math.sin(theta);
+  camera.position.set(x, 0, z);
+
+  // Look at center
+  camera.lookAt(0, 0, 0);
+
+  // Up vector slerp for smooth membrane crossing
+  const upOuter = new THREE.Vector3(0, 1, 0);
+  const upInner = new THREE.Vector3(0, -1, 0);
+  const up = upOuter.clone().lerp(upInner, zeta).normalize();
+  camera.up.copy(up);
+
+  // Adjust FOV for inside view
+  camera.fov = lerp(60, 90, smoothstep(0.7, 1.0, zeta));
+  camera.updateProjectionMatrix();
+}
+
+// Utility functions
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+// Create spherical shells
+function createShells() {
+  const radii = config.shells.radii; // [8.0, 4.0, 2.0]
+
+  radii.forEach((radius, i) => {
+    const geometry = new THREE.SphereGeometry(radius, 32, 16);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.1,
+      side: zeta > 0.75 ? THREE.BackSide : THREE.FrontSide
+    });
+
+    const shell = new THREE.Mesh(geometry, material);
+    shell.userData = { radius, index: i };
+    shells.push(shell);
+    scene.add(shell);
+  });
+}
+
+// Create instrument at center (cube→sphere morph)
+function createInstrument() {
+  const geometry = new THREE.BoxGeometry(1, 1, 1, 4, 4, 4);
+  const material = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.8,
+    side: THREE.DoubleSide
+  });
+
+  instrumentMesh = new THREE.Mesh(geometry, material);
+  scene.add(instrumentMesh);
+}
+
+// Create sprite billboards on shells
+function createSprites() {
+  if (!collection) return;
+
+  const outerRadius = config.shells.radii[0]; // 8.0
+  const spriteGeometry = new THREE.PlaneGeometry(0.3, 0.3);
+
+  collection.media.forEach((media, i) => {
+    // Distribute sprites on outer shell using spherical coordinates
+    const phi = (i / collection.media.length) * Math.PI * 2;
+    const theta = Math.acos(1 - 2 * (i * 0.618034) % 1); // Golden ratio distribution
+
+    const x = outerRadius * Math.sin(theta) * Math.cos(phi);
+    const y = outerRadius * Math.cos(theta);
+    const z = outerRadius * Math.sin(theta) * Math.sin(phi);
+
+    // Create sprite material with color from palette
+    const color = new THREE.Color().setRGB(
+      media.palette[0],
+      media.palette[1],
+      media.palette[2]
+    );
+
+    const material = new THREE.MeshBasicMaterial({
+      color: color,
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide
+    });
+
+    const sprite = new THREE.Mesh(spriteGeometry, material);
+    sprite.position.set(x, y, z);
+    sprite.lookAt(0, 0, 0); // Face center
+    sprite.userData = { media, id: media.id };
+
+    sprites.push(sprite);
+    scene.add(sprite);
+  });
+}
+
+// Update shell rendering based on ζ
+function updateShells() {
+  shells.forEach(shell => {
+    const inside = zeta > 0.75;
+    shell.material.side = inside ? THREE.BackSide : THREE.FrontSide;
+    shell.material.opacity = lerp(0.1, 0.05, zeta);
+  });
+}
+
+// Morphing instrument (cube→sphere)
+function updateInstrument() {
+  if (!instrumentMesh) return;
+
+  const morphProgress = smoothstep(config.shells.membrane_enter, config.shells.membrane_exit, zeta);
+  const geometry = instrumentMesh.geometry;
+  const positions = geometry.attributes.position;
+
+  // Store original positions
+  if (!geometry.userData.originalPositions) {
+    geometry.userData.originalPositions = new Float32Array(positions.array);
+  }
+
+  const original = geometry.userData.originalPositions;
+
+  // Morph vertices cube→sphere
+  for (let i = 0; i < positions.count; i++) {
+    const x = original[i * 3];
+    const y = original[i * 3 + 1];
+    const z = original[i * 3 + 2];
+
+    // Calculate sphere position
+    const length = Math.sqrt(x*x + y*y + z*z);
+    const sphereRadius = 0.7;
+
+    if (length > 0) {
+      const sphereX = (x / length) * sphereRadius;
+      const sphereY = (y / length) * sphereRadius;
+      const sphereZ = (z / length) * sphereRadius;
+
+      // Interpolate cube→sphere
+      positions.setXYZ(i,
+        lerp(x, sphereX, morphProgress),
+        lerp(y, sphereY, morphProgress),
+        lerp(z, sphereZ, morphProgress)
+      );
+    }
+  }
+
+  positions.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  // Apply modal coefficients if available
+  if (telemetryData.c && telemetryData.c.length >= 4) {
+    // Simple deformation based on spectral coefficients
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      const z = positions.getZ(i);
+
+      const r = Math.sqrt(x*x + y*y + z*z);
+      const theta = Math.atan2(y, x);
+      const phi = Math.acos(z / (r || 1));
+
+      // Apply eigenmode deformation
+      let displacement = 0;
+      displacement += telemetryData.c[0] * 0.1 * Math.sin(2 * r);
+      displacement += telemetryData.c[1] * 0.1 * Math.sin(3 * theta);
+      displacement += telemetryData.c[2] * 0.1 * (y*y - 0.3);
+      displacement += telemetryData.c[3] * 0.05 * Math.sin(8 * x) * Math.cos(8 * z);
+
+      const normal = new THREE.Vector3(x, y, z).normalize();
+      positions.setXYZ(i,
+        x + normal.x * displacement,
+        y + normal.y * displacement,
+        z + normal.z * displacement
+      );
+    }
+    positions.needsUpdate = true;
+  }
+
+  // Update material based on PMW
+  const tint = 0.5 + 0.5 * pmw;
+  instrumentMesh.material.color.setRGB(tint, tint, tint);
+}
+
+// WebSocket connection
+function connectWebSocket() {
+  try {
+    ws = new WebSocket(config.ws_telemetry);
+
+    ws.onopen = () => {
+      document.getElementById('ws-status').textContent = 'Connected';
+      document.getElementById('ws-status').style.color = '#34d399';
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        telemetryData = JSON.parse(event.data);
+        updateTelemetryDisplay();
+      } catch (e) {
+        console.warn('Invalid telemetry data:', e);
+      }
+    };
+
+    ws.onerror = () => {
+      document.getElementById('ws-status').textContent = 'Error';
+      document.getElementById('ws-status').style.color = '#ef4444';
+    };
+
+    ws.onclose = () => {
+      document.getElementById('ws-status').textContent = 'Disconnected';
+      document.getElementById('ws-status').style.color = '#f59e0b';
+      // Reconnect after delay
+      setTimeout(connectWebSocket, 2000);
+    };
+  } catch (e) {
+    console.error('WebSocket connection failed:', e);
+    document.getElementById('ws-status').textContent = 'Failed';
+    document.getElementById('ws-status').style.color = '#ef4444';
+  }
+}
+
+// Update telemetry display
+function updateTelemetryDisplay() {
+  if (!telemetryData) return;
+
+  // Update meters
+  if (telemetryData.S) {
+    const unity = telemetryData.S.U || 0;
+    document.getElementById('unity-meter').style.width = `${unity * 100}%`;
+  }
+
+  if (typeof telemetryData.entropy === 'number') {
+    document.getElementById('entropy-meter').style.width = `${telemetryData.entropy * 100}%`;
+  }
+
+  if (typeof telemetryData.R === 'number') {
+    document.getElementById('temporal-meter').style.width = `${Math.min(telemetryData.R * 100, 100)}%`;
+  }
+
+  // Update PMW if provided
+  if (typeof telemetryData.pmw === 'number') {
+    pmw = telemetryData.pmw;
+    document.getElementById('pmw').value = pmw;
+    document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+  }
+}
+
+// Portal system (sprite click → control)
+async function handleSpriteClick(sprite) {
+  const mediaId = sprite.userData.media.id;
+  console.log('Portal clicked:', mediaId);
+
+  try {
+    // Get stimulus from encoder
+    const stimResponse = await fetch(`${config.encoder_base}/stim/${encodeURIComponent(mediaId)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const stimulus = await stimResponse.json();
+    console.log('Stimulus:', stimulus);
+
+    // Send control to engine
+    const controlResponse = await fetch(config.http_control, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        set: { pmw: stimulus.pmw_hint || pmw },
+        pulse: stimulus.pulse || { k: 5, amp: 0.6, decay: 0.92 },
+        bias: stimulus.bias_modes ? { weights: stimulus.bias_modes } : undefined
+      })
+    });
+
+    console.log('Control sent, status:', controlResponse.status);
+
+    // Visual feedback
+    sprite.material.emissive.setHex(0xff4444);
+    setTimeout(() => {
+      sprite.material.emissive.setHex(0x000000);
+    }, 200);
+
+  } catch (error) {
+    console.error('Portal error:', error);
+  }
+}
+
+// Load collection data
+async function loadCollection() {
+  try {
+    const response = await fetch(`${config.encoder_base}/collection/${config.collection_id}`);
+    collection = await response.json();
+    console.log('Collection loaded:', collection.media.length, 'items');
+    createSprites();
+  } catch (error) {
+    console.error('Failed to load collection:', error);
+  }
+}
+
+// Mouse interaction
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredSprite = null;
+
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(sprites);
+
+  // Clear previous hover
+  if (hoveredSprite) {
+    hoveredSprite.material.emissive.setHex(0x000000);
+    document.getElementById('sprite-card').style.display = 'none';
+  }
+
+  hoveredSprite = null;
+
+  if (intersects.length > 0) {
+    hoveredSprite = intersects[0].object;
+    hoveredSprite.material.emissive.setHex(0x444444);
+
+    // Show sprite card
+    const card = document.getElementById('sprite-card');
+    const media = hoveredSprite.userData.media;
+
+    card.querySelector('.id').textContent = media.id;
+    card.querySelector('.type').textContent = media.type;
+
+    const palette = card.querySelector('.palette');
+    palette.innerHTML = '';
+    media.palette.forEach(color => {
+      const colorDiv = document.createElement('div');
+      colorDiv.className = 'color';
+      colorDiv.style.backgroundColor = `rgb(${Math.floor(color*255)}, ${Math.floor(color*255)}, ${Math.floor(color*255)})`;
+      palette.appendChild(colorDiv);
+    });
+
+    card.style.display = 'block';
+    card.style.left = `${event.clientX + 10}px`;
+    card.style.top = `${event.clientY + 10}px`;
+  }
+}
+
+function onMouseClick(event) {
+  if (hoveredSprite) {
+    handleSpriteClick(hoveredSprite);
+  }
+}
+
+function onWheel(event) {
+  zeta = Math.max(0, Math.min(1, zeta + event.deltaY * 0.001));
+  document.getElementById('zeta').value = zeta;
+  document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+  updateCamera();
+  updateShells();
+  event.preventDefault();
+}
+
+// UI Controls
+function setupControls() {
+  const zetaSlider = document.getElementById('zeta');
+  const pmwSlider = document.getElementById('pmw');
+  const unitySlider = document.getElementById('unity');
+  const flatnessSlider = document.getElementById('flatness');
+
+  zetaSlider.addEventListener('input', (e) => {
+    zeta = parseFloat(e.target.value);
+    document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+    updateCamera();
+    updateShells();
+  });
+
+  pmwSlider.addEventListener('input', (e) => {
+    pmw = parseFloat(e.target.value);
+    document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+  });
+
+  unitySlider.addEventListener('input', (e) => {
+    const unity = parseFloat(e.target.value);
+    document.getElementById('unity-val').textContent = unity.toFixed(3);
+    // Send control update
+    sendControl({ set: { unity: unity } });
+  });
+
+  flatnessSlider.addEventListener('input', (e) => {
+    const flatness = parseFloat(e.target.value);
+    document.getElementById('flatness-val').textContent = flatness.toFixed(3);
+    // Send control update
+    sendControl({ set: { flatness: flatness } });
+  });
+
+  // Center Me button
+  document.getElementById('center-me').addEventListener('click', () => {
+    // Smooth transition to center
+    const startZeta = zeta;
+    const targetZeta = 1.0;
+    const startTime = Date.now();
+    const duration = 500; // ms
+
+    function animateToCenter() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = smoothstep(0, 1, progress);
+
+      zeta = lerp(startZeta, targetZeta, easedProgress);
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+
+      updateCamera();
+      updateShells();
+
+      if (progress < 1) {
+        requestAnimationFrame(animateToCenter);
+      } else {
+        // Set PMW to 1 and apply grounding
+        pmw = 1.0;
+        document.getElementById('pmw').value = pmw;
+        document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+        sendControl({
+          set: { pmw: 1.0, alpha_white: 0.8 },
+          bias: { weights: [0.8, 0.1, 0.1] } // Flatten spectrum
+        });
+      }
+    }
+
+    animateToCenter();
+  });
+}
+
+// Send control command
+async function sendControl(command) {
+  try {
+    await fetch(config.http_control, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(command)
+    });
+  } catch (error) {
+    console.error('Control send failed:', error);
+  }
+}
+
+// Window resize
+function onWindowResize() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+// Animation loop
+function animate() {
+  updateCamera();
+  updateInstrument();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// Initialize
+window.addEventListener('resize', onWindowResize);
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('click', onMouseClick);
+window.addEventListener('wheel', onWheel, { passive: false });
+
+onWindowResize();
+createShells();
+createInstrument();
+setupControls();
+loadCollection();
+connectWebSocket();
+animate();
+
+console.log('🌊 Signal→Form Spherical POV initialized');
+console.log('Configuration:', config);
+
+</script>
+</body>
+</html>

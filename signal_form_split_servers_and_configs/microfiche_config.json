@@ -1,0 +1,22 @@
+{
+  "ws_telemetry": "ws://localhost:7070/telemetry",
+  "http_control": "http://localhost:7070/control",
+  "encoder_base": "http://localhost:7071",
+  "collection_id": "home_cube",
+  "shells": {
+    "radii": [
+      8.0,
+      4.0,
+      2.0
+    ],
+    "membrane_enter": 0.45,
+    "membrane_exit": 0.7,
+    "center_view": 0.8,
+    "tiling": {
+      "type": "equirect",
+      "tile_size": 512,
+      "max_visible_tiles": 256
+    }
+  },
+  "framerate_target": 60
+}

@@ -1,0 +1,17 @@
+# encoder_config.yaml
+collection_id: home_cube
+roots:
+  images: ~/media/family_photos
+  videos: ~/media/family_videos
+sprite_cap: 128
+keyframes:
+  cadence_sec: 2.0
+  max_loops_per_video: 2
+  loop_duration_sec: 1.5
+mapping:
+  tag_to_shelf:
+    family: 500
+    nature: 700
+  tempo_pulse:
+    amp: 0.6
+    decay: 0.92
