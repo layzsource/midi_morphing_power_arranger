@@ -1,5 +1,6 @@
 import asyncio
 import json
+from pathlib import Path
 
 import pytest
 
@@ -39,31 +40,39 @@ def test_presence_events_broadcast_on_join_leave(monkeypatch):
         session.broadcast_to_others(
             user_one.user_id,
             {
-                "type": "user_joined",
+                "type": "collaborative_user_join",
                 "user": user_one.to_dict(),
                 "users_in_session": session.get_user_list(),
+                "users_count": len(session.users),
                 "timestamp": 123.0,
             },
         )
     )
 
-    assert ws_two.last_message["type"] == "user_joined"
+    assert ws_two.last_message["type"] == "collaborative_user_join"
     assert ws_two.last_message["user"]["user_id"] == "user-one"
+    assert ws_two.last_message["users_count"] == len(session.users)
+    assert ws_two.last_message["user"]["color"] == user_one.color
     assert ws_one.last_message is None
 
     asyncio.run(
         session.broadcast_to_others(
             user_one.user_id,
             {
-                "type": "user_left",
+                "type": "collaborative_user_leave",
                 "user_id": user_one.user_id,
                 "username": user_one.username,
+                "user_color": user_one.color,
+                "users_in_session": [user_two.to_dict()],
+                "users_count": len(session.users) - 1,
                 "timestamp": 124.0,
             },
         )
     )
-    assert ws_two.last_message["type"] == "user_left"
+    assert ws_two.last_message["type"] == "collaborative_user_leave"
     assert ws_two.last_message["user_id"] == "user-one"
+    assert ws_two.last_message["users_count"] == len(session.users) - 1
+    assert ws_two.last_message["user_color"] == user_one.color
 
 
 def test_cursor_updates_propagate_to_other_clients(monkeypatch):
@@ -123,6 +132,19 @@ def test_offline_session_contains_no_network_broadcasts(monkeypatch):
 
     solo_socket = session.users["solo"].websocket
     assert solo_socket.messages == []
+
+
+def test_users_online_badge_logic_and_presence_toasts():
+    frontend = (Path(__file__).resolve().parents[1] / "microfiche" / "index.html").read_text(encoding="utf-8")
+
+    assert 'id="users-online-badge"' in frontend
+    assert "badge.style.display = 'inline'" in frontend
+    assert "badge.style.display = 'none'" in frontend
+    assert "countSpan.textContent = count" in frontend
+
+    assert "showPresenceToast(`${data.user.username} joined`, 'join', data.user.color);" in frontend
+    assert "showPresenceToast(`${data.username} left`, 'leave', data.user_color);" in frontend
+    assert "function showPresenceToast(message, type = 'join', userColor = '#3b82f6')" in frontend
 
 
 def test_engine_telemetry_unaffected_by_collaboration_state():
