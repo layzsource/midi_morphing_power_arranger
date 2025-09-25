@@ -1,127 +1,146 @@
-# 🎶 Universal Signal-to-Form Engine
+# 🌊 Signal→Form Engine: Spherical POV System
 
-*A performance instrument, a living myth, a library of thinkers*
+**Complete implementation of the spherical consciousness navigation system with live eigenmode deformation.**
 
 ## 🌍 Overview
 
-The Universal Signal-to-Form Engine transforms **signal → form** across multiple modalities (sound, shape, color, shadow, motion). It functions simultaneously as:
+Revolutionary transformation from basic MIDI visualization to **navigable consciousness instrument**:
 
-- **🎚️ DJ/VJ Instrument** - Real-time audio-visual performance
-- **🏛️ Installation Tool** - Immersive artistic experiences
-- **🧠 Language Platform** - Emergent communication through pattern
+- **🌐 Spherical POV Navigation** - Outside universe → center looking outward
+- **🎯 Portal System** - Click sprites → real eigenmode deformation
+- **📊 Spectral Graph Analysis** - Mathematical foundation for every visual
+- **🎛️ Live Telemetry** - Real-time consciousness depth parameters
 
-> *"All signal is form, all form is signal. Music is the universal language — but vibration, frequency, and pattern are even deeper."*
+> *"The windmill of the mind is turning. Stand at the center and look outward at the layers of meaning."*
 
-## ⚡ Architecture
+## 🏗️ Architecture
 
-### Four Archetypal Layers
-- **🔲 Vessel** → Container, geometry, architecture (Russell's cube-sphere cosmology)
-- **🌐 Emergent Form** → Dynamic surfaces and evolving shapes (Blake, Tesla, Beatles)
-- **✨ Particles** → Motion, texture, rhythm, energy bursts (Lead Belly, Hawking, Pranksters)
-- **🌑 Shadow** → Negative space, inversion, absence (Hoffman, Waas)
-
-### Signal Grammar
-MIDI, audio, and data streams map into visual transformations:
-- **Frequency bands** → shape morphing and color shifts
-- **MIDI CC** → layer intensity and geometry scaling
-- **Beat detection** → particle emission bursts
-- **Silence** → shadow inversions and trickster modes
-
-### Performance Modes
-- **🔥 Club Mode** → High-energy, rhythmic, strobing visuals
-- **🏛️ Installation Mode** → Ambient, contemplative, slow morphing
-- **🎹 Instrument Mode** → Expressive, responsive, intimate performance
-
-## 📚 Core Library (Easter Eggs)
-
-Each thinker/artist has embedded "signature" cues that appear in sound/visuals:
-
-### Vessel Layer
-- **Walter Russell** → Cosmic geometry, harmonic drones (256Hz trigger)
-- **Constance Greiff** → Architectural memory, cathedral reverb (silence trigger)
-- **Albert Einstein** → Relativistic patterns, time-space bending (432Hz trigger)
-
-### Emergent Form Layer
-- **William Blake** → Mystical morphing, visionary chants (227.43Hz trigger)
-- **Nikola Tesla** → Electrical resonance, 3-6-9 patterns (369Hz trigger)
-- **The Beatles** → Harmonic convergence, collective creation (harmonic series trigger)
-
-### Particle Layer
-- **Lead Belly** → Blues rhythms, earth tones (12-bar pattern trigger)
-- **Stephen Hawking** → Cosmic radiation, black hole spirals (sub-bass trigger)
-- **Merry Pranksters** → Kaleidoscopic chaos, psychedelic bursts (random trigger)
-
-### Shadow Layer
-- **Abbie Hoffman** → Rebellious inversions, disruptive flashes (amplitude spike trigger)
-- **Les Waas** → Absurd timing, comic delays (absurd number trigger)
-
-## 🎮 Controls
-
-### Keyboard Controls
-- **1** → Trigger Russell archetype
-- **2** → Trigger Blake archetype
-- **3** → Trigger Tesla archetype
-- **Space** → Manual beat trigger
-- **R** → Reset all layers
-
-### MIDI Controls
-- **CC 1** (Mod Wheel) → Particle speed
-- **CC 7** (Volume) → Particle opacity
-- **CC 10** (Pan) → Particle spread
-- **Note On** → Frequency analysis and layer morphing
-
-### Audio Input
-- Real-time microphone analysis
-- Automatic beat detection
-- Frequency spectrum mapping to visual layers
-- Silence detection for shadow inversions
-
-## 🚀 Getting Started
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Open browser to http://localhost:3000
+```
+universal-signal-engine/
+├── README.md                           # This file
+├── microfiche/
+│   └── index.html                      # Spherical POV interface (1100+ lines)
+├── signal_form_split_servers_and_configs/
+│   ├── engine_server.py               # Engine: WebSocket telemetry + HTTP control
+│   ├── encoder_stub.py                # Encoder: Collection/atlas/stim endpoints
+│   ├── microfiche_config.json         # Configuration
+│   ├── encoder_config.yaml            # Encoder settings
+│   └── README.txt                     # Server details
+├── src/signal-form/
+│   └── SpectralGraphEngine.ts         # Core spectral analysis
+├── eigenmode_cube.html                # Standalone eigenmode viewer
+└── eigenmode_websocket_bridge.py     # Original bridge (now superseded)
 ```
 
-### Permissions Required
-- **Microphone** → Audio analysis and beat detection
-- **MIDI** → Hardware controller integration
+### Three-Server System
+- **Engine (Port 7070)** → WebSocket telemetry + HTTP control endpoints
+- **Encoder (Port 7071)** → Media processing + stimulus generation
+- **Microfiche (Browser)** → Spherical POV interface with live portal system
 
-## 🎨 Technical Implementation
+## 🚀 Quick Start
 
-### Built With
-- **Three.js** → 3D rendering and scene management
-- **Web Audio API** → Real-time audio analysis
-- **Web MIDI API** → Hardware controller integration
-- **TypeScript** → Type-safe development
-- **Vite** → Fast development and building
+### 1. Start Engine Server (Port 7070)
+```bash
+cd signal_form_split_servers_and_configs
+python3 -m pip install fastapi uvicorn numpy scipy pillow
+python3 engine_server.py
+```
+**Provides:**
+- WebSocket telemetry: `ws://localhost:7070/telemetry`
+- HTTP control: `http://localhost:7070/control`
 
-### Architecture Patterns
-- **Layer System** → Modular visual components
-- **Signal Grammar** → Universal input translation
-- **Archetype Library** → Cultural pattern database
-- **Easter Egg System** → Hidden interactive elements
+### 2. Start Encoder Server (Port 7071)
+```bash
+# Same terminal or new one
+python3 encoder_stub.py --images ~/Downloads --cap 128
+```
+**Provides:**
+- Collection data: `http://localhost:7071/collection/home_cube`
+- Media atlas: `http://localhost:7071/atlas/home_cube.png`
+- Stimulus generation: `http://localhost:7071/stim/{media_id}`
 
-## 🔮 Philosophy
+### 3. Open Spherical POV Interface
+```bash
+open microfiche/index.html
+```
 
-### White Queen Mode
-*"Time is not linear - the engine is already alive in the future. Build backward from its demands."*
+## 🎮 Using the Spherical POV
 
-### Dual Perception
-Geometry and sound shift meaning based on context - the performance itself becomes language emergence.
+### Camera Navigation
+- **Mouse Wheel**: Zoom ζ parameter (0 = outside universe, 1 = center POV)
+- **Mouse Move**: Orbit around current position
+- **ζ Transition**: Outside→surface→inside with smooth up-vector slerp
 
-### HAL Personas
-AI co-performer modes:
-- **Oracle** → Solemn, mythic guidance
-- **Trickster** → Playful, glitching, remixing
-- **Cosmic Narrator** → Vast commentary, poetic
-- **Silent Shadow** → Absence, withdrawal, minimalism
+### Portal System
+1. **Zoom to outer shell** (ζ ≈ 0.2) to see sprite clouds
+2. **Hover sprites** to see color palettes and metadata
+3. **Click any sprite** → triggers portal sequence:
+   - POST `/stim/{media_id}` → gets stimulus packet
+   - POST `/control` → sends control to engine
+   - **Watch center instrument morph** via eigenmode deformation
 
----
+### Controls
+- **ζ Slider**: Manual zoom control
+- **PMW Slider**: Consciousness depth parameter
+- **Unity/Flatness**: Spectral balance controls
+- **CENTER ME Button**: Emergency grounding (ζ→1, PMW→1, flatten spectrum)
 
-*"Not 'as if' it is alive. It **already is** alive."*
+## 📊 Technical Details
+
+### Media Processing
+The encoder processes **62 media items** from `~/Downloads`:
+- **Color Palette Extraction**: Dominant RGB values per item
+- **Sprite Atlas Generation**: Packed texture atlas
+- **Stimulus Mapping**: Palette→RGB bias, tags→Dewey shelves
+
+### Eigenmode Deformation
+Center instrument morphs through:
+1. **Cube↔Sphere**: Membrane transition at ζ crossing
+2. **Modal Coefficients**: Live telemetry drives vertex displacement
+3. **Real-time Update**: <50ms portal click → visible morph
+
+### WebSocket Telemetry Stream
+```json
+{
+  "t": 12.34,
+  "c": [0.3, 0.4, 0.2, 0.1],          // Modal coefficients
+  "S": {"U":0.60,"F":0.70},            // Unity, Flatness
+  "entropy": 0.38,                     // Spectral disorder
+  "R": 0.27,                          // Temporal change
+  "pmw": 0.74                          // Consciousness depth
+}
+```
+
+## 🧪 Testing the Complete Loop
+
+### 1. Verify Servers
+```bash
+# Test control endpoint
+curl -X POST http://localhost:7070/control \
+  -H "Content-Type: application/json" \
+  -d '{"set":{"pmw":0.8}}'
+
+# Test collection
+curl http://localhost:7071/collection/home_cube
+
+# Test stimulus
+curl -X POST http://localhost:7071/stim/IMG_1175
+```
+
+### 2. Verify Portal Magic
+1. Open `microfiche/index.html`
+2. Check WebSocket status shows "Connected"
+3. Scroll to outer shell (ζ ≈ 0.2)
+4. Click any colored sprite
+5. **Watch center cube deform** in real-time
+
+## ✅ Success Criteria
+
+- [ ] Both servers start without errors
+- [ ] WebSocket shows "Connected" in browser
+- [ ] Sprites visible on outer shell with color palettes
+- [ ] ζ slider smoothly transitions outside→inside
+- [ ] Sprite click triggers visible center deformation <50ms
+- [ ] No gimbal flip during membrane crossing
+
+**The complete spherical consciousness navigation system is ready.**

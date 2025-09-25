@@ -236,6 +236,9 @@
   <div class="row">
     <span id="ws-status" class="status">Connecting...</span>
   </div>
+  <div class="row">
+    <span id="midi-status" class="status" style="color: #f59e0b;">MIDI: Disconnected</span>
+  </div>
 </div>
 
 <!-- Controls Help -->
@@ -299,6 +302,7 @@ let sprites = [];
 let shells = [];
 let instrumentMesh = null;
 let ws = null;
+let midiWS = null;
 let telemetryData = {};
 
 // ζ-Camera system
@@ -600,6 +604,78 @@ async function handleSpriteClick(sprite) {
   }
 }
 
+// MIDI WebSocket connection
+function connectMidiWebSocket() {
+  try {
+    midiWS = new WebSocket('ws://localhost:7072/midi');
+
+    midiWS.onopen = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Connected';
+      document.getElementById('midi-status').style.color = '#34d399';
+      console.log('MIDI WebSocket connected');
+    };
+
+    midiWS.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        // Update zeta parameter
+        if (typeof data.zeta === 'number') {
+          zeta = Math.max(0, Math.min(1, data.zeta));
+          document.getElementById('zeta').value = zeta;
+          document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+          updateCamera();
+          updateShells();
+        }
+
+        // Update unity parameter
+        if (typeof data.unity === 'number') {
+          const unity = Math.max(0, Math.min(1, data.unity));
+          document.getElementById('unity').value = unity;
+          document.getElementById('unity-val').textContent = unity.toFixed(3);
+          sendControl({ set: { unity: unity } });
+        }
+
+        // Update flatness parameter
+        if (typeof data.flatness === 'number') {
+          const flatness = Math.max(0, Math.min(1, data.flatness));
+          document.getElementById('flatness').value = flatness;
+          document.getElementById('flatness-val').textContent = flatness.toFixed(3);
+          sendControl({ set: { flatness: flatness } });
+        }
+
+        // Update PMW parameter
+        if (typeof data.pmw === 'number') {
+          pmw = Math.max(0, Math.min(1, data.pmw));
+          document.getElementById('pmw').value = pmw;
+          document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+          sendControl({ set: { pmw: pmw } });
+        }
+
+      } catch (error) {
+        console.warn('Error parsing MIDI data:', error);
+      }
+    };
+
+    midiWS.onerror = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Error';
+      document.getElementById('midi-status').style.color = '#ef4444';
+    };
+
+    midiWS.onclose = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Disconnected';
+      document.getElementById('midi-status').style.color = '#f59e0b';
+      // Reconnect after delay
+      setTimeout(connectMidiWebSocket, 3000);
+    };
+
+  } catch (error) {
+    console.error('MIDI WebSocket connection failed:', error);
+    document.getElementById('midi-status').textContent = 'MIDI: Failed';
+    document.getElementById('midi-status').style.color = '#ef4444';
+  }
+}
+
 // Load collection data
 async function loadCollection() {
   try {
@@ -787,6 +863,7 @@ createInstrument();
 setupControls();
 loadCollection();
 connectWebSocket();
+connectMidiWebSocket();
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
