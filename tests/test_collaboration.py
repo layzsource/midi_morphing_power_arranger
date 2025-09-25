@@ -1,5 +1,6 @@
 import asyncio
 import json
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -116,6 +117,9 @@ def test_session_ids_and_user_identity_are_stable():
     assert repeat_user.username == user.username
     assert repeat_user.color == user.color
 
+    expected_color = f"#{hashlib.md5('alpha'.encode()).hexdigest()[:6]}"
+    assert user.color == expected_color
+
 
 def test_offline_session_contains_no_network_broadcasts(monkeypatch):
     manager = ces.CollaborationManager()
@@ -145,6 +149,7 @@ def test_users_online_badge_logic_and_presence_toasts():
     assert "showPresenceToast(`${data.user.username} joined`, 'join', data.user.color);" in frontend
     assert "showPresenceToast(`${data.username} left`, 'leave', data.user_color);" in frontend
     assert "function showPresenceToast(message, type = 'join', userColor = '#3b82f6')" in frontend
+    assert ".presence-toast {" in frontend
 
 
 def test_engine_telemetry_unaffected_by_collaboration_state():
