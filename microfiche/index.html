@@ -185,6 +185,70 @@
       height: 12px;
       border-radius: 2px;
     }
+
+    /* MIDI Activity Feedback */
+    .midi-activity {
+      position: fixed;
+      top: 20px;
+      right: 350px;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      backdrop-filter: blur(8px);
+    }
+
+    .midi-activity.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .preset-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      opacity: 0;
+      scale: 0.8;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 2000;
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .preset-notification.show {
+      opacity: 1;
+      scale: 1;
+    }
+
+    .midi-indicator {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-left: 4px;
+      opacity: 0;
+      animation: midiFlash 0.2s ease-out;
+    }
+
+    @keyframes midiFlash {
+      0% { opacity: 0; scale: 0.5; }
+      50% { opacity: 1; scale: 1.5; background: #10b981; }
+      100% { opacity: 0; scale: 1; }
+    }
   </style>
 </head>
 <body>
@@ -238,6 +302,7 @@
   </div>
   <div class="row">
     <span id="midi-status" class="status" style="color: #f59e0b;">MIDI: Disconnected</span>
+    <span class="midi-indicator" id="midi-indicator"></span>
   </div>
 </div>
 
@@ -259,6 +324,12 @@
 
 <!-- Main Canvas -->
 <canvas id="canvas"></canvas>
+
+<!-- MIDI Activity Feedback -->
+<div id="midi-activity" class="midi-activity"></div>
+
+<!-- Preset Notification -->
+<div id="preset-notification" class="preset-notification"></div>
 
 <script type="module">
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
@@ -304,6 +375,11 @@ let instrumentMesh = null;
 let ws = null;
 let midiWS = null;
 let telemetryData = {};
+let midiMapping = {}; // CC number -> parameter name mapping
+let midiPanelConfig = {}; // Extended MIDI panel configuration
+let midiConfigLastModified = null; // Track config file changes for hot-reload
+let presets = {}; // Preset configurations
+let midiActivity = {}; // Track recent MIDI activity for visual feedback
 
 // ζ-Camera system
 function updateCamera() {
@@ -604,6 +680,322 @@ async function handleSpriteClick(sprite) {
   }
 }
 
+// Load MIDI mapping configuration
+async function loadMidiMapping() {
+  try {
+    // Try to load extended panel config first
+    const panelResponse = await fetch('./midi_panels.json?t=' + Date.now());
+    if (panelResponse.ok) {
+      midiPanelConfig = await panelResponse.json();
+      midiMapping = midiPanelConfig.cc_mappings || {};
+      presets = midiPanelConfig.presets || {};
+      console.log('🎛️ Extended MIDI panel config loaded:', midiPanelConfig);
+      return;
+    }
+
+    // Fallback to simple mapping file
+    const response = await fetch('./midi_map.json?t=' + Date.now());
+    if (response.ok) {
+      const lastModified = response.headers.get('Last-Modified');
+
+      // Check if config has changed
+      if (midiConfigLastModified && lastModified && lastModified === midiConfigLastModified) {
+        return; // No changes, skip reload
+      }
+
+      midiMapping = await response.json();
+      midiConfigLastModified = lastModified;
+      console.log('MIDI mapping loaded:', midiMapping);
+    } else {
+      console.warn('Could not load MIDI config files, using defaults');
+      setDefaultMidiConfig();
+    }
+  } catch (error) {
+    console.error('Failed to load MIDI mapping:', error);
+    setDefaultMidiConfig();
+  }
+}
+
+// Set default MIDI configuration
+function setDefaultMidiConfig() {
+  midiMapping = {
+    "1": "zeta",
+    "2": "pmw",
+    "3": "unity",
+    "4": "flatness"
+  };
+  presets = {
+    "preset_outside": { name: "Outside", zeta: 0.0, pmw: 0.3, unity: 0.5, flatness: 0.4 },
+    "preset_center": { name: "Center", zeta: 1.0, pmw: 0.9, unity: 0.8, flatness: 0.9 }
+  };
+}
+
+// Periodically check for MIDI config changes
+function startMidiConfigWatcher() {
+  setInterval(async () => {
+    await loadMidiMapping();
+  }, 5000); // Check every 5 seconds
+}
+
+// Scale MIDI CC value (0-127) to parameter range (0.0-1.0)
+function scaleMidiValue(ccValue) {
+  return Math.max(0, Math.min(1, ccValue / 127.0));
+}
+
+// Update parameter based on MIDI mapping
+function updateParameterFromMidi(paramName, value) {
+  const scaledValue = scaleMidiValue(value);
+
+  // Track MIDI activity for visual feedback
+  midiActivity[paramName] = { value: scaledValue, timestamp: Date.now() };
+  showMidiActivity(paramName, scaledValue);
+
+  switch (paramName) {
+    case 'zeta':
+      zeta = scaledValue;
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = scaledValue;
+      document.getElementById('pmw').value = pmw;
+      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+      sendControl({ set: { pmw: pmw } });
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = scaledValue;
+      document.getElementById('unity-val').textContent = scaledValue.toFixed(3);
+      sendControl({ set: { unity: scaledValue } });
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = scaledValue;
+      document.getElementById('flatness-val').textContent = scaledValue.toFixed(3);
+      sendControl({ set: { flatness: scaledValue } });
+      break;
+
+    // Extended parameters
+    case 'shell_opacity':
+      updateShellOpacity(scaledValue);
+      break;
+
+    case 'instrument_scale':
+      updateInstrumentScale(scaledValue);
+      break;
+
+    case 'deform_intensity':
+      updateDeformIntensity(scaledValue);
+      break;
+
+    default:
+      console.warn(`Unknown parameter: ${paramName}`);
+  }
+}
+
+// Apply preset configuration
+function applyPreset(presetName) {
+  const preset = presets[presetName];
+  if (!preset) {
+    console.warn(`Preset not found: ${presetName}`);
+    return;
+  }
+
+  console.log(`🎹 Applying preset: ${preset.name}`);
+
+  // Animate to preset values
+  if (typeof preset.zeta === 'number') {
+    animateParameterTo('zeta', preset.zeta);
+  }
+  if (typeof preset.pmw === 'number') {
+    animateParameterTo('pmw', preset.pmw);
+  }
+  if (typeof preset.unity === 'number') {
+    animateParameterTo('unity', preset.unity);
+  }
+  if (typeof preset.flatness === 'number') {
+    animateParameterTo('flatness', preset.flatness);
+  }
+
+  // Visual feedback
+  showPresetNotification(preset.name);
+}
+
+// Save current state as preset
+function saveCurrentStateAsPreset(name) {
+  const currentState = {
+    name: name,
+    zeta: zeta,
+    pmw: pmw,
+    unity: parseFloat(document.getElementById('unity').value),
+    flatness: parseFloat(document.getElementById('flatness').value),
+    timestamp: Date.now()
+  };
+
+  // Store in localStorage for persistence
+  const savedPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+  savedPresets[`user_${name.toLowerCase().replace(/\s+/g, '_')}`] = currentState;
+  localStorage.setItem('userPresets', JSON.stringify(savedPresets));
+
+  console.log(`💾 Saved preset: ${name}`, currentState);
+  showPresetNotification(`Saved: ${name}`);
+
+  return currentState;
+}
+
+// Load user presets from localStorage
+function loadUserPresets() {
+  const savedPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+  Object.assign(presets, savedPresets);
+  console.log('📂 Loaded user presets:', savedPresets);
+}
+
+// Animate parameter to target value
+function animateParameterTo(paramName, targetValue, duration = 1000) {
+  const startTime = Date.now();
+  let startValue;
+
+  switch (paramName) {
+    case 'zeta': startValue = zeta; break;
+    case 'pmw': startValue = pmw; break;
+    case 'unity': startValue = parseFloat(document.getElementById('unity').value); break;
+    case 'flatness': startValue = parseFloat(document.getElementById('flatness').value); break;
+    default: return;
+  }
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = smoothstep(0, 1, progress);
+
+    const currentValue = startValue + (targetValue - startValue) * easedProgress;
+    updateParameterFromMidi(paramName, currentValue * 127); // Convert back to MIDI range
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+
+  animate();
+}
+
+// Handle MIDI actions (presets, functions)
+function handleMidiAction(actionName, velocity = 127) {
+  console.log(`🎹 MIDI Action: ${actionName} (vel: ${velocity})`);
+
+  switch (actionName) {
+    case 'center_me':
+      document.getElementById('center-me').click();
+      break;
+
+    case 'portal_random':
+      triggerRandomPortal();
+      break;
+
+    case 'toggle_shells':
+      toggleShellVisibility();
+      break;
+
+    case 'reset_view':
+      resetCameraView();
+      break;
+
+    case 'save_preset':
+      const timestamp = new Date().toLocaleTimeString();
+      saveCurrentStateAsPreset(`Live_${timestamp}`);
+      break;
+
+    default:
+      // Check if it's a preset
+      if (actionName.startsWith('preset_') && presets[actionName]) {
+        applyPreset(actionName);
+      } else {
+        console.warn(`Unknown MIDI action: ${actionName}`);
+      }
+  }
+}
+
+// Extended parameter functions
+function updateShellOpacity(value) {
+  shells.forEach(shell => {
+    shell.material.opacity = 0.05 + value * 0.2;
+  });
+}
+
+function updateInstrumentScale(value) {
+  if (instrumentMesh) {
+    const scale = 0.5 + value * 1.5;
+    instrumentMesh.scale.setScalar(scale);
+  }
+}
+
+function updateDeformIntensity(value) {
+  // This would affect the eigenmode displacement scaling
+  // Implementation depends on how you want to scale the deformation
+}
+
+function triggerRandomPortal() {
+  if (sprites.length > 0) {
+    const randomSprite = sprites[Math.floor(Math.random() * sprites.length)];
+    handleSpriteClick(randomSprite);
+  }
+}
+
+function toggleShellVisibility() {
+  shells.forEach(shell => {
+    shell.visible = !shell.visible;
+  });
+}
+
+function resetCameraView() {
+  zeta = 0.3;
+  document.getElementById('zeta').value = zeta;
+  document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+  updateCamera();
+  updateShells();
+}
+
+// Visual feedback functions
+function showMidiActivity(paramName, value) {
+  const indicator = document.getElementById('midi-indicator');
+  const activity = document.getElementById('midi-activity');
+
+  // Flash the indicator
+  indicator.style.animation = 'none';
+  indicator.offsetHeight; // Trigger reflow
+  indicator.style.animation = 'midiFlash 0.2s ease-out';
+
+  // Show activity popup
+  activity.textContent = `${paramName}: ${(value * 100).toFixed(0)}%`;
+  activity.classList.add('show');
+
+  setTimeout(() => {
+    activity.classList.remove('show');
+  }, 1500);
+}
+
+function showPresetNotification(presetName) {
+  const notification = document.getElementById('preset-notification');
+  notification.textContent = `🎹 ${presetName}`;
+  notification.classList.add('show');
+
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 2000);
+}
+
+function flashMidiStatus() {
+  const status = document.getElementById('midi-status');
+  const originalColor = status.style.color;
+  status.style.color = '#10b981';
+  setTimeout(() => {
+    status.style.color = originalColor;
+  }, 100);
+}
+
 // MIDI WebSocket connection
 function connectMidiWebSocket() {
   try {
@@ -619,7 +1011,61 @@ function connectMidiWebSocket() {
       try {
         const data = JSON.parse(event.data);
 
-        // Update zeta parameter
+        // Handle CC (Control Change) messages
+        if (data.type === 'cc' && typeof data.cc === 'number' && typeof data.value === 'number') {
+          const ccString = data.cc.toString();
+          const paramName = midiMapping[ccString];
+
+          if (paramName) {
+            // Apply velocity sensitivity if provided
+            let finalValue = data.value;
+            if (typeof data.velocity === 'number' && data.velocity !== 127) {
+              // Scale value based on velocity for expressive control
+              const velocityFactor = data.velocity / 127.0;
+              finalValue = data.value * velocityFactor;
+            }
+
+            updateParameterFromMidi(paramName, finalValue);
+            console.log(`CC${data.cc} (${finalValue}) → ${paramName} (${scaleMidiValue(finalValue).toFixed(3)})`);
+            flashMidiStatus();
+          } else {
+            console.log(`Unmapped CC${data.cc}: ${data.value}`);
+          }
+        }
+
+        // Handle Note On messages (for presets and actions)
+        if (data.type === 'note_on' && typeof data.note === 'number' && data.velocity > 0) {
+          const noteString = data.note.toString();
+          let actionName = null;
+
+          // Check note mappings from config
+          if (midiPanelConfig.note_mappings && midiPanelConfig.note_mappings[noteString]) {
+            actionName = midiPanelConfig.note_mappings[noteString];
+          }
+          // Check panel-specific mappings (if panel type is specified)
+          else if (midiPanelConfig.panel_configs) {
+            for (const panelName in midiPanelConfig.panel_configs) {
+              const panel = midiPanelConfig.panel_configs[panelName];
+              if (panel.pads && panel.pads[noteString]) {
+                actionName = panel.pads[noteString];
+                break;
+              }
+              if (panel.notes && panel.notes[noteString]) {
+                actionName = panel.notes[noteString];
+                break;
+              }
+            }
+          }
+
+          if (actionName) {
+            handleMidiAction(actionName, data.velocity);
+            flashMidiStatus();
+          } else {
+            console.log(`Unmapped Note${data.note}: velocity ${data.velocity}`);
+          }
+        }
+
+        // Legacy support: direct parameter updates (backward compatibility)
         if (typeof data.zeta === 'number') {
           zeta = Math.max(0, Math.min(1, data.zeta));
           document.getElementById('zeta').value = zeta;
@@ -628,7 +1074,6 @@ function connectMidiWebSocket() {
           updateShells();
         }
 
-        // Update unity parameter
         if (typeof data.unity === 'number') {
           const unity = Math.max(0, Math.min(1, data.unity));
           document.getElementById('unity').value = unity;
@@ -636,7 +1081,6 @@ function connectMidiWebSocket() {
           sendControl({ set: { unity: unity } });
         }
 
-        // Update flatness parameter
         if (typeof data.flatness === 'number') {
           const flatness = Math.max(0, Math.min(1, data.flatness));
           document.getElementById('flatness').value = flatness;
@@ -644,12 +1088,17 @@ function connectMidiWebSocket() {
           sendControl({ set: { flatness: flatness } });
         }
 
-        // Update PMW parameter
         if (typeof data.pmw === 'number') {
           pmw = Math.max(0, Math.min(1, data.pmw));
           document.getElementById('pmw').value = pmw;
           document.getElementById('pmw-val').textContent = pmw.toFixed(3);
           sendControl({ set: { pmw: pmw } });
+        }
+
+        // Handle config reload message
+        if (data.type === 'reload_config') {
+          console.log('Reloading MIDI configuration...');
+          await loadMidiMapping();
         }
 
       } catch (error) {
@@ -862,12 +1311,22 @@ createShells();
 createInstrument();
 setupControls();
 loadCollection();
+loadMidiMapping(); // Load MIDI CC mapping configuration
+loadUserPresets(); // Load saved user presets
+startMidiConfigWatcher(); // Start watching for config changes
 connectWebSocket();
 connectMidiWebSocket();
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
 console.log('Configuration:', config);
+
+// Test CC scaling function
+console.log('🎛️ MIDI CC Scaling Test:');
+console.log('CC 0 → ' + scaleMidiValue(0).toFixed(3));
+console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
+console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
+console.log('MIDI Mapping:', midiMapping);
 
 </script>
 </body>
