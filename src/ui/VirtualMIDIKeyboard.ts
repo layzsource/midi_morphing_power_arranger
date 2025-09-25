@@ -46,6 +46,7 @@ export class VirtualMIDIKeyboard {
             bottom: 0;
             left: 0;
             right: 0;
+            max-height: 50vh;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             border-top: 2px solid rgba(0, 255, 255, 0.3);
@@ -56,6 +57,8 @@ export class VirtualMIDIKeyboard {
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            overflow-y: auto;
+            box-sizing: border-box;
         `;
 
         // Header with close button

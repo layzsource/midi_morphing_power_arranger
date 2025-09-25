@@ -10,10 +10,13 @@ import { PanelToolbar } from './ui/PanelToolbar';
 import { MicrotonalMorphControls } from './ui/MicrotonalMorphControls';
 import { GlobalMorphControls } from './ui/GlobalMorphControls';
 import { PanelImageControls } from './ui/PanelImageControls';
+import { ThereminControlPanel } from './ui/ThereminControlPanel';
 import { createMainDisplayPanel } from './ui/MainDisplayPanel';
 import { GestureChoreographyPanel } from './ui/GestureChoreographyPanel';
 import { AdvancedGestureChoreographer } from './input/AdvancedGestureChoreographer';
 import { GesturePresetMapper } from './input/GesturePresetMapper';
+import { CymaticPatternsPanel } from './ui/CymaticPatternsPanel';
+import { mmpaLogger } from './logging/MMPALogger';
 
 const container = document.getElementById('canvas-container')!;
 const engine = new MMPAEngine(container);
@@ -30,13 +33,82 @@ const virtualMIDIKeyboard = new VirtualMIDIKeyboard(container, engine);
 // Initialize Audio Input Selector
 const audioInputSelector = new AudioInputSelector(container);
 
-// Connect audio analysis to engine
+/**
+ * AUDIO ANALYSIS PIPELINE
+ *
+ * Flow: BlackHole Audio → AudioInputManager → Analysis Loop → Callbacks
+ *
+ * 1. Audio comes from BlackHole (Ableton output)
+ * 2. AudioInputManager analyzes audio in real-time
+ * 3. This callback distributes analysis data to:
+ *    - AudioInputSelector (for display)
+ *    - MMPA Engine (for visualization)
+ *    - Cymatic Panel (for frequency bars)
+ */
 audioInputSelector.getAudioInputManager().onAnalysis((analysis) => {
+    console.log('AUDIO ANALYSIS WORKING:', analysis.rms, analysis.peak);
+
+    // Update everything with audio
+    audioInputSelector.updateCurrentAnalysis(analysis);
     engine.processAudioAnalysis(analysis);
+
+    if (analysis.frequency && analysis.frequency.length > 0) {
+        const lowFreq = getFrequencyBand(analysis.frequency, 0, 0.2);
+        const midFreq = getFrequencyBand(analysis.frequency, 0.2, 0.6);
+        const highFreq = getFrequencyBand(analysis.frequency, 0.6, 1.0);
+        console.log('FREQ BANDS:', lowFreq, midFreq, highFreq);
+        cymaticPatternsPanel.updateFrequencyBars(lowFreq, midFreq, highFreq);
+    }
+});
+
+// Helper function for frequency band analysis
+function getFrequencyBand(frequencyData: Float32Array, startPercent: number, endPercent: number): number {
+    const startIndex = Math.floor(startPercent * frequencyData.length);
+    const endIndex = Math.floor(endPercent * frequencyData.length);
+
+    let sum = 0;
+    let count = 0;
+
+    for (let i = startIndex; i < endIndex && i < frequencyData.length; i++) {
+        // Convert from dB to linear scale
+        const linearValue = Math.pow(10, frequencyData[i] / 20);
+        sum += linearValue;
+        count++;
+    }
+
+    return count > 0 ? Math.min(sum / count, 1.0) : 0;
+}
+
+let audioUnlocked = false;
+const unlockAudioContext = async () => {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try {
+        await engine.initializeAudio();
+        await audioInputSelector.getAudioInputManager().selectAudioSource('internal');
+        console.log('🔊 Audio systems unlocked');
+        mmpaLogger.logSystemEvent('audio_unlocked', 'Audio context resumed and analyzer started');
+    } catch (error) {
+        audioUnlocked = false;
+        console.error('❌ Audio unlock failed:', error);
+        mmpaLogger.logError('Audio unlock failed', 'audio_init');
+    }
+};
+
+['pointerdown', 'touchstart', 'keydown'].forEach((evt) => {
+    window.addEventListener(evt, () => {
+        unlockAudioContext();
+    }, { once: true, passive: true });
 });
 
 // Initialize Space Morph Toolbox
 const spaceMorphToolbox = new SpaceMorphToolbox(container, engine, microficheInterface, virtualMIDIKeyboard, audioInputSelector);
+
+// Initialize Cymatic Patterns Panel (MUST be before PanelToolbar)
+const cymaticPatternsPanel = new CymaticPatternsPanel();
+
+// Make cymatic panel available to toolbar
+(window as any).cymaticPatternsPanel = cymaticPatternsPanel;
 
 // Initialize Panel Toolbar
 const panelToolbar = new PanelToolbar(container);
@@ -54,6 +126,9 @@ const globalMorphControls = new GlobalMorphControls(container, engine);
 // Initialize Panel Image Controls
 const panelImageControls = new PanelImageControls(container, engine);
 
+// Initialize Theremin/Webcam placeholder panel
+const thereminControlPanel = new ThereminControlPanel(container, skyboxLayer);
+
 // Initialize ParamGraph UI
 paramGraphUI.initialize();
 
@@ -61,6 +136,7 @@ paramGraphUI.initialize();
 const gestureChoreographer = new AdvancedGestureChoreographer();
 const gesturePresetMapper = new GesturePresetMapper();
 const gestureChoreographyPanel = new GestureChoreographyPanel(gestureChoreographer, gesturePresetMapper);
+
 
 // Mode switching
 const vjBtn = document.getElementById('club-mode')!;
@@ -185,7 +261,7 @@ window.addEventListener('resize', () => {
 
 // Keyboard controls for live performance
 document.addEventListener('keydown', async (event) => {
-    const currentMode = engine.getMode();
+    const currentMode = engine.getCurrentMode();
 
     // Space Morph toolbox handles keys first (if visible and in installation mode)
     if (currentMode === 'installation' && spaceMorphToolbox.isToolboxVisible()) {
@@ -267,17 +343,40 @@ document.addEventListener('keydown', async (event) => {
     await engine.handleKeyPress(event.key);
 });
 
-// Request MIDI access for performance control
+/**
+ * MIDI PIPELINE
+ *
+ * Two MIDI systems running in parallel:
+ *
+ * 1. Web MIDI API (this code):
+ *    - Direct hardware MIDI controllers
+ *    - Handles CC messages for real-time control
+ *
+ * 2. WebSocket MIDI (via WebSocketMIDIClient):
+ *    - MIDI from Ableton via WebSocket bridge
+ *    - Handles both CC and Note messages
+ *    - Window focus isolation prevents cross-talk
+ *
+ * Both systems feed into the same engine.handleMIDIMessage()
+ */
 if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess().then((midiAccess) => {
         engine.connectMIDI(midiAccess);
-
-        // VJ MIDI handled through main engine ParamGraph integration
-        // Removed duplicate MIDI listener to prevent cross-talk between viewports
-
-        console.log('🎛️ Acid Reign VJ MIDI interface connected');
     }).catch((error) => {
         console.log('MIDI access denied:', error);
+        mmpaLogger.logError('MIDI access denied', 'MIDI_initialization');
     });
 }
 
+// Complete system initialization
+mmpaLogger.completeIteration('MMPA Engine initialization');
+mmpaLogger.logSystemEvent('system_ready', 'All components initialized and running');
+
+// Add keyboard shortcut to download session logs (Ctrl+Shift+L)
+document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key === 'L') {
+        event.preventDefault();
+        mmpaLogger.downloadSessionLog();
+        mmpaLogger.logSystemEvent('log_download', 'Session log downloaded by user');
+    }
+});

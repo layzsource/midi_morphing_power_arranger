@@ -15,6 +15,7 @@
 
 import * as THREE from 'three';
 import { SkyboxMorphIntegration } from '../mmpa/SkyboxMorphIntegration';
+import { MorphDiagnostics } from '../mmpa/MorphDiagnostics';
 
 interface SubdivisionLevel {
     iteration: number;
@@ -276,12 +277,32 @@ export class SkyboxCubeLayer {
 
         this.geometryMode = progress === 0 ? 'cube' : (progress === 1 ? 'sphere' : 'morphing');
 
-        // Show individual panels instead of solid cube for morphing
-        this.showColoredPanels();
+        if (progress === 0) {
+            this.showColoredPanels();
+        } else {
+            if (this.solidCube) {
+                this.solidCube.visible = false;
+            }
+            if (this.unifiedMorphMesh) {
+                this.unifiedMorphMesh.visible = false;
+            }
 
-        // Morph each panel from square to circle individually
-        this.panels.forEach((panel, index) => {
-            this.morphPanelSquareToCircle(panel, progress, index);
+            this.panels.forEach((panel, index) => {
+                panel.visible = true;
+                this.applyPanelMorph(panel, progress, index);
+            });
+        }
+
+        MorphDiagnostics.recordMorphEvent({
+            source: 'SkyboxCubeLayer.setMorphProgress',
+            progress: this.morphProgress,
+            level: targetLevel,
+            geometryMode: this.geometryMode,
+            detail: {
+                cellularSymbol: this.cellularMorphState.cellularSymbol,
+                levelProgress,
+                panelCount: this.panels.length
+            }
         });
 
         console.log(`🧬 Cellular division: Level ${targetLevel} (${this.cellularMorphState.cellularSymbol}) - ${(progress * 100).toFixed(1)}%`);
@@ -379,6 +400,7 @@ export class SkyboxCubeLayer {
             // Replace geometry with subdivided version
             mesh.geometry.dispose();
             mesh.geometry = subdivisionLevel.geometry.clone();
+            this.applyPanelColorsToGeometry(mesh.geometry);
 
             // Apply cube-to-sphere morphing on subdivided geometry
             this.morphSubdividedGeometry(mesh.geometry, globalProgress);
@@ -564,6 +586,36 @@ export class SkyboxCubeLayer {
         console.log(`🔄 Panel ${this.panelNames[panelIndex]}: Square→Circle ${(progress * 100).toFixed(1)}%`);
     }
 
+    private applyPanelMorph(panel: THREE.Mesh, progress: number, panelIndex: number): void {
+        // Determine subdivision state based on progress
+        const targetLevel = this.cellularMorphState.currentLevel;
+        const levelFraction = this.cellularMorphState.morphProgress;
+
+        const subdivisionLevel = this.cellularMorphState.subdivisionCache.get(targetLevel);
+        const nextSubdivisionLevel = this.cellularMorphState.subdivisionCache.get(Math.min(targetLevel + 1, this.cellularMorphState.maxLevels));
+
+        if (!subdivisionLevel) {
+            // Fallback to simple square→circle morph if cache missing
+            this.morphPanelSquareToCircle(panel, progress, panelIndex);
+            return;
+        }
+
+        // FUTURE: could blend subdivision here, but keep original geometry to preserve textures
+        this.applyCurvedGeometry(panel, Math.min(1, subdivisionLevel.sphereProgress + (levelFraction * (1 / this.cellularMorphState.maxLevels))));
+
+        MorphDiagnostics.recordMorphEvent({
+            source: 'SkyboxCubeLayer.applyPanelMorph',
+            progress,
+            level: targetLevel + levelFraction,
+            geometryMode: this.geometryMode,
+            detail: {
+                panelIndex,
+                panelName: this.panelNames[panelIndex] || 'unknown',
+                levelFraction
+            }
+        });
+    }
+
     private morphPanelSquareToCircle(panel: THREE.Mesh, progress: number, panelIndex: number): void {
         const geometry = panel.geometry as THREE.BufferGeometry;
 
@@ -604,7 +656,47 @@ export class SkyboxCubeLayer {
         positionAttribute.needsUpdate = true;
         geometry.computeVertexNormals();
 
-        console.log(`🔵 Panel ${this.panelNames[panelIndex]}: Square→Circle ${(progress * 100).toFixed(1)}% (no scaling)`);
+        MorphDiagnostics.recordMorphEvent({
+            source: 'SkyboxCubeLayer.morphPanelSquareToCircle',
+            progress,
+            level: this.cellularMorphState.currentLevel,
+            geometryMode: this.geometryMode,
+            detail: {
+                panelIndex,
+                panelName: this.panelNames[panelIndex] || 'unknown'
+            }
+        });
+
+        console.log(`🔵 Panel ${this.panelNames[panelIndex]}: Square→Circle ${(progress * 100).toFixed(1)}% (fallback)`);
+    }
+
+    private blendPanelGeometry(
+        panel: THREE.Mesh,
+        baseGeometry: THREE.BufferGeometry,
+        targetGeometry: THREE.BufferGeometry,
+        blendFactor: number
+    ): void {
+        const basePosition = baseGeometry.getAttribute('position');
+        const targetPosition = targetGeometry.getAttribute('position');
+        const panelPosition = (panel.geometry as THREE.BufferGeometry).getAttribute('position');
+
+        if (!basePosition || !targetPosition || !panelPosition) {
+            return;
+        }
+
+        const baseArray = basePosition.array as Float32Array;
+        const targetArray = targetPosition.array as Float32Array;
+        const panelArray = panelPosition.array as Float32Array;
+
+        const len = Math.min(baseArray.length, targetArray.length, panelArray.length);
+        for (let i = 0; i < len; i++) {
+            const baseValue = baseArray[i];
+            const targetValue = targetArray[i];
+            panelArray[i] = baseValue + (targetValue - baseValue) * blendFactor;
+        }
+
+        panelPosition.needsUpdate = true;
+        panel.geometry.computeVertexNormals();
     }
 
     private resetPanelToOriginal(panel: THREE.Mesh, panelIndex: number): void {
@@ -738,197 +830,20 @@ export class SkyboxCubeLayer {
             this.solidCube.visible = false;
         }
 
-        // Show individual panels
-        this.panels.forEach(panel => {
-            panel.visible = true;
-        });
-
-        console.log('🎨 Showing separate panels (CC1 > 0)');
-    }
-
-    private resetToOriginalPositions(): void {
-        this.panels.forEach((panel, index) => {
-            panel.position.copy(this.originalPositions[index]);
-            panel.rotation.copy(this.originalRotations[index]);
-            panel.scale.set(1, 1, 1);
-
-            // Reset to base geometry
-            panel.geometry.dispose();
-            const baseLevel = this.cellularMorphState.subdivisionCache.get(0)!;
-            panel.geometry = baseLevel.geometry.clone();
-        });
-    }
-
-    // 🎵 12-TONE FRACTAL MODE
-    public handleMicrotonalMorph(enabled: boolean): void {
-        this.fractalMode = enabled;
-
-        if (enabled) {
-            console.log('🎵 12-TET Fractal Mode: ACTIVATED - Cellular chromatic consciousness');
-            this.activateChromatic12TETMode();
+        if (progress === 0) {
+            this.showColoredPanels();
         } else {
-            console.log('🎵 12-TET Fractal Mode: DEACTIVATED');
-            this.deactivateChromatic12TETMode();
-        }
-    }
-
-    private activateChromatic12TETMode(): void {
-        // Create fractal subdivision patterns based on 12-tone equal temperament
-        this.panels.forEach((panel, index) => {
-            const note = index % 12; // Map panel to chromatic note
-            const frequency = 440 * Math.pow(2, note / 12); // Calculate frequency
-
-            // Use frequency to determine subdivision level
-            const subdivisionLevel = Math.floor((frequency - 440) / 100) + 2;
-            const clampedLevel = Math.max(0, Math.min(subdivisionLevel, this.cellularMorphState.maxLevels));
-
-            const chromaLevel = this.cellularMorphState.subdivisionCache.get(clampedLevel);
-            if (chromaLevel) {
-                panel.geometry.dispose();
-                panel.geometry = chromaLevel.geometry.clone();
+            if (this.solidCube) {
+                this.solidCube.visible = false;
+            }
+            if (this.unifiedMorphMesh) {
+                this.unifiedMorphMesh.visible = false;
             }
 
-            console.log(`🎵 Panel ${index} (${this.panelNames[index]}): ${frequency.toFixed(1)}Hz → Level ${clampedLevel}`);
-        });
-    }
-
-    private deactivateChromatic12TETMode(): void {
-        // Reset all panels to current morph level
-        const currentLevel = this.cellularMorphState.currentLevel;
-        const levelGeometry = this.cellularMorphState.subdivisionCache.get(currentLevel);
-
-        if (levelGeometry) {
-            this.panels.forEach(panel => {
-                panel.geometry.dispose();
-                panel.geometry = levelGeometry.geometry.clone();
+            this.panels.forEach((panel, index) => {
+                panel.visible = true;
+                this.applyPanelMorph(panel, progress, index);
             });
-        }
-    }
-
-    // 🧙 WIZARD SPELLS SYSTEM
-    public castWizardSpell(spellName: string, parameters: any = {}): void {
-        console.log(`🧙 Casting spell: ${spellName}`, parameters);
-
-        switch (spellName) {
-            case 'fibonacci_recursion':
-                this.castFibonacciRecursion();
-                break;
-            case 'consciousness_navigation':
-                this.castConsciousnessNavigation(parameters.mode);
-                break;
-            case 'emergence_detection':
-                this.castEmergenceDetection(parameters);
-                break;
-            case 'chromatic_resonance':
-                this.castChromaticResonance(parameters.note);
-                break;
-            default:
-                console.log(`🧙 Unknown spell: ${spellName}`);
-        }
-    }
-
-    private castFibonacciRecursion(): void {
-        console.log('🌀 Casting Fibonacci Recursion...');
-
-        // Apply Fibonacci sequence to subdivision levels
-        const fibSequence = [0, 1, 1, 2, 3, 5, 8];
-        this.panels.forEach((panel, index) => {
-            const fibIndex = index % fibSequence.length;
-            const fibLevel = Math.min(fibSequence[fibIndex], this.cellularMorphState.maxLevels);
-
-            const fibGeometry = this.cellularMorphState.subdivisionCache.get(fibLevel);
-            if (fibGeometry) {
-                panel.geometry.dispose();
-                panel.geometry = fibGeometry.geometry.clone();
-            }
-        });
-    }
-
-    private castConsciousnessNavigation(mode: string = 'default'): void {
-        console.log(`🧠 Casting Consciousness Navigation (${mode})...`);
-
-        // Animate through subdivision levels
-        let level = 0;
-        const animate = () => {
-            if (level <= this.cellularMorphState.maxLevels) {
-                this.setMorphProgress(level / this.cellularMorphState.maxLevels);
-                level += 0.5;
-                setTimeout(animate, 200);
-            }
-        };
-        animate();
-    }
-
-    private castEmergenceDetection(parameters: any): void {
-        console.log('🔍 Casting Emergence Detection...', parameters);
-
-        // Rapidly cycle through cellular division phases
-        const phases = Object.keys(this.cellularSymbols);
-        let phaseIndex = 0;
-
-        const emergenceAnimation = () => {
-            if (phaseIndex < phases.length) {
-                const progress = phaseIndex / (phases.length - 1);
-                this.setMorphProgress(progress);
-                phaseIndex++;
-                setTimeout(emergenceAnimation, 300);
-            }
-        };
-        emergenceAnimation();
-    }
-
-    private castChromaticResonance(note: string = 'A'): void {
-        console.log(`🎵 Casting Chromatic Resonance (${note})...`);
-
-        // Map musical note to subdivision level
-        const noteMap = new Map([
-            ['C', 0], ['C#', 1], ['D', 2], ['D#', 3],
-            ['E', 4], ['F', 5], ['F#', 6], ['G', 7],
-            ['G#', 8], ['A', 0], ['A#', 1], ['B', 2]
-        ]);
-
-        const level = noteMap.get(note) || 0;
-        this.setMorphProgress(level / this.cellularMorphState.maxLevels);
-    }
-
-    // 🎛️ MIDI CONTROL INTEGRATION
-    public handleMIDIControl(ccNumber: number, value: number): void {
-        const normalizedValue = value / 127;
-
-        switch (ccNumber) {
-            case 1: // Modulation wheel - cube to sphere subdivision morphing
-                // Use subdivision system but morph cube to sphere (not separate panels)
-                this.setMorphProgress(normalizedValue);
-                break;
-            case 2: // CC2 - X-axis rotation
-                this.midiControls.rotationX = normalizedValue * Math.PI * 2;
-                this.updateCubeRotation();
-                break;
-            case 4: // CC4 - Y-axis rotation
-                this.midiControls.rotationY = normalizedValue * Math.PI * 2;
-                this.updateCubeRotation();
-                break;
-            case 5: // CC5 - Zoom control (1% to 250%)
-                this.midiControls.zoom = 1 + normalizedValue * 249;
-                this.updateNavigation();
-                break;
-            case 7: // Volume - overall opacity
-                this.panels.forEach(panel => {
-                    (panel.material as THREE.MeshLambertMaterial).opacity = normalizedValue;
-                });
-                break;
-        }
-    }
-
-    // Navigation control system
-    private updateNavigation(): void {
-        // Apply dead zone for precision control (±1.0 buffer)
-        const deadZone = 1.0;
-        let rotY = this.midiControls.rotationY;
-        let rotX = this.midiControls.rotationX;
-
-        if (Math.abs(rotY) > deadZone) {
-            this.group.rotation.y += (rotY - Math.sign(rotY) * deadZone) * 0.02;
         }
 
         if (Math.abs(rotX) > deadZone) {

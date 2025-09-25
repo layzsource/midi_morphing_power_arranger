@@ -21,11 +21,23 @@ export interface FrequencyData {
 
 export interface TETSystem {
     name: string;
-    divisions: number;         // Divisions per octave
-    stepSize: number;          // Cents per step
-    maxSubdivision: number;    // Maximum safe subdivision level
+    baseDivisions: number;     // Starting divisions per octave
+    maxLevels: number;         // Number of subdivision steps available (integer)
     color: { h: number; s: number; l: number }; // HSL color scheme
 }
+
+export interface TETLevelInfo {
+    system: TETSystem;
+    rawLevel: number;
+    clampedLevel: number;
+    discreteLevel: number;
+    fractionalLevel: number;
+    tetSize: number;
+    nextTetSize: number;
+    maxTetSize: number;
+}
+
+import { MorphDiagnostics } from './MorphDiagnostics';
 
 export class MicrotonalFrequencyCalculator {
     private baseFrequency: number = 440.0; // A4 = 440 Hz reference
@@ -34,31 +46,27 @@ export class MicrotonalFrequencyCalculator {
     // TET Systems mapping to Dewey modes
     public readonly tetSystems: Map<string, TETSystem> = new Map([
         ['6-PANEL', {
-            name: '6-TET to 12-TET',
-            divisions: 12,
-            stepSize: 100,
-            maxSubdivision: 1,
+            name: '6-TET Cellular Sequence',
+            baseDivisions: 6,
+            maxLevels: 2,
             color: { h: 0.08, s: 0.9, l: 0.6 }
         }],
         ['12-TONE', {
-            name: '12-TET to 48-TET',
-            divisions: 48,
-            stepSize: 25,
-            maxSubdivision: 2,
+            name: '12-TET Fractal Expansion',
+            baseDivisions: 12,
+            maxLevels: 3,
             color: { h: 0.55, s: 0.9, l: 0.5 }
         }],
         ['24-TET', {
-            name: '24-TET to 192-TET',
-            divisions: 192,
-            stepSize: 6.25,
-            maxSubdivision: 3,
+            name: '24-TET Cellular Hypercube',
+            baseDivisions: 24,
+            maxLevels: 4,
             color: { h: 0.75, s: 0.9, l: 0.4 }
         }],
         ['HYPERMICRO', {
-            name: 'Hypermicrotonal up to 384-TET',
-            divisions: 384,
-            stepSize: 3.125,
-            maxSubdivision: 2,
+            name: 'Hypermicrotonal Continuum',
+            baseDivisions: 48,
+            maxLevels: 3,
             color: { h: 0.33, s: 1.0, l: 0.3 }
         }]
     ]);
@@ -119,11 +127,11 @@ export class MicrotonalFrequencyCalculator {
             throw new Error(`Unknown Dewey mode: ${deweyMode}`);
         }
 
-        // Calculate actual TET divisions based on subdivision level
-        const actualDivisions = this.calculateActualDivisions(subdivisionLevel, tetSystem);
+        const levelInfo = this.resolveLevelInfo(subdivisionLevel, tetSystem);
+        const actualDivisions = levelInfo.tetSize;
 
         // Calculate division number for this panel/layer
-        const divisionNumber = this.calculateDivisionNumber(panelIndex, actualDivisions, subdivisionLevel);
+        const divisionNumber = this.calculateDivisionNumber(panelIndex, actualDivisions, levelInfo);
 
         // Calculate frequency
         const frequency = this.calculateTETFrequency(divisionNumber, actualDivisions);
@@ -137,6 +145,17 @@ export class MicrotonalFrequencyCalculator {
         // Generate Dewey classification code
         const deweyCode = this.generateDeweyCode(deweyMode, subdivisionLevel, panelIndex);
 
+        MorphDiagnostics.recordTETEvent({
+            mode: deweyMode,
+            subdivisionLevel,
+            panelIndex,
+            tetDivision: divisionNumber,
+            tetSize: actualDivisions,
+            cents,
+            discreteLevel: levelInfo.discreteLevel,
+            fractionalLevel: levelInfo.fractionalLevel
+        });
+
         return {
             frequency,
             cents,
@@ -148,33 +167,23 @@ export class MicrotonalFrequencyCalculator {
     }
 
     /**
-     * 🔢 Calculate actual TET divisions based on subdivision progression
-     *
-     * Progression: Base TET × 2^subdivisionLevel
-     * 6-PANEL: 6 → 12 → 24
-     * 12-TONE: 12 → 24 → 48 → 96
-     * 24-TET: 24 → 48 → 96 → 192 → 384
-     */
-    private calculateActualDivisions(subdivisionLevel: number, tetSystem: TETSystem): number {
-        const baseDivisions = tetSystem.divisions / Math.pow(2, tetSystem.maxSubdivision);
-        const actualDivisions = baseDivisions * Math.pow(2, subdivisionLevel);
-
-        // Cap to prevent computational issues
-        const maxDivisions = tetSystem.divisions;
-        return Math.min(actualDivisions, maxDivisions);
-    }
-
-    /**
      * 🎯 Calculate division number for specific panel/layer
      */
     private calculateDivisionNumber(
         panelIndex: number,
         totalDivisions: number,
-        subdivisionLevel: number
+        levelInfo: TETLevelInfo
     ): number {
-        // Distribute 6 panels across TET divisions
-        const divisionStep = totalDivisions / 6;
-        return Math.floor(panelIndex * divisionStep);
+        const step = totalDivisions / 6;
+        const fractional = levelInfo.fractionalLevel;
+
+        let division = Math.round(panelIndex * step + fractional * step);
+
+        if (panelIndex === 5) {
+            division = totalDivisions - 1;
+        }
+
+        return Math.min(Math.max(division, 0), totalDivisions - 1);
     }
 
     /**
@@ -184,6 +193,37 @@ export class MicrotonalFrequencyCalculator {
         const ratio = frequency / this.baseFrequency;
         const cents = 1200 * Math.log2(ratio);
         return cents;
+    }
+
+    private resolveLevelInfo(subdivisionLevel: number, tetSystem: TETSystem): TETLevelInfo {
+        const clampedLevel = Math.max(0, Math.min(subdivisionLevel, tetSystem.maxLevels));
+        const discreteLevel = Math.floor(clampedLevel);
+        const fractionalLevel = clampedLevel - discreteLevel;
+
+        const tetSize = tetSystem.baseDivisions * Math.pow(2, discreteLevel);
+        const nextTetSize = tetSystem.baseDivisions * Math.pow(2, Math.min(discreteLevel + 1, tetSystem.maxLevels));
+        const maxTetSize = tetSystem.baseDivisions * Math.pow(2, tetSystem.maxLevels);
+
+        return {
+            system: tetSystem,
+            rawLevel: subdivisionLevel,
+            clampedLevel,
+            discreteLevel,
+            fractionalLevel,
+            tetSize,
+            nextTetSize,
+            maxTetSize
+        };
+    }
+
+    public describeLevel(deweyMode: string, subdivisionLevel: number): TETLevelInfo | null {
+        const system = this.tetSystems.get(deweyMode);
+        if (!system) return null;
+        return this.resolveLevelInfo(subdivisionLevel, system);
+    }
+
+    public getTETSystem(deweyMode: string): TETSystem | undefined {
+        return this.tetSystems.get(deweyMode);
     }
 
     /**

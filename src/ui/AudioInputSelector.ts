@@ -489,10 +489,8 @@ export class AudioInputSelector {
     }
 
     private setupAnalysis() {
-        this.audioInputManager.onAnalysis((analysis) => {
-            this.currentAnalysis = analysis;
-            this.updateAnalysisDisplay();
-        });
+        // Don't set up our own analysis callback here - let main.ts handle it
+        // We'll get the analysis data through the public getter method
     }
 
     private updateAnalysisDisplay() {
@@ -508,6 +506,11 @@ export class AudioInputSelector {
             const pitch = this.currentAnalysis.pitch;
             pitchEl.textContent = pitch > 0 ? `${pitch.toFixed(1)} Hz` : '--- Hz';
         }
+    }
+
+    public updateCurrentAnalysis(analysis: AudioAnalysis) {
+        this.currentAnalysis = analysis;
+        this.updateAnalysisDisplay();
     }
 
     public setVisibility(visible: boolean) {

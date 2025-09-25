@@ -5,11 +5,16 @@
  * Integrates with your existing PanelToolbar system
  */
 
+import { createMicrotonalFrequencyCalculator } from '../mmpa/MicrotonalFrequencyCalculator';
+
 export class MicrotonalMorphControls {
     private container: HTMLElement;
     private panel: HTMLElement;
     private isVisible: boolean = false;
     private morphIntegration: any; // Will be injected
+    private frequencyCalculator = createMicrotonalFrequencyCalculator();
+    private levelSlider: HTMLInputElement | null = null;
+    private levelDisplay: HTMLElement | null = null;
 
     // Current state
     private currentLevel: number = 0;
@@ -169,7 +174,7 @@ export class MicrotonalMorphControls {
         section.style.marginBottom = '15px';
 
         const label = document.createElement('label');
-        label.textContent = '🌌 Subdivision Level (0-8):';
+        label.textContent = '🌌 Subdivision Level:';
         label.style.cssText = `
             display: block;
             margin-bottom: 8px;
@@ -179,7 +184,7 @@ export class MicrotonalMorphControls {
         const slider = document.createElement('input');
         slider.type = 'range';
         slider.min = '0';
-        slider.max = '8';
+        slider.max = this.getMaxLevelsForMode(this.currentMode).toString();
         slider.step = '0.1';
         slider.value = '0';
         slider.style.cssText = `
@@ -201,6 +206,8 @@ export class MicrotonalMorphControls {
             this.updateMorphLevel();
         };
 
+        this.levelSlider = slider;
+        this.levelDisplay = display;
         section.appendChild(label);
         section.appendChild(slider);
         section.appendChild(display);
@@ -438,14 +445,24 @@ export class MicrotonalMorphControls {
     }
 
     private updateLevelDisplay(display: HTMLElement, level: number): void {
-        const faceCount = 6 * Math.pow(4, Math.floor(level));
-        const tetDivisions = Math.pow(2, Math.floor(level) + 1) * 6;
+        const info = this.frequencyCalculator.describeLevel(this.currentMode, level);
+        if (!info) {
+            display.innerHTML = `Level: ${level.toFixed(1)}<br>Unable to resolve TET system.`;
+            return;
+        }
+
+        const faceCount = 6 * Math.pow(4, info.discreteLevel);
+        const tetDivisions = info.tetSize;
         const centsPerStep = 1200 / tetDivisions;
+        const nextLabel = info.discreteLevel < info.system.maxLevels
+            ? `Next: ${info.nextTetSize}-TET`
+            : 'Max level reached';
 
         display.innerHTML = `
-            Level: ${level.toFixed(1)}<br>
+            Level: ${info.discreteLevel} (${level.toFixed(2)})<br>
             Faces: ${faceCount.toLocaleString()}<br>
-            ${tetDivisions}-TET (${centsPerStep.toFixed(3)}¢/step)
+            ${tetDivisions}-TET (${centsPerStep.toFixed(3)}¢/step)<br>
+            ${nextLabel}
         `;
     }
 
@@ -456,6 +473,10 @@ export class MicrotonalMorphControls {
             Progress: ${(this.currentProgress * 100).toFixed(1)}%<br>
             State: ${this.currentProgress === 0 ? 'Pure Cube' : this.currentProgress === 1 ? 'Perfect Sphere' : 'Subdividing'}
         `;
+    }
+
+    private getMaxLevelsForMode(mode: string): number {
+        return this.frequencyCalculator.getTETSystem(mode)?.maxLevels ?? 1;
     }
 
     private updateFrequencyDisplay(display: HTMLElement): void {
@@ -519,6 +540,18 @@ export class MicrotonalMorphControls {
         if (this.morphIntegration && this.morphIntegration.setDeweyDecimalMode) {
             this.morphIntegration.setDeweyDecimalMode(this.currentMode);
         }
+
+        const maxLevels = this.getMaxLevelsForMode(this.currentMode);
+        if (this.levelSlider) {
+            this.levelSlider.max = maxLevels.toString();
+            if (this.currentLevel > maxLevels) {
+                this.currentLevel = maxLevels;
+                this.levelSlider.value = maxLevels.toString();
+            }
+        }
+        if (this.levelDisplay) {
+            this.updateLevelDisplay(this.levelDisplay, this.currentLevel);
+        }
         this.updateFrequencyDisplay(document.getElementById('frequency-data-display')!);
     }
 
@@ -571,6 +604,11 @@ export class MicrotonalMorphControls {
         const levelSlider = this.panel.querySelector('input[type="range"]') as HTMLInputElement;
         if (levelSlider) {
             levelSlider.value = '0';
+            levelSlider.max = this.getMaxLevelsForMode(this.currentMode).toString();
+        }
+
+        if (this.levelDisplay) {
+            this.updateLevelDisplay(this.levelDisplay, this.currentLevel);
         }
 
         const progressSlider = this.panel.querySelector('input[type="range"]:nth-of-type(2)') as HTMLInputElement;

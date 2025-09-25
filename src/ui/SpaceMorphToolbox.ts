@@ -49,8 +49,8 @@ export class SpaceMorphToolbox {
         toolbox.className = 'space-morph-toolbox';
         toolbox.style.cssText = `
             position: fixed;
-            bottom: 30px;
-            left: 30px;
+            bottom: 10px;
+            left: 10px;
             background: rgba(3, 7, 18, 0.9);
             backdrop-filter: blur(20px) saturate(120%);
             border: 1px solid rgba(0, 255, 255, 0.2);
@@ -61,6 +61,10 @@ export class SpaceMorphToolbox {
             font-size: 11px;
             z-index: 90;
             min-width: 280px;
+            max-width: calc(100vw - 20px);
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+            box-sizing: border-box;
             box-shadow:
                 0 1px 0 0 rgba(0, 255, 255, 0.1) inset,
                 0 8px 32px 0 rgba(0, 0, 0, 0.6),

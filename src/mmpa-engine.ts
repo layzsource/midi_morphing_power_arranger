@@ -14,6 +14,8 @@ import { AudioEngine } from './audio/AudioEngine';
 import { SkyboxMorphIntegration, createSkyboxMorphIntegration } from './mmpa/SkyboxMorphIntegration';
 import { SkyboxCubeLayer, createSkyboxCubeLayer } from './layers/SkyboxCubeLayer_v5_testing';
 import { paramGraphIntegration, MMPA_PARAM_PATHS } from './paramgraph/ParamGraphIntegration';
+import { mmpaLogger } from './logging/MMPALogger';
+import { webSocketMIDI } from './midi/WebSocketMIDIClient';
 
 export type PerformanceMode = 'vj' | 'installation' | 'studio';
 
@@ -43,6 +45,7 @@ export class MMPAEngine {
 
     // MIDI state
     private midiAccess: any = null;
+    private midiInputs: Map<string, any> = new Map();
     private activeThinker = 'MMPA ready';
 
     // Cube morphing state
@@ -51,6 +54,7 @@ export class MMPAEngine {
 
     constructor(container: HTMLElement) {
         console.log('🎛️ MMPA Engine starting...');
+        mmpaLogger.startIteration('MMPA Engine initialization');
         this.container = container;
         console.log('📦 Container:', container);
 
@@ -140,7 +144,7 @@ export class MMPAEngine {
         this.vesselLayer = new VesselLayer(this.scene);
         this.emergentFormLayer = new EmergentFormLayer(this.scene);
         this.particleLayer = new ParticleLayer(this.scene);
-        // DISABLED: this.shadowLayer = new ShadowLayer(this.scene); // REMOVED FLASHING TORUS AND SHADOW PLANES
+        // DISABLED: this.shadowLayer = new ShadowLayer(this.scene); // REMOVED - causes issues
 
         // Initialize complete skybox cube system
         this.skyboxCubeLayer = createSkyboxCubeLayer(this.scene);
@@ -176,6 +180,7 @@ export class MMPAEngine {
         paramGraphIntegration.onParameterChange(MMPA_PARAM_PATHS.MAIN_MORPH_BLEND, (value) => {
             // Route to skybox layer's morph function
             if (this.skyboxCubeLayer && this.skyboxCubeLayer.morphPanelSquareToCircle) {
+                mmpaLogger.logMorph(value, 'main_viewport');
                 this.skyboxCubeLayer.morphPanelSquareToCircle(value);
             }
         });
@@ -185,6 +190,7 @@ export class MMPAEngine {
             // Route to aux viewport morph when active
             if (paramGraphIntegration.getActiveViewport() === 'aux') {
                 if (this.skyboxCubeLayer && this.skyboxCubeLayer.morphPanelSquareToCircle) {
+                    mmpaLogger.logMorph(value, 'aux_viewport');
                     this.skyboxCubeLayer.morphPanelSquareToCircle(value);
                 }
             }
@@ -212,6 +218,19 @@ export class MMPAEngine {
         this.audioEngine = new AudioEngine();
     }
 
+    public async initializeAudio(): Promise<void> {
+        if (!this.audioEngine) {
+            this.audioEngine = new AudioEngine();
+        }
+        try {
+            await this.audioEngine.initialize();
+            mmpaLogger.logSystemEvent('audio_initialized', 'Audio engine ready');
+        } catch (error) {
+            console.error('❌ Audio engine initialization failed:', error);
+            mmpaLogger.logError('Audio engine initialization failed', 'audio_engine');
+        }
+    }
+
     public start() {
         console.log('🎬 Starting MMPA animation loop...');
         this.isRunning = true;
@@ -237,7 +256,7 @@ export class MMPAEngine {
             this.vesselLayer.update(deltaTime, elapsedTime);
             this.emergentFormLayer.update(deltaTime, elapsedTime);
             this.particleLayer.update(deltaTime, elapsedTime);
-            // DISABLED: this.shadowLayer.update(deltaTime, elapsedTime); // REMOVED FLASHING TORUS
+            // DISABLED: this.shadowLayer.update(deltaTime, elapsedTime); // REMOVED
 
             // Render main scene (hide morph shapes if box is enabled)
             // Hide all morph shapes from main scene when morph box is enabled
@@ -412,11 +431,41 @@ export class MMPAEngine {
     public connectMIDI(midiAccess: any) {
         this.midiAccess = midiAccess;
 
-        for (const input of midiAccess.inputs.values()) {
-            input.addEventListener('midimessage', (event: any) => {
-                this.handleMIDIMessage(event);
-            });
-        }
+        const attachInput = (input: any) => {
+            if (!input || this.midiInputs.has(input.id)) {
+                return;
+            }
+
+            if (typeof input.open === 'function') {
+                input.open().catch((error: any) => {
+                    console.warn('⚠️ Failed to open MIDI input:', input.name || input.id, error);
+                });
+            }
+
+            input.onmidimessage = (event: any) => this.handleMIDIMessage(event);
+            this.midiInputs.set(input.id, input);
+            console.log(`🎚️ MIDI input connected: ${input.name || input.id}`);
+        };
+
+        midiAccess.inputs.forEach((input: any) => attachInput(input));
+
+        midiAccess.onstatechange = (event: any) => {
+            const port = event.port;
+            if (!port || port.type !== 'input') {
+                return;
+            }
+
+            if (port.state === 'connected') {
+                attachInput(port);
+            } else if (port.state === 'disconnected' && this.midiInputs.has(port.id)) {
+                const existing = this.midiInputs.get(port.id);
+                if (existing) {
+                    existing.onmidimessage = null;
+                }
+                this.midiInputs.delete(port.id);
+                console.log(`🔌 MIDI input disconnected: ${port.name || port.id}`);
+            }
+        };
 
         this.updateActiveThinker('MIDI controller connected');
     }
@@ -424,19 +473,18 @@ export class MMPAEngine {
     private handleMIDIMessage(event: any) {
         const [status, data1, data2] = event.data;
 
-        // Forward MIDI to skybox cube layer for consciousness navigation
-        if (status === 176) { // Control change
+        // Just make it work - process all MIDI
+        console.log(`MIDI: ${status} ${data1} ${data2}`);
+
+        // Control Change (176) - CC1 is mod wheel
+        if (status === 176) {
             this.skyboxCubeLayer.handleMIDIControl(data1, data2);
+            this.handleMIDICC(data1, data2);
         }
 
-        // Note on/off (144/128)
+        // Notes (144=on, 128=off)
         if (status === 144 || status === 128) {
             this.handleMIDINote(data1, data2, status === 144);
-        }
-
-        // Control change (176)
-        if (status === 176) {
-            this.handleMIDICC(data1, data2);
         }
     }
 
@@ -462,12 +510,20 @@ export class MMPAEngine {
 
     private handleMIDICC(ccNumber: number, value: number) {
         const normalizedValue = value / 127;
-        console.log(`🎛️ ENGINE MIDI CC${ccNumber}: ${value} -> ${normalizedValue.toFixed(3)}`);
+        const windowId = webSocketMIDI.getWindowId();
+        console.log(`🎛️ [${windowId}] ENGINE MIDI CC${ccNumber}: ${value} -> ${normalizedValue.toFixed(3)}`);
 
-        // Route CC1 through ParamGraph system
+        // Route CC1 through ParamGraph system with window isolation
         if (ccNumber === 1) {
+            const activeViewport = paramGraphIntegration.getActiveViewport();
+            mmpaLogger.logMIDI(ccNumber, value, `${activeViewport}_window_${windowId}`);
             paramGraphIntegration.setMIDIInput(ccNumber, value);
-            console.log(`🎛️ CC1 routed through ParamGraph to active viewport`);
+
+            // PRESERVE DEADBAND LOGIC: Apply CC1 deadband system per MMPA baseline
+            const deadbandMode = this.morphBoxEnabled ? 'morphbox' : 'main';
+            this.handleCC1WithDeadband(value, deadbandMode);
+
+            console.log(`🎛️ [${windowId}] CC1 routed with deadband to ${activeViewport} (${deadbandMode})`);
             return;
         }
 
@@ -617,6 +673,7 @@ export class MMPAEngine {
     // MMPA Baseline MIDI CC1 Deadband System
     // Based on /Users/ticegunther/Downloads/MMPA_Baseline/midi/mappings.json
     private handleCC1WithDeadband(ccValue: number, mode: 'main' | 'morphbox') {
+        const windowId = webSocketMIDI.getWindowId();
         // MMPA Baseline deadband specification:
         // Left: 0-52 → negative action (continuous motion)
         // Hold: 53-73 → neutral/snap zone (stop motion)
@@ -625,13 +682,16 @@ export class MMPAEngine {
         if (ccValue <= 52) {
             // Left zone - start continuous rotation/action left
             const normalizedLeft = ccValue / 52; // 0 to 1
+            console.log(`🎛️ [${windowId}] CC1 deadband: LEFT (${ccValue}) -> ${normalizedLeft.toFixed(3)} (${mode})`);
             this.startCC1ContinuousMotion(-normalizedLeft, mode);
         } else if (ccValue >= 74) {
             // Right zone - start continuous rotation/action right
             const normalizedRight = (ccValue - 74) / (127 - 74); // 0 to 1
+            console.log(`🎛️ [${windowId}] CC1 deadband: RIGHT (${ccValue}) -> ${normalizedRight.toFixed(3)} (${mode})`);
             this.startCC1ContinuousMotion(normalizedRight, mode);
         } else {
             // Deadband zone (53-73) - stop continuous motion
+            console.log(`🎛️ [${windowId}] CC1 deadband: HOLD (${ccValue}) - stopping motion (${mode})`);
             this.stopCC1ContinuousMotion();
         }
     }
@@ -916,6 +976,11 @@ export class MMPAEngine {
 
     public getSkyboxLayer(): SkyboxCubeLayer {
         return this.skyboxCubeLayer;
+    }
+
+    // Public access method for scene
+    public getScene(): THREE.Scene {
+        return this.scene;
     }
 
     // Public access method for ParamGraph integration

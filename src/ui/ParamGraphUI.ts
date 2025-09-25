@@ -5,6 +5,7 @@
  */
 
 import { paramGraphIntegration, MMPA_PARAM_PATHS } from '../paramgraph/ParamGraphIntegration';
+import { mmpaLogger } from '../logging/MMPALogger';
 
 export class ParamGraphUI {
     private initialized = false;
@@ -80,6 +81,15 @@ export class ParamGraphUI {
         if (voiceToggle) {
             voiceToggle.addEventListener('click', () => {
                 this.toggleVoiceControl();
+            });
+        }
+
+        // Download logs button
+        const downloadLogsBtn = document.getElementById('download-logs');
+        if (downloadLogsBtn) {
+            downloadLogsBtn.addEventListener('click', () => {
+                mmpaLogger.downloadSessionLog();
+                mmpaLogger.logSystemEvent('log_download', 'Session log downloaded via UI button');
             });
         }
 

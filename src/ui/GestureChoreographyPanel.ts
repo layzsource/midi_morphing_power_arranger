@@ -36,12 +36,10 @@ export class GestureChoreographyPanel {
         this.container.className = 'gesture-choreography-panel';
         this.container.style.cssText = `
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90vw;
-            max-width: 800px;
-            height: 80vh;
+            top: 10px;
+            right: 10px;
+            width: min(90vw, 400px);
+            max-height: calc(100vh - 20px);
             background: rgba(0, 0, 0, 0.95);
             border: 2px solid #00ff41;
             border-radius: 12px;
@@ -51,6 +49,7 @@ export class GestureChoreographyPanel {
             z-index: 20000;
             display: none;
             overflow-y: auto;
+            box-sizing: border-box;
         `;
 
         // Create main sections

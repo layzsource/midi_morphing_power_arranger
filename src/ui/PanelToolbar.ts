@@ -1,3 +1,5 @@
+import { mmpaLogger } from '../logging/MMPALogger';
+
 /**
  * Panel Toolbar - Simple View Toggle Bar
  *
@@ -18,6 +20,8 @@ export class PanelToolbar {
         { name: 'Space Tools', id: 'space-tools', selector: '.space-morph-toolbox' },
         { name: 'Audio Input', id: 'audio', selector: '.audio-input-selector' },
         { name: 'Virtual MIDI', id: 'midi', selector: '.virtual-midi-keyboard' },
+        { name: 'Cymatic Patterns', id: 'cymatic-patterns', selector: '.cymatic-patterns-panel' },
+        { name: 'Theremin Field', id: 'theremin-field', selector: '.theremin-webcam-panel' },
         { name: 'Morph Box', id: 'morph-box', selector: '#morph-box-panel' },
         { name: 'Microtonal Morph', id: 'microtonal-morph', selector: '#microtonal-morph-panel' },
         { name: 'Skybox Controls', id: 'main-display', selector: '#main-display-panel' },
@@ -50,6 +54,10 @@ export class PanelToolbar {
             font-size: 11px;
             color: #ffffff;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            max-width: calc(100vw - 40px);
+            overflow-x: auto;
+            flex-wrap: wrap;
+            justify-content: center;
         `;
 
         // Add "VIEW:" label
@@ -71,8 +79,20 @@ export class PanelToolbar {
             button.style.cssText = this.getButtonStyle(this.isPanelVisible(panel.selector));
 
             button.onclick = () => {
+                console.log(`🔘 Toolbar button clicked: ${panel.name} (${panel.selector})`);
+
+                const element = document.querySelector(panel.selector);
+                console.log(`🔍 Found element:`, element);
+
+                const wasVisible = this.isPanelVisible(panel.selector);
+                console.log(`👁️ Panel was visible: ${wasVisible}`);
+
                 this.togglePanel(panel.selector);
                 this.updateButtonState(button, panel.selector);
+
+                mmpaLogger.logPanelToggle(panel.name, !wasVisible);
+
+                console.log(`✅ Toggle completed for: ${panel.name}`);
             };
 
             toolbar.appendChild(button);
@@ -120,14 +140,29 @@ export class PanelToolbar {
             return element.classList.contains('active');
         }
 
+        // Special case for cymatic patterns panel
+        if (selector === '.cymatic-patterns-panel') {
+            // Check if panel has its own visibility state
+            const panelInstance = (window as any).cymaticPatternsPanel;
+            if (panelInstance && panelInstance.isPanelVisible) {
+                return panelInstance.isPanelVisible();
+            }
+        }
+
         return inlineDisplay !== 'none' && style.display !== 'none';
     }
 
     private togglePanel(selector: string): void {
+        console.log(`🔄 togglePanel called for: ${selector}`);
+
         const element = document.querySelector(selector) as HTMLElement;
-        if (!element) return;
+        if (!element) {
+            console.error(`❌ Element not found: ${selector}`);
+            return;
+        }
 
         const isVisible = this.isPanelVisible(selector);
+        console.log(`👁️ isVisible result: ${isVisible}`);
 
         // Special handling for morph box panel
         if (selector === '#morph-box-panel') {
@@ -138,7 +173,22 @@ export class PanelToolbar {
                 element.classList.add('active');
                 element.style.display = 'block';
             }
-        } else {
+        }
+        // Special handling for cymatic patterns panel
+        else if (selector === '.cymatic-patterns-panel') {
+            console.log(`🌀 Cymatic patterns panel toggle`);
+            const panelInstance = (window as any).cymaticPatternsPanel;
+            console.log(`📦 Panel instance:`, panelInstance);
+
+            if (panelInstance && panelInstance.setVisibility) {
+                console.log(`✨ Calling setVisibility(${!isVisible})`);
+                panelInstance.setVisibility(!isVisible);
+            } else {
+                console.log(`🔄 Fallback DOM manipulation`);
+                element.style.display = isVisible ? 'none' : 'block';
+            }
+        }
+        else {
             // Standard show/hide
             element.style.display = isVisible ? 'none' : 'block';
         }

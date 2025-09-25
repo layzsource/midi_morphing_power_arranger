@@ -88,13 +88,16 @@ export class SkyboxCubeLayer {
     private midiControls = {
         panelSelector: 0, // CC6
         morphProgress: 0, // CC1 - cube to sphere morphing
-        rotationX: 0,     // CC2 - X-axis rotation
+        rotationX: 0,     // CC2 - X-axis rotation (accumulated)
         shadowIntensity: 1.0, // CC3
         rotationY: 0,     // CC4 - Y-axis rotation
         zoom: 250,        // CC5
         shapeRotation: 0, // CC7
         rotationAxisToggle: 0 // CC8
     };
+
+    // Track previous CC2 value for delta calculation
+    private previousCC2Value = 0;
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
@@ -901,9 +904,12 @@ export class SkyboxCubeLayer {
                 // Use subdivision system but morph cube to sphere (not separate panels)
                 this.setMorphProgress(normalizedValue);
                 break;
-            case 2: // CC2 - X-axis rotation
-                this.midiControls.rotationX = normalizedValue * Math.PI * 2;
+            case 2: // CC2 - X-axis rotation (pitch wheel - accumulated)
+                const deltaCC2 = normalizedValue - this.previousCC2Value;
+                this.midiControls.rotationX += deltaCC2 * Math.PI * 2; // Full range - more sensitive
+                this.previousCC2Value = normalizedValue;
                 this.updateCubeRotation();
+                console.log(`🎛️ MIDI CC2: ${rawValue} -> ${normalizedValue.toFixed(3)} (accumulated X: ${(this.midiControls.rotationX * 180 / Math.PI).toFixed(1)}°)`);
                 break;
             case 4: // CC4 - Y-axis rotation
                 this.midiControls.rotationY = normalizedValue * Math.PI * 2;

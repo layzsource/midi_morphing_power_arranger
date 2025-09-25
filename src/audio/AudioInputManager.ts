@@ -58,6 +58,7 @@ export class AudioInputManager {
     private waveformData: Float32Array;
     private isAnalyzing: boolean = false;
     private analyzeCallbacks: ((analysis: AudioAnalysis) => void)[] = [];
+    private analyzeLoopCounter: number = 0;
 
     // Ableton Live WebSocket connection
     private abletonWebSocket: WebSocket | null = null;
@@ -79,6 +80,17 @@ export class AudioInputManager {
         this.masterGain.connect(this.audioContext.destination);
 
         this.initializeInputConfigs();
+    }
+
+    private async resumeAudioContext(): Promise<void> {
+        if (this.audioContext.state === 'suspended') {
+            try {
+                await this.audioContext.resume();
+                console.log('🔊 AudioContext resumed');
+            } catch (error) {
+                console.warn('⚠️ Failed to resume AudioContext:', error);
+            }
+        }
     }
 
     private initializeInputConfigs() {
@@ -108,6 +120,7 @@ export class AudioInputManager {
         try {
             // Disconnect current source
             await this.disconnectCurrentSource();
+            await this.resumeAudioContext();
 
             switch (source) {
                 case 'microphone':
@@ -342,6 +355,10 @@ export class AudioInputManager {
     }
 
     public startAnalysis() {
+        if (this.audioContext.state === 'suspended') {
+            this.resumeAudioContext().catch(() => undefined);
+        }
+
         if (this.isAnalyzing) return;
 
         this.isAnalyzing = true;
@@ -365,6 +382,8 @@ export class AudioInputManager {
             peak: this.calculatePeak(this.waveformData),
             pitch: this.estimatePitch(this.frequencyData)
         };
+
+        // Remove spam - analysis is clearly running
 
         // Notify callbacks
         this.analyzeCallbacks.forEach(callback => callback(analysis));

@@ -26,9 +26,12 @@ export class WebSocketMIDIClient {
     private reconnectAttempts: number = 0;
     private isConnected: boolean = false;
     private eventHandlers: Map<string, Function[]> = new Map();
+    private windowId: string = Math.random().toString(36).substring(2, 9);
+    private isWindowFocused: boolean = true;
 
     constructor(private url: string = 'ws://localhost:8765') {
         this.setupEventHandlers();
+        this.initializeWindowFocusTracking();
     }
 
     private setupEventHandlers() {
@@ -38,6 +41,25 @@ export class WebSocketMIDIClient {
         this.eventHandlers.set('connected', []);
         this.eventHandlers.set('disconnected', []);
         this.eventHandlers.set('error', []);
+    }
+
+    private initializeWindowFocusTracking() {
+        // Track window focus to only process MIDI when window is active
+        window.addEventListener('focus', () => {
+            this.isWindowFocused = true;
+            console.log(`🎛️ Window ${this.windowId} focused - MIDI active`);
+        });
+
+        window.addEventListener('blur', () => {
+            this.isWindowFocused = false;
+            console.log(`🎛️ Window ${this.windowId} blurred - MIDI isolated`);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            this.disconnect();
+        });
+
+        console.log(`🎛️ MIDI Window ID: ${this.windowId}`);
     }
 
     public on(event: string, handler: Function) {
@@ -118,16 +140,22 @@ export class WebSocketMIDIClient {
     }
 
     private handleMIDIMessage(message: MIDIMessage) {
-        // Debug logging
-        if (message.type === 'cc') {
-            console.log(`WebSocket MIDI CC${message.cc}: ${message.value} (${message.normalized?.toFixed(3)})`);
-        } else if (message.type === 'note_on') {
-            console.log(`WebSocket MIDI Note On: ${message.note} velocity ${message.velocity}`);
-        } else if (message.type === 'note_off') {
-            console.log(`WebSocket MIDI Note Off: ${message.note}`);
+        // WINDOW ISOLATION: Only process MIDI when window is focused
+        if (!this.isWindowFocused) {
+            // Silently ignore MIDI messages when window is not focused
+            return;
         }
 
-        // Emit to specific handlers
+        // Debug logging
+        if (message.type === 'cc') {
+            console.log(`[${this.windowId}] WebSocket MIDI CC${message.cc}: ${message.value} (${message.normalized?.toFixed(3)})`);
+        } else if (message.type === 'note_on') {
+            console.log(`[${this.windowId}] WebSocket MIDI Note On: ${message.note} velocity ${message.velocity}`);
+        } else if (message.type === 'note_off') {
+            console.log(`[${this.windowId}] WebSocket MIDI Note Off: ${message.note}`);
+        }
+
+        // Emit to specific handlers only when window is focused
         this.emit(message.type, message);
     }
 
@@ -141,6 +169,19 @@ export class WebSocketMIDIClient {
 
     public getConnectionStatus(): boolean {
         return this.isConnected;
+    }
+
+    public getWindowId(): string {
+        return this.windowId;
+    }
+
+    public isWindowActive(): boolean {
+        return this.isWindowFocused;
+    }
+
+    public setWindowFocus(focused: boolean): void {
+        this.isWindowFocused = focused;
+        console.log(`🎛️ Window ${this.windowId} focus set to: ${focused}`);
     }
 }
 
