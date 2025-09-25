@@ -418,6 +418,52 @@
       transform: translateX(0);
     }
 
+    /* Users Online Badge */
+    .users-online-badge {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-left: 8px;
+    }
+
+    .users-online-badge:empty {
+      display: none !important;
+    }
+
+    /* Presence Toast Notifications */
+    .presence-toast {
+      position: fixed;
+      top: 160px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      border-left: 3px solid;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 200px;
+    }
+
+    .presence-toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .presence-toast.join {
+      border-color: #22c55e;
+    }
+
+    .presence-toast.leave {
+      border-color: #f59e0b;
+    }
+
     .collab-notification {
       position: fixed;
       top: 80px;
@@ -701,6 +747,7 @@
   </div>
   <div class="row">
     <span id="collab-status" class="status" style="color: #94a3b8;">Collab: Single-User</span>
+    <span id="users-online-badge" class="users-online-badge" style="display: none;">👥 <span id="users-count">0</span></span>
   </div>
   <div class="row spectral-controls">
     <label class="spectral-label">Spectral:</label>
@@ -1141,6 +1188,14 @@ function handleWebSocketMessage(data) {
   } else if (messageType === 'collaborative_chat_message') {
     // Handle chat messages from other users
     addChatMessage(data);
+
+  } else if (messageType === 'collaborative_user_join') {
+    // Handle user joining the session
+    handleUserJoin(data);
+
+  } else if (messageType === 'collaborative_user_leave') {
+    // Handle user leaving the session
+    handleUserLeave(data);
   }
 }
 
@@ -1721,6 +1776,69 @@ function showCollaborativeNotification(message, userColor = '#00ffff', duration 
     notification.classList.remove('show');
     setTimeout(() => notification.remove(), 300);
   }, duration);
+}
+
+function handleUserJoin(data) {
+  console.log(`🤝 ${data.user.username} joined the session`);
+
+  // Update users online count
+  updateUsersOnlineCount(data.users_count);
+
+  // Show presence toast notification
+  showPresenceToast(`${data.user.username} joined`, 'join', data.user.color);
+
+  // Update collaboration status
+  updateCollaborationStatus({ users_count: data.users_count });
+}
+
+function handleUserLeave(data) {
+  console.log(`👋 ${data.username} left the session`);
+
+  // Update users online count
+  updateUsersOnlineCount(data.users_count);
+
+  // Show presence toast notification
+  showPresenceToast(`${data.username} left`, 'leave', data.user_color);
+
+  // Update collaboration status
+  updateCollaborationStatus({ users_count: data.users_count });
+}
+
+function updateUsersOnlineCount(count) {
+  const badge = document.getElementById('users-online-badge');
+  const countSpan = document.getElementById('users-count');
+
+  if (count > 1) { // Only show when there are other users besides yourself
+    badge.style.display = 'inline';
+    countSpan.textContent = count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showPresenceToast(message, type = 'join', userColor = '#3b82f6') {
+  const toast = document.createElement('div');
+  toast.className = `presence-toast ${type}`;
+  toast.textContent = message;
+  toast.style.borderColor = userColor;
+
+  // Add specific styling based on type
+  if (type === 'join') {
+    toast.style.borderColor = '#22c55e';
+  } else if (type === 'leave') {
+    toast.style.borderColor = '#f59e0b';
+  }
+
+  document.body.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function flashParameterWithUserColor(parameterName, userColor) {

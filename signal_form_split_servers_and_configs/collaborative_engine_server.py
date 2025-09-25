@@ -237,6 +237,15 @@ async def telemetry(ws: WebSocket, session_id: str = None, user_id: str = None):
     # Notify other users in session about new connection
     if session:
         await session.broadcast_to_others(user_id, {
+            "type": "collaborative_user_join",
+            "user": user.to_dict(),
+            "users_in_session": session.get_user_list(),
+            "users_count": len(session.users),
+            "timestamp": time.time()
+        })
+
+        # Also send the legacy event for backward compatibility
+        await session.broadcast_to_others(user_id, {
             "type": "user_joined",
             "user": user.to_dict(),
             "users_in_session": session.get_user_list(),
@@ -279,11 +288,23 @@ async def telemetry(ws: WebSocket, session_id: str = None, user_id: str = None):
     finally:
         # Clean up user on disconnect
         if session:
+            remaining_users = [u.to_dict() for u in session.users.values() if u.user_id != user_id]
+            await session.broadcast_to_others(user_id, {
+                "type": "collaborative_user_leave",
+                "user_id": user_id,
+                "username": user.username,
+                "user_color": user.color,
+                "users_in_session": remaining_users,
+                "users_count": len(remaining_users),
+                "timestamp": time.time()
+            })
+
+            # Also send the legacy event for backward compatibility
             await session.broadcast_to_others(user_id, {
                 "type": "user_left",
                 "user_id": user_id,
                 "username": user.username,
-                "users_in_session": [u.to_dict() for u in session.users.values() if u.user_id != user_id],
+                "users_in_session": remaining_users,
                 "timestamp": time.time()
             })
 
