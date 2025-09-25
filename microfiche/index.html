@@ -304,6 +304,9 @@
     <span id="midi-status" class="status" style="color: #f59e0b;">MIDI: Disconnected</span>
     <span class="midi-indicator" id="midi-indicator"></span>
   </div>
+  <div class="row">
+    <span id="multiwindow-status" class="status" style="color: #38bdf8;">Multi-Window: Active</span>
+  </div>
 </div>
 
 <!-- Controls Help -->
@@ -380,6 +383,13 @@ let midiPanelConfig = {}; // Extended MIDI panel configuration
 let midiConfigLastModified = null; // Track config file changes for hot-reload
 let presets = {}; // Preset configurations
 let midiActivity = {}; // Track recent MIDI activity for visual feedback
+
+// Multi-window synchronization
+let broadcastChannel = null;
+let isWindowActive = true;
+let windowId = Math.random().toString(36).substring(2, 9);
+let connectedWindows = new Set([windowId]);
+let lastSyncTime = 0;
 
 // ζ-Camera system
 function updateCamera() {
@@ -645,6 +655,12 @@ function updateTelemetryDisplay() {
 async function handleSpriteClick(sprite) {
   const mediaId = sprite.userData.media.id;
   console.log('Portal clicked:', mediaId);
+
+  // Broadcast sprite interaction to other windows
+  broadcastUpdate('sprite_interaction', {
+    mediaId: mediaId,
+    type: 'portal_click'
+  });
 
   try {
     // Get stimulus from encoder
@@ -996,6 +1012,198 @@ function flashMidiStatus() {
   }, 100);
 }
 
+// Multi-window synchronization functions
+function initBroadcastChannel() {
+  if (!window.BroadcastChannel) {
+    console.warn('BroadcastChannel not supported, multi-window sync disabled');
+    document.getElementById('multiwindow-status').textContent = 'Multi-Window: Not Supported';
+    return;
+  }
+
+  broadcastChannel = new BroadcastChannel('signal-form-sync');
+
+  broadcastChannel.onmessage = (event) => {
+    const { type, data, windowId: senderWindowId, timestamp } = event.data;
+
+    // Ignore messages from self or older messages
+    if (senderWindowId === windowId || timestamp <= lastSyncTime) {
+      return;
+    }
+
+    console.log(`📡 Received sync: ${type} from window ${senderWindowId}`);
+
+    switch (type) {
+      case 'parameter_update':
+        handleRemoteParameterUpdate(data);
+        break;
+
+      case 'camera_update':
+        handleRemoteCameraUpdate(data);
+        break;
+
+      case 'sprite_interaction':
+        handleRemoteSpriteInteraction(data);
+        break;
+
+      case 'preset_applied':
+        handleRemotePresetApplied(data);
+        break;
+
+      case 'window_heartbeat':
+        handleWindowHeartbeat(senderWindowId, data);
+        break;
+    }
+
+    lastSyncTime = timestamp;
+  };
+
+  // Send initial heartbeat
+  sendWindowHeartbeat();
+
+  // Regular heartbeat to maintain window list
+  setInterval(sendWindowHeartbeat, 5000);
+
+  console.log(`🪟 Multi-window sync initialized (Window ID: ${windowId})`);
+}
+
+function broadcastUpdate(type, data) {
+  if (!broadcastChannel) return;
+
+  const message = {
+    type,
+    data,
+    windowId,
+    timestamp: Date.now()
+  };
+
+  broadcastChannel.postMessage(message);
+}
+
+function sendWindowHeartbeat() {
+  broadcastUpdate('window_heartbeat', {
+    active: isWindowActive,
+    zeta: zeta,
+    pmw: pmw
+  });
+}
+
+function handleWindowHeartbeat(senderWindowId, data) {
+  connectedWindows.add(senderWindowId);
+  updateMultiWindowStatus();
+
+  // Clean up old windows after 10 seconds of no heartbeat
+  setTimeout(() => {
+    connectedWindows.delete(senderWindowId);
+    updateMultiWindowStatus();
+  }, 10000);
+}
+
+function updateMultiWindowStatus() {
+  const status = document.getElementById('multiwindow-status');
+  const windowCount = connectedWindows.size;
+
+  if (windowCount === 1) {
+    status.textContent = 'Multi-Window: Single';
+    status.style.color = '#94a3b8';
+  } else {
+    const activeText = isWindowActive ? 'Active' : 'Idle';
+    status.textContent = `Multi-Window: ${activeText} (${windowCount} windows)`;
+    status.style.color = isWindowActive ? '#10b981' : '#f59e0b';
+  }
+}
+
+function handleRemoteParameterUpdate(data) {
+  const { parameter, value, source } = data;
+
+  // Only apply if this window is not the active MIDI listener
+  if (isWindowActive && source === 'midi') return;
+
+  console.log(`🔄 Syncing ${parameter} = ${value} (from ${source})`);
+
+  switch (parameter) {
+    case 'zeta':
+      zeta = value;
+      document.getElementById('zeta').value = value;
+      document.getElementById('zeta-val').textContent = value.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = value;
+      document.getElementById('pmw').value = value;
+      document.getElementById('pmw-val').textContent = value.toFixed(3);
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = value;
+      document.getElementById('unity-val').textContent = value.toFixed(3);
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = value;
+      document.getElementById('flatness-val').textContent = value.toFixed(3);
+      break;
+  }
+}
+
+function handleRemoteCameraUpdate(data) {
+  // Only sync camera if this window is idle
+  if (isWindowActive) return;
+
+  const { position, target, up } = data;
+  if (camera && position) {
+    camera.position.copy(position);
+    camera.up.copy(up);
+    camera.lookAt(target.x, target.y, target.z);
+  }
+}
+
+function handleRemoteSpriteInteraction(data) {
+  const { mediaId, type } = data;
+  console.log(`🎭 Remote sprite interaction: ${type} on ${mediaId}`);
+
+  // Find and highlight the sprite briefly
+  const sprite = sprites.find(s => s.userData.mediaItem.id === mediaId);
+  if (sprite) {
+    sprite.material.emissive.setHex(0x00ff00);
+    setTimeout(() => {
+      sprite.material.emissive.setHex(0x000000);
+    }, 500);
+  }
+}
+
+function handleRemotePresetApplied(data) {
+  const { presetName } = data;
+  showPresetNotification(`🌐 ${presetName} (Remote)`);
+}
+
+// Window focus/blur handling for MIDI isolation
+function setupWindowFocusHandling() {
+  window.addEventListener('focus', () => {
+    isWindowActive = true;
+    updateMultiWindowStatus();
+    console.log(`🎯 Window ${windowId} became active`);
+
+    // Re-enable MIDI if this window becomes active
+    if (midiWS && midiWS.readyState === WebSocket.OPEN) {
+      document.getElementById('midi-status').style.color = '#34d399';
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    isWindowActive = false;
+    updateMultiWindowStatus();
+    console.log(`😴 Window ${windowId} became idle`);
+  });
+
+  // Handle page visibility changes
+  document.addEventListener('visibilitychange', () => {
+    isWindowActive = !document.hidden;
+    updateMultiWindowStatus();
+  });
+}
+
 // MIDI WebSocket connection
 function connectMidiWebSocket() {
   try {
@@ -1013,6 +1221,12 @@ function connectMidiWebSocket() {
 
         // Handle CC (Control Change) messages
         if (data.type === 'cc' && typeof data.cc === 'number' && typeof data.value === 'number') {
+          // Only process MIDI if this window is active
+          if (!isWindowActive) {
+            console.log(`🔇 Ignoring MIDI CC${data.cc} - window not active`);
+            return;
+          }
+
           const ccString = data.cc.toString();
           const paramName = midiMapping[ccString];
 
@@ -1028,6 +1242,13 @@ function connectMidiWebSocket() {
             updateParameterFromMidi(paramName, finalValue);
             console.log(`CC${data.cc} (${finalValue}) → ${paramName} (${scaleMidiValue(finalValue).toFixed(3)})`);
             flashMidiStatus();
+
+            // Broadcast parameter update to other windows
+            broadcastUpdate('parameter_update', {
+              parameter: paramName,
+              value: scaleMidiValue(finalValue),
+              source: 'midi'
+            });
           } else {
             console.log(`Unmapped CC${data.cc}: ${data.value}`);
           }
@@ -1035,6 +1256,12 @@ function connectMidiWebSocket() {
 
         // Handle Note On messages (for presets and actions)
         if (data.type === 'note_on' && typeof data.note === 'number' && data.velocity > 0) {
+          // Only process MIDI if this window is active
+          if (!isWindowActive) {
+            console.log(`🔇 Ignoring MIDI Note${data.note} - window not active`);
+            return;
+          }
+
           const noteString = data.note.toString();
           let actionName = null;
 
@@ -1060,6 +1287,14 @@ function connectMidiWebSocket() {
           if (actionName) {
             handleMidiAction(actionName, data.velocity);
             flashMidiStatus();
+
+            // Broadcast preset actions to other windows
+            if (actionName.startsWith('preset_')) {
+              broadcastUpdate('preset_applied', {
+                presetName: presets[actionName]?.name || actionName,
+                actionName: actionName
+              });
+            }
           } else {
             console.log(`Unmapped Note${data.note}: velocity ${data.velocity}`);
           }
@@ -1210,11 +1445,25 @@ function setupControls() {
     document.getElementById('zeta-val').textContent = zeta.toFixed(3);
     updateCamera();
     updateShells();
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'zeta',
+      value: zeta,
+      source: 'slider'
+    });
   });
 
   pmwSlider.addEventListener('input', (e) => {
     pmw = parseFloat(e.target.value);
     document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'pmw',
+      value: pmw,
+      source: 'slider'
+    });
   });
 
   unitySlider.addEventListener('input', (e) => {
@@ -1222,6 +1471,13 @@ function setupControls() {
     document.getElementById('unity-val').textContent = unity.toFixed(3);
     // Send control update
     sendControl({ set: { unity: unity } });
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'unity',
+      value: unity,
+      source: 'slider'
+    });
   });
 
   flatnessSlider.addEventListener('input', (e) => {
@@ -1229,6 +1485,13 @@ function setupControls() {
     document.getElementById('flatness-val').textContent = flatness.toFixed(3);
     // Send control update
     sendControl({ set: { flatness: flatness } });
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'flatness',
+      value: flatness,
+      source: 'slider'
+    });
   });
 
   // Center Me button
@@ -1314,6 +1577,8 @@ loadCollection();
 loadMidiMapping(); // Load MIDI CC mapping configuration
 loadUserPresets(); // Load saved user presets
 startMidiConfigWatcher(); // Start watching for config changes
+initBroadcastChannel(); // Initialize multi-window synchronization
+setupWindowFocusHandling(); // Handle window focus/blur for MIDI isolation
 connectWebSocket();
 connectMidiWebSocket();
 animate();
