@@ -1,0 +1,21 @@
+# <type>: <short summary>
+#
+# Examples:
+#   feat: add MIDI CC panel mapping
+#   fix: correct eigenmode scaling
+#   docs: update README run instructions
+#   chore: add .gitignore and LICENSE
+#   test: add pytest coverage for midi_listener
+#
+# Guidelines:
+# - Use present tense ("add" not "added")
+# - Keep summary under 50 chars if possible
+# - Optionally add details below
+
+# -------------------------
+# Body (optional, longer explanation)
+# - Why the change was made
+# - Any notes for future
+#
+# Footer (optional)
+# - Issue or ticket reference

@@ -1,0 +1,82 @@
+{
+  "cc_mappings": {
+    "1": "zeta",
+    "2": "pmw",
+    "3": "unity",
+    "4": "flatness"
+  },
+  "note_mappings": {
+    "36": "preset_1",
+    "37": "preset_2",
+    "38": "preset_3",
+    "39": "preset_4",
+    "40": "center_me",
+    "41": "portal_random",
+    "42": "save_preset",
+    "43": "toggle_shells"
+  },
+  "panel_configs": {
+    "akai_mpk_mini": {
+      "knobs": {
+        "1": "zeta",
+        "2": "pmw",
+        "3": "unity",
+        "4": "flatness",
+        "5": "shell_opacity",
+        "6": "instrument_scale",
+        "7": "camera_speed",
+        "8": "deform_intensity"
+      },
+      "pads": {
+        "36": "preset_outside",
+        "37": "preset_membrane",
+        "38": "preset_center",
+        "39": "preset_grounded",
+        "40": "center_me",
+        "41": "portal_random",
+        "42": "toggle_shells",
+        "43": "reset_view"
+      }
+    },
+    "launchpad": {
+      "notes": {
+        "0": "preset_1",
+        "1": "preset_2",
+        "8": "preset_3",
+        "9": "preset_4",
+        "16": "center_me",
+        "17": "portal_random"
+      }
+    }
+  },
+  "presets": {
+    "preset_outside": {
+      "name": "Outside Universe",
+      "zeta": 0.0,
+      "pmw": 0.3,
+      "unity": 0.5,
+      "flatness": 0.4
+    },
+    "preset_membrane": {
+      "name": "Membrane Crossing",
+      "zeta": 0.55,
+      "pmw": 0.7,
+      "unity": 0.6,
+      "flatness": 0.8
+    },
+    "preset_center": {
+      "name": "Center POV",
+      "zeta": 1.0,
+      "pmw": 0.9,
+      "unity": 0.8,
+      "flatness": 0.9
+    },
+    "preset_grounded": {
+      "name": "Grounded State",
+      "zeta": 1.0,
+      "pmw": 1.0,
+      "unity": 0.95,
+      "flatness": 0.95
+    }
+  }
+}
