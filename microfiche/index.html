@@ -314,6 +314,57 @@
       border-color: #3b82f6;
     }
 
+    .spectral-presets {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .preset-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .preset-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 11px;
+      border-radius: 3px;
+      min-width: 80px;
+    }
+
+    .preset-save-btn {
+      background: #059669;
+      color: white;
+      border: 1px solid #10b981;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .preset-save-btn:hover {
+      background: #047857;
+    }
+
+    .preset-save-btn:disabled {
+      background: #374151;
+      border-color: #6b7280;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .current-preset {
+      font-size: 10px;
+      color: #22c55e;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
     /* FFT Overlay Container */
     .fft-overlay-container {
       position: fixed;
@@ -782,6 +833,14 @@
       <button class="fft-preset-btn" data-size="512">512</button>
       <button class="fft-preset-btn" data-size="1024">1K</button>
       <button class="fft-preset-btn" data-size="2048">2K</button>
+    </div>
+    <div class="spectral-presets">
+      <label class="preset-label">Presets:</label>
+      <select id="spectral-preset-select" class="preset-select">
+        <option value="">Choose preset...</option>
+      </select>
+      <button id="spectral-preset-save" class="preset-save-btn">Save</button>
+      <span id="current-preset-name" class="current-preset"></span>
     </div>
   </div>
 </div>
@@ -1820,24 +1879,51 @@ function handleCollaborativeSpriteInteraction(data) {
 }
 
 function handleCollaborativePresetApplied(data) {
-  console.log(`🎹 ${data.username} applied preset: ${data.preset_name}`);
+  const presetType = data.preset_type || 'global';
+  console.log(`🎹 ${data.username} applied ${presetType} preset: ${data.preset_name}`);
 
-  // Store preset in collaborative presets if it's new
-  if (data.preset_data) {
-    collaborativePresets[data.preset_name] = data.preset_data;
-    console.log(`📋 Received collaborative preset: ${data.preset_name}`);
+  if (presetType === 'spectral') {
+    // Handle spectral preset application
+    if (data.preset_data) {
+      // Store in local spectral presets
+      spectralPresets[data.preset_name] = data.preset_data;
+      saveSpectralPresets();
+      updatePresetDropdown();
+
+      // Apply the preset with smooth transitions
+      applySpectralPreset(data.preset_data, true);
+
+      // Update UI to show current preset
+      const presetSelect = document.getElementById('spectral-preset-select');
+      const currentPresetName = document.getElementById('current-preset-name');
+      if (presetSelect) presetSelect.value = data.preset_name;
+      if (currentPresetName) currentPresetName.textContent = `Current: ${data.preset_name}`;
+      currentSpectralPreset = data.preset_name;
+    }
+
+    showCollaborativeNotification(
+      `${data.username} applied spectral preset: ${data.preset_name}`,
+      data.user_color || '#22c55e',
+      3000
+    );
+  } else {
+    // Handle global presets (existing functionality)
+    if (data.preset_data) {
+      collaborativePresets[data.preset_name] = data.preset_data;
+      console.log(`📋 Received collaborative preset: ${data.preset_name}`);
+    }
+
+    // Apply preset from collaborative source
+    if (data.preset_data) {
+      applyPreset(data.preset_name, true);  // true = from collaborative source
+    }
+
+    showCollaborativeNotification(
+      `${data.username} applied preset: ${data.preset_name}`,
+      data.user_color || '#10b981',
+      3000
+    );
   }
-
-  // Apply preset from collaborative source
-  if (data.preset_data) {
-    applyPreset(data.preset_name, true);  // true = from collaborative source
-  }
-
-  showCollaborativeNotification(
-    `${data.username} applied preset: ${data.preset_name}`,
-    data.user_color || '#10b981',
-    3000
-  );
 }
 
 function sendCollaborativeMessage(type, data) {
@@ -2737,6 +2823,132 @@ let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
 let gradientCache = new Map();
 
+// Spectral Preset System
+let spectralPresets = {};
+let currentSpectralPreset = null;
+let presetTransitionDuration = 800; // ms for smooth transitions
+
+// Load spectral presets from localStorage
+function loadSpectralPresets() {
+  try {
+    const saved = localStorage.getItem('spectral_presets');
+    if (saved) {
+      spectralPresets = JSON.parse(saved);
+      updatePresetDropdown();
+    }
+  } catch (e) {
+    console.warn('Failed to load spectral presets:', e);
+    spectralPresets = {};
+  }
+}
+
+// Save spectral presets to localStorage
+function saveSpectralPresets() {
+  try {
+    localStorage.setItem('spectral_presets', JSON.stringify(spectralPresets));
+  } catch (e) {
+    console.warn('Failed to save spectral presets:', e);
+  }
+}
+
+// Get current spectral state
+function getCurrentSpectralState() {
+  return {
+    enabled: spectralEnabled,
+    mode: spectralMode,
+    fft_size: fftSize,
+    log_scale: logScale || false,
+    timestamp: Date.now()
+  };
+}
+
+// Apply spectral preset with smooth transitions
+function applySpectralPreset(presetData, smooth = true) {
+  if (!presetData) return;
+
+  const duration = smooth ? presetTransitionDuration : 0;
+
+  // Apply with transitions
+  if (duration > 0) {
+    // Add transition classes for smooth changes
+    const fftContainer = document.getElementById('fft-overlay-container');
+    if (fftContainer) {
+      fftContainer.style.transition = `opacity ${duration}ms ease-in-out`;
+      fftContainer.style.opacity = '0.7';
+    }
+  }
+
+  setTimeout(() => {
+    // Update spectral settings
+    if (presetData.enabled !== undefined) {
+      spectralEnabled = presetData.enabled;
+      const toggleBtn = document.getElementById('spectral-toggle');
+      if (toggleBtn) {
+        toggleBtn.textContent = spectralEnabled ? 'ON' : 'OFF';
+        toggleBtn.className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+      }
+      const fftContainer = document.getElementById('fft-overlay-container');
+      if (fftContainer) {
+        fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+      }
+    }
+
+    if (presetData.mode !== undefined) {
+      spectralMode = presetData.mode;
+      const modeSelect = document.getElementById('spectral-mode');
+      if (modeSelect) modeSelect.value = spectralMode;
+    }
+
+    if (presetData.fft_size !== undefined) {
+      fftSize = presetData.fft_size;
+      const fftSizeSlider = document.getElementById('spectral-fft-size');
+      const fftVal = document.getElementById('spectral-fft-val');
+      if (fftSizeSlider) fftSizeSlider.value = fftSize;
+      if (fftVal) fftVal.textContent = fftSize;
+
+      // Update preset buttons
+      document.querySelectorAll('.fft-preset-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.size) === fftSize);
+      });
+    }
+
+    if (presetData.log_scale !== undefined && typeof setLogScale === 'function') {
+      setLogScale(presetData.log_scale);
+    }
+
+    // Restore container opacity
+    if (duration > 0) {
+      const fftContainer = document.getElementById('fft-overlay-container');
+      if (fftContainer) {
+        fftContainer.style.opacity = '1';
+        // Remove transition after animation
+        setTimeout(() => {
+          fftContainer.style.transition = '';
+        }, duration);
+      }
+    }
+  }, duration * 0.3);
+}
+
+// Update preset dropdown
+function updatePresetDropdown() {
+  const select = document.getElementById('spectral-preset-select');
+  if (!select) return;
+
+  // Clear existing options except the first one
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+
+  // Add presets to dropdown
+  Object.keys(spectralPresets).forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+}
+
 async function startFFTAnalysis() {
   try {
     fftCanvas = document.getElementById('fft-canvas');
@@ -3042,6 +3254,85 @@ function setupSpectralControls() {
   // Initialize preset buttons
   updatePresetButtons();
   window.updateFFTSize = updateFFTSize; // Make available globally for collaborative updates
+
+  // Spectral Preset Controls
+  const presetSelect = document.getElementById('spectral-preset-select');
+  const presetSaveBtn = document.getElementById('spectral-preset-save');
+  const currentPresetName = document.getElementById('current-preset-name');
+
+  // Load saved presets on startup
+  loadSpectralPresets();
+
+  // Preset selection handler
+  if (presetSelect) {
+    presetSelect.addEventListener('change', () => {
+      const presetName = presetSelect.value;
+      if (presetName && spectralPresets[presetName]) {
+        applySpectralPreset(spectralPresets[presetName], true);
+        currentSpectralPreset = presetName;
+        currentPresetName.textContent = `Current: ${presetName}`;
+
+        // Broadcast collaborative preset application
+        if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+          sendCollaborativeMessage('preset_applied', {
+            preset_name: presetName,
+            preset_data: spectralPresets[presetName],
+            preset_type: 'spectral'
+          });
+        }
+      } else if (!presetName) {
+        currentSpectralPreset = null;
+        currentPresetName.textContent = '';
+      }
+    });
+  }
+
+  // Preset save handler
+  if (presetSaveBtn) {
+    presetSaveBtn.addEventListener('click', () => {
+      const presetName = prompt('Enter preset name:');
+      if (presetName && presetName.trim()) {
+        const trimmedName = presetName.trim();
+        const currentState = getCurrentSpectralState();
+        spectralPresets[trimmedName] = currentState;
+        saveSpectralPresets();
+        updatePresetDropdown();
+
+        // Select the new preset
+        presetSelect.value = trimmedName;
+        currentSpectralPreset = trimmedName;
+        currentPresetName.textContent = `Current: ${trimmedName}`;
+
+        // Show success notification
+        if (collaborativeMode) {
+          showSpectralToast(`Spectral preset "${trimmedName}" saved`);
+        }
+
+        console.log('Spectral preset saved:', trimmedName, currentState);
+      }
+    });
+  }
+
+  // Update current preset name when parameters change manually
+  function clearCurrentPreset() {
+    if (currentSpectralPreset) {
+      currentSpectralPreset = null;
+      currentPresetName.textContent = '';
+      if (presetSelect) presetSelect.value = '';
+    }
+  }
+
+  // Clear preset indication when manually changing controls
+  [toggleBtn, modeSelect, fftSizeSlider].forEach(element => {
+    if (element) {
+      element.addEventListener('change', clearCurrentPreset);
+      element.addEventListener('click', clearCurrentPreset);
+    }
+  });
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', clearCurrentPreset);
+  });
 }
 
 function setupFFTInteractions() {
