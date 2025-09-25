@@ -233,6 +233,191 @@
       scale: 1;
     }
 
+    /* Spectral Controls Styling */
+    .spectral-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .spectral-label, .spectral-fft-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .spectral-btn {
+      background: #1e40af;
+      color: white;
+      border: 1px solid #3b82f6;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 30px;
+    }
+
+    .spectral-btn:hover {
+      background: #2563eb;
+    }
+
+    .spectral-btn.off {
+      background: #374151;
+      border-color: #6b7280;
+      color: #9ca3af;
+    }
+
+    .spectral-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 11px;
+      border-radius: 3px;
+    }
+
+    .spectral-slider {
+      width: 60px;
+      height: 16px;
+    }
+
+    .spectral-val {
+      font-size: 11px;
+      color: #94a3b8;
+      min-width: 30px;
+    }
+
+    .fft-presets {
+      display: flex;
+      gap: 2px;
+      margin-left: 4px;
+    }
+
+    .fft-preset-btn {
+      background: #374151;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 1px 4px;
+      font-size: 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      min-width: 22px;
+    }
+
+    .fft-preset-btn:hover {
+      background: #4b5563;
+    }
+
+    .fft-preset-btn.active {
+      background: #1e40af;
+      border-color: #3b82f6;
+    }
+
+    /* FFT Overlay Container */
+    .fft-overlay-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 220px;
+      height: 180px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #333;
+      border-radius: 6px;
+      display: block;
+      z-index: 100;
+      resize: both;
+      overflow: hidden;
+      min-width: 180px;
+      min-height: 140px;
+      max-width: 400px;
+      max-height: 300px;
+    }
+
+    .fft-header {
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      padding: 4px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      height: 20px;
+      font-size: 11px;
+    }
+
+    .fft-title {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    .fft-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fft-toggle-btn {
+      background: #374151;
+      color: #9ca3af;
+      border: 1px solid #4b5563;
+      padding: 1px 4px;
+      font-size: 9px;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .fft-toggle-btn:hover {
+      background: #4b5563;
+    }
+
+    .fft-toggle-btn.active {
+      background: #1e40af;
+      color: #e5e7eb;
+      border-color: #3b82f6;
+    }
+
+    .fft-resize-handle {
+      width: 12px;
+      height: 12px;
+      background: linear-gradient(-45deg, transparent 40%, #666 42%, #666 58%, transparent 60%);
+      cursor: se-resize;
+      opacity: 0.6;
+    }
+
+    .fft-resize-handle:hover {
+      opacity: 1;
+    }
+
+    #fft-canvas {
+      width: 100%;
+      height: calc(100% - 20px);
+      display: block;
+    }
+
+    /* Toast Notifications */
+    .spectral-toast {
+      position: fixed;
+      top: 120px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      border-left: 3px solid;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 250px;
+    }
+
+    .spectral-toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
     .collab-notification {
       position: fixed;
       top: 80px;
@@ -517,6 +702,23 @@
   <div class="row">
     <span id="collab-status" class="status" style="color: #94a3b8;">Collab: Single-User</span>
   </div>
+  <div class="row spectral-controls">
+    <label class="spectral-label">Spectral:</label>
+    <button id="spectral-toggle" class="spectral-btn">ON</button>
+    <select id="spectral-mode" class="spectral-select">
+      <option value="bars">Bars</option>
+      <option value="waterfall">Waterfall</option>
+    </select>
+    <label class="spectral-fft-label">FFT:</label>
+    <input type="range" id="spectral-fft-size" min="256" max="2048" step="256" value="256" class="spectral-slider">
+    <span id="spectral-fft-val" class="spectral-val">256</span>
+    <div class="fft-presets">
+      <button class="fft-preset-btn" data-size="256">256</button>
+      <button class="fft-preset-btn" data-size="512">512</button>
+      <button class="fft-preset-btn" data-size="1024">1K</button>
+      <button class="fft-preset-btn" data-size="2048">2K</button>
+    </div>
+  </div>
 </div>
 
 <!-- Controls Help -->
@@ -555,6 +757,18 @@
 
 <!-- Main Canvas -->
 <canvas id="canvas"></canvas>
+
+<!-- FFT Spectral Overlay -->
+<div id="fft-overlay-container" class="fft-overlay-container">
+  <div class="fft-header">
+    <span class="fft-title">FFT Spectral</span>
+    <div class="fft-controls">
+      <button id="fft-log-toggle" class="fft-toggle-btn" title="Toggle log frequency">LOG</button>
+      <div class="fft-resize-handle"></div>
+    </div>
+  </div>
+  <canvas id="fft-canvas"></canvas>
+</div>
 
 <!-- MIDI Activity Feedback -->
 <div id="midi-activity" class="midi-activity"></div>
@@ -1569,6 +1783,52 @@ function handleCollaborativeParameterUpdate(data) {
       document.getElementById('flatness-val').textContent = data.value.toFixed(3);
       break;
 
+    case 'spectral_enabled':
+      spectralEnabled = data.value;
+      document.getElementById('spectral-toggle').textContent = spectralEnabled ? 'ON' : 'OFF';
+      document.getElementById('spectral-toggle').className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+      if (fftContainer) {
+        fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_enabled', data.value, data.user_color);
+      break;
+
+    case 'spectral_mode':
+      spectralMode = data.value;
+      document.getElementById('spectral-mode').value = spectralMode;
+      waterfallBuffer = []; // Reset waterfall buffer
+      showCollaborativeSpectralToast(data.username, 'spectral_mode', data.value, data.user_color);
+      break;
+
+    case 'spectral_fft_size':
+      if (window.updateFFTSize) {
+        window.updateFFTSize(data.value, false); // false = not from user interaction
+      } else {
+        fftSize = data.value;
+        document.getElementById('spectral-fft-size').value = fftSize;
+        document.getElementById('spectral-fft-val').textContent = fftSize;
+        if (analyser) {
+          analyser.fftSize = fftSize;
+          fftDataArray = new Uint8Array(analyser.frequencyBinCount);
+          waterfallBuffer = []; // Reset waterfall buffer
+        }
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_fft_size', data.value, data.user_color);
+      break;
+
+    case 'spectral_log_scale':
+      logFrequencyScale = data.value;
+      const logToggle = document.getElementById('fft-log-toggle');
+      if (logToggle) {
+        logToggle.classList.toggle('active', logFrequencyScale);
+      }
+      waterfallBuffer = []; // Reset waterfall buffer
+      if (typeof gradientCache !== 'undefined') {
+        gradientCache.clear();
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_log_scale', data.value, data.user_color);
+      break;
+
     default:
       console.warn(`Unknown parameter: ${data.parameter}`);
   }
@@ -2235,6 +2495,431 @@ async function sendControl(command) {
   }
 }
 
+// FFT Spectral Analysis System
+let audioContext = null;
+let analyser = null;
+let fftDataArray = null;
+let fftCanvas = null;
+let fftCtx = null;
+let spectralEnabled = true;
+let spectralMode = 'bars';
+let fftSize = 256;
+let waterfallBuffer = [];
+let oscillatorNode = null;
+let gainNode = null;
+let logFrequencyScale = false;
+let fftContainer = null;
+let isDragging = false;
+let dragOffset = { x: 0, y: 0 };
+let gradientCache = new Map();
+
+async function startFFTAnalysis() {
+  try {
+    fftCanvas = document.getElementById('fft-canvas');
+    fftContainer = document.getElementById('fft-overlay-container');
+    fftCtx = fftCanvas.getContext('2d');
+
+    // Set initial canvas size
+    resizeFFTCanvas();
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+
+    const bufferLength = analyser.frequencyBinCount;
+    fftDataArray = new Uint8Array(bufferLength);
+
+    // Try microphone first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      console.log('🎤 FFT: Using microphone input');
+    } catch (micError) {
+      // Fallback to synthetic audio for demonstration
+      oscillatorNode = audioContext.createOscillator();
+      gainNode = audioContext.createGain();
+
+      oscillatorNode.type = 'sawtooth';
+      oscillatorNode.frequency.setValueAtTime(220, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+      oscillatorNode.connect(gainNode);
+      gainNode.connect(analyser);
+      gainNode.connect(audioContext.destination);
+
+      oscillatorNode.start();
+      console.log('🔊 FFT: Using synthetic audio fallback');
+    }
+
+    setupFFTInteractions();
+    requestAnimationFrame(updateFFTVisualization);
+  } catch (error) {
+    console.warn('FFT initialization failed:', error);
+  }
+}
+
+function resizeFFTCanvas() {
+  if (!fftCanvas || !fftContainer) return;
+
+  const containerRect = fftContainer.getBoundingClientRect();
+  const headerHeight = 20;
+
+  fftCanvas.width = containerRect.width;
+  fftCanvas.height = containerRect.height - headerHeight;
+
+  // Clear waterfall buffer on resize
+  waterfallBuffer = [];
+  gradientCache.clear();
+}
+
+function updateFFTVisualization() {
+  if (!spectralEnabled || !analyser || !fftCtx) {
+    requestAnimationFrame(updateFFTVisualization);
+    return;
+  }
+
+  analyser.getByteFrequencyData(fftDataArray);
+
+  const canvas = fftCanvas;
+  const ctx = fftCtx;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (spectralMode === 'bars') {
+    renderFFTBars(ctx, canvas);
+  } else if (spectralMode === 'waterfall') {
+    renderFFTWaterfall(ctx, canvas);
+  }
+
+  requestAnimationFrame(updateFFTVisualization);
+}
+
+function renderFFTBars(ctx, canvas) {
+  const barCount = Math.min(64, fftDataArray.length);
+
+  for (let i = 0; i < barCount; i++) {
+    const dataIndex = logFrequencyScale ? getLogIndex(i, barCount, fftDataArray.length) : i;
+    const barHeight = (fftDataArray[dataIndex] / 255) * canvas.height;
+
+    let barX, barWidth;
+    if (logFrequencyScale) {
+      const startFreq = getLogIndex(i, barCount, fftDataArray.length);
+      const endFreq = getLogIndex(i + 1, barCount, fftDataArray.length);
+      barX = (startFreq / fftDataArray.length) * canvas.width;
+      barWidth = ((endFreq - startFreq) / fftDataArray.length) * canvas.width;
+    } else {
+      barWidth = canvas.width / barCount;
+      barX = i * barWidth;
+    }
+
+    // Enhanced gradient coloring
+    const intensity = fftDataArray[dataIndex] / 255;
+    const hue = 220 - (intensity * 180); // Blue to orange/red
+    const saturation = 70 + (intensity * 30);
+    const lightness = 30 + (intensity * 40);
+
+    ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    ctx.fillRect(barX, canvas.height - barHeight, Math.max(1, barWidth - 1), barHeight);
+
+    // Add subtle glow effect for high intensity bars
+    if (intensity > 0.7) {
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fillRect(barX, canvas.height - barHeight, Math.max(1, barWidth - 1), barHeight);
+      ctx.shadowBlur = 0;
+    }
+  }
+}
+
+function renderFFTWaterfall(ctx, canvas) {
+  // Shift waterfall buffer down
+  if (waterfallBuffer.length >= canvas.height) {
+    waterfallBuffer.shift();
+  }
+
+  // Process new line with log-frequency if enabled
+  let processedLine;
+  if (logFrequencyScale) {
+    processedLine = new Array(canvas.width);
+    for (let x = 0; x < canvas.width; x++) {
+      const logIndex = getLogIndex(x, canvas.width, fftDataArray.length);
+      processedLine[x] = fftDataArray[logIndex];
+    }
+  } else {
+    const step = fftDataArray.length / canvas.width;
+    processedLine = new Array(canvas.width);
+    for (let x = 0; x < canvas.width; x++) {
+      processedLine[x] = fftDataArray[Math.floor(x * step)];
+    }
+  }
+
+  waterfallBuffer.push(processedLine);
+
+  // Create gradient if not cached
+  const gradientKey = `${canvas.width}_${canvas.height}`;
+  if (!gradientCache.has(gradientKey)) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(0, 0, 255, 0.8)'); // Blue (low)
+    gradient.addColorStop(0.3, 'rgba(0, 255, 255, 0.9)'); // Cyan
+    gradient.addColorStop(0.6, 'rgba(255, 255, 0, 1.0)'); // Yellow
+    gradient.addColorStop(0.8, 'rgba(255, 128, 0, 1.0)'); // Orange
+    gradient.addColorStop(1.0, 'rgba(255, 0, 0, 1.0)'); // Red (high)
+    gradientCache.set(gradientKey, gradient);
+  }
+
+  // Render waterfall with smooth gradients
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let y = 0; y < waterfallBuffer.length; y++) {
+    const lineData = waterfallBuffer[y];
+    for (let x = 0; x < lineData.length && x < canvas.width; x++) {
+      const intensity = lineData[x] / 255;
+      const pixelIndex = (y * canvas.width + x) * 4;
+
+      // Smooth color interpolation
+      const hue = 240 - (intensity * 200); // Blue to red
+      const saturation = 70 + (intensity * 30);
+      const lightness = intensity * 60;
+
+      const rgb = hslToRgb(hue / 360, saturation / 100, lightness / 100);
+
+      data[pixelIndex] = rgb[0];     // R
+      data[pixelIndex + 1] = rgb[1]; // G
+      data[pixelIndex + 2] = rgb[2]; // B
+      data[pixelIndex + 3] = Math.min(255, 200 + intensity * 55); // A
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function getLogIndex(linearIndex, linearMax, dataLength) {
+  const logMin = Math.log(1);
+  const logMax = Math.log(dataLength);
+  const logStep = (logMax - logMin) / linearMax;
+  return Math.floor(Math.exp(logMin + linearIndex * logStep)) - 1;
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+function setupSpectralControls() {
+  const toggleBtn = document.getElementById('spectral-toggle');
+  const modeSelect = document.getElementById('spectral-mode');
+  const fftSizeSlider = document.getElementById('spectral-fft-size');
+  const fftVal = document.getElementById('spectral-fft-val');
+  const presetBtns = document.querySelectorAll('.fft-preset-btn');
+
+  // Toggle spectral overlay
+  toggleBtn.addEventListener('click', () => {
+    spectralEnabled = !spectralEnabled;
+    toggleBtn.textContent = spectralEnabled ? 'ON' : 'OFF';
+    toggleBtn.className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+    fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+
+    // Broadcast to collaborative users if applicable
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_enabled',
+        value: spectralEnabled,
+        source: 'spectral_controls'
+      });
+      showSpectralToast('Spectral overlay ' + (spectralEnabled ? 'enabled' : 'disabled'));
+    }
+  });
+
+  // Change visualization mode
+  modeSelect.addEventListener('change', () => {
+    spectralMode = modeSelect.value;
+    waterfallBuffer = []; // Reset waterfall buffer
+
+    // Broadcast to collaborative users if applicable
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_mode',
+        value: spectralMode,
+        source: 'spectral_controls'
+      });
+      showSpectralToast(`Spectral mode: ${spectralMode}`);
+    }
+  });
+
+  // Change FFT size
+  fftSizeSlider.addEventListener('input', () => {
+    const newSize = parseInt(fftSizeSlider.value);
+    updateFFTSize(newSize, true);
+  });
+
+  // FFT Size Preset buttons
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const size = parseInt(btn.dataset.size);
+      updateFFTSize(size, true);
+    });
+  });
+
+  // Update active preset button
+  function updatePresetButtons() {
+    presetBtns.forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.size) === fftSize);
+    });
+  }
+
+  function updateFFTSize(newSize, fromUser = false) {
+    if (newSize !== fftSize) {
+      fftSize = newSize;
+      fftVal.textContent = fftSize;
+      fftSizeSlider.value = fftSize;
+      updatePresetButtons();
+
+      if (analyser) {
+        analyser.fftSize = fftSize;
+        fftDataArray = new Uint8Array(analyser.frequencyBinCount);
+        waterfallBuffer = []; // Reset waterfall buffer
+      }
+
+      // Broadcast to collaborative users if applicable
+      if (fromUser && collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_fft_size',
+          value: fftSize,
+          source: 'spectral_controls'
+        });
+        showSpectralToast(`FFT size: ${fftSize}`);
+      }
+    }
+  }
+
+  // Initialize preset buttons
+  updatePresetButtons();
+  window.updateFFTSize = updateFFTSize; // Make available globally for collaborative updates
+}
+
+function setupFFTInteractions() {
+  const header = fftContainer.querySelector('.fft-header');
+  const logToggle = document.getElementById('fft-log-toggle');
+
+  // Log frequency toggle
+  logToggle.addEventListener('click', () => {
+    logFrequencyScale = !logFrequencyScale;
+    logToggle.classList.toggle('active', logFrequencyScale);
+    waterfallBuffer = []; // Reset waterfall buffer
+    gradientCache.clear();
+
+    // Broadcast to collaborative users if applicable
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_log_scale',
+        value: logFrequencyScale,
+        source: 'spectral_controls'
+      });
+      showSpectralToast(`Log frequency: ${logFrequencyScale ? 'ON' : 'OFF'}`);
+    }
+  });
+
+  // Dragging functionality
+  header.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    const rect = fftContainer.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    header.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      // Keep within screen bounds
+      const maxX = window.innerWidth - fftContainer.offsetWidth;
+      const maxY = window.innerHeight - fftContainer.offsetHeight;
+
+      fftContainer.style.left = Math.max(0, Math.min(maxX, newX)) + 'px';
+      fftContainer.style.top = Math.max(0, Math.min(maxY, newY)) + 'px';
+      fftContainer.style.bottom = 'auto';
+      fftContainer.style.right = 'auto';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      header.style.cursor = 'move';
+    }
+  });
+
+  // Handle resizing
+  const resizeObserver = new ResizeObserver(() => {
+    resizeFFTCanvas();
+  });
+  resizeObserver.observe(fftContainer);
+}
+
+function showSpectralToast(message, userColor = '#3b82f6') {
+  const toast = document.createElement('div');
+  toast.className = 'spectral-toast';
+  toast.textContent = message;
+  toast.style.borderColor = userColor;
+
+  document.body.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function showCollaborativeSpectralToast(username, parameter, value, userColor) {
+  const parameterNames = {
+    spectral_enabled: 'Spectral overlay',
+    spectral_mode: 'Spectral mode',
+    spectral_fft_size: 'FFT size',
+    spectral_log_scale: 'Log frequency'
+  };
+
+  const paramName = parameterNames[parameter] || parameter;
+  let valueText = value;
+
+  if (parameter === 'spectral_enabled') {
+    valueText = value ? 'enabled' : 'disabled';
+  } else if (parameter === 'spectral_log_scale') {
+    valueText = value ? 'ON' : 'OFF';
+  }
+
+  const message = `${username} changed ${paramName}: ${valueText}`;
+  showSpectralToast(message, userColor);
+}
+
 // Window resize
 function onWindowResize() {
   const width = window.innerWidth;
@@ -2273,6 +2958,8 @@ connectWebSocket();
 connectMidiWebSocket();
 setupCursorTracking(); // Initialize cursor tracking for collaborative mode
 setupCollaborativeChat(); // Initialize chat system for collaborative mode
+setupSpectralControls(); // Initialize spectral overlay controls
+startFFTAnalysis(); // Start FFT spectral analysis
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
