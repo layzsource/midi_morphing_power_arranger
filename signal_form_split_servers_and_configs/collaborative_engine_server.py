@@ -321,6 +321,7 @@ async def handle_collaborative_message(user_id: str, message: dict):
             "type": "collaborative_parameter_update",
             "user_id": user_id,
             "username": user.username,
+            "user_color": user.color,
             "parameter": message.get("parameter"),
             "value": message.get("value"),
             "source": message.get("source", "unknown"),
@@ -333,6 +334,7 @@ async def handle_collaborative_message(user_id: str, message: dict):
             "type": "collaborative_sprite_interaction",
             "user_id": user_id,
             "username": user.username,
+            "user_color": user.color,
             "media_id": message.get("media_id"),
             "interaction_type": message.get("interaction_type", "click"),
             "timestamp": time.time()
@@ -344,9 +346,21 @@ async def handle_collaborative_message(user_id: str, message: dict):
             "type": "collaborative_preset_applied",
             "user_id": user_id,
             "username": user.username,
+            "user_color": user.color,
             "preset_name": message.get("preset_name"),
             "preset_data": message.get("preset_data"),
             "timestamp": time.time()
+        })
+
+    elif message_type == "chat_message":
+        # Broadcast chat messages
+        await session.broadcast_to_others(user_id, {
+            "type": "collaborative_chat_message",
+            "user_id": user_id,
+            "username": user.username,
+            "user_color": user.color,
+            "message": message.get("message"),
+            "timestamp": message.get("timestamp", time.time() * 1000)  # Convert to milliseconds
         })
 
 @app.post("/control")

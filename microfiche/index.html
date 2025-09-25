@@ -233,6 +233,182 @@
       scale: 1;
     }
 
+    .collab-notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border-left: 4px solid #00ffff;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.3s ease;
+      z-index: 2000;
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    .collab-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .chat-overlay {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      height: 400px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 1800;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .chat-toggle {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-toggle:hover {
+      color: white;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chat-welcome {
+      color: #888;
+      font-style: italic;
+      text-align: center;
+      font-size: 12px;
+      margin: 20px 0;
+    }
+
+    .chat-message {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .chat-message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .chat-username {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .chat-timestamp {
+      font-size: 10px;
+      color: #888;
+    }
+
+    .chat-text {
+      color: white;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .chat-input-container {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      gap: 8px;
+    }
+
+    #chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: white;
+      font-size: 13px;
+    }
+
+    #chat-input::placeholder {
+      color: #888;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    #chat-send {
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #chat-send:hover {
+      background: #2563eb;
+    }
+
+    .chat-mini-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 1700;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-mini-toggle:hover {
+      background: #2563eb;
+    }
+
     .midi-indicator {
       display: inline-block;
       width: 6px;
@@ -352,6 +528,24 @@
 <!-- Center Me Button -->
 <button id="center-me">CENTER ME</button>
 
+<!-- Collaborative Chat Overlay -->
+<div id="chat-overlay" class="chat-overlay" style="display: none;">
+  <div class="chat-header">
+    <span>💬 Collaborative Chat</span>
+    <button id="chat-toggle" class="chat-toggle">×</button>
+  </div>
+  <div id="chat-messages" class="chat-messages">
+    <div class="chat-welcome">Chat active for collaborative sessions</div>
+  </div>
+  <div class="chat-input-container">
+    <input id="chat-input" type="text" placeholder="Type a message..." maxlength="200" autocomplete="off">
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
+<!-- Chat Toggle Button (Mini) -->
+<button id="chat-mini-toggle" class="chat-mini-toggle" style="display: none;">💬</button>
+
 <!-- Sprite Info Card -->
 <div id="sprite-card" class="sprite-card" style="display: none;">
   <div class="id"></div>
@@ -431,6 +625,7 @@ let sessionId = null;
 let userId = null;
 let currentUser = null;
 let collaborativeUsers = new Map();
+let collaborativePresets = {};
 let cursorTracking = true;
 
 // ζ-Camera system
@@ -728,6 +923,10 @@ function handleWebSocketMessage(data) {
   } else if (messageType === 'collaborative_preset_applied') {
     // Handle preset applications from other users
     handleCollaborativePresetApplied(data);
+
+  } else if (messageType === 'collaborative_chat_message') {
+    // Handle chat messages from other users
+    addChatMessage(data);
   }
 }
 
@@ -925,14 +1124,22 @@ function updateParameterFromMidi(paramName, value) {
 }
 
 // Apply preset configuration
-function applyPreset(presetName) {
-  const preset = presets[presetName];
+function applyPreset(presetName, fromCollaborative = false) {
+  const preset = presets[presetName] || collaborativePresets[presetName];
   if (!preset) {
     console.warn(`Preset not found: ${presetName}`);
     return;
   }
 
   console.log(`🎹 Applying preset: ${preset.name}`);
+
+  // Broadcast preset application to other users (if not from collaborative source)
+  if (!fromCollaborative && collaborativeMode) {
+    sendCollaborativeMessage('preset_applied', {
+      preset_name: preset.name,
+      preset_data: preset
+    });
+  }
 
   // Animate to preset values
   if (typeof preset.zeta === 'number') {
@@ -1235,6 +1442,13 @@ function handleCollaborativeParameterUpdate(data) {
 function handleCollaborativeSpriteInteraction(data) {
   console.log(`🎭 ${data.username} interacted with sprite ${data.media_id}`);
 
+  // Show portal activation overlay
+  showCollaborativeNotification(
+    `${data.username} opened portal ${data.media_id}`,
+    data.user_color || '#00ffff',
+    3000
+  );
+
   // Find and highlight the sprite
   const sprite = sprites.find(s => s.userData.mediaItem.id === data.media_id);
   if (sprite) {
@@ -1247,7 +1461,23 @@ function handleCollaborativeSpriteInteraction(data) {
 
 function handleCollaborativePresetApplied(data) {
   console.log(`🎹 ${data.username} applied preset: ${data.preset_name}`);
-  showPresetNotification(`🌐 ${data.preset_name} (${data.username})`);
+
+  // Store preset in collaborative presets if it's new
+  if (data.preset_data) {
+    collaborativePresets[data.preset_name] = data.preset_data;
+    console.log(`📋 Received collaborative preset: ${data.preset_name}`);
+  }
+
+  // Apply preset from collaborative source
+  if (data.preset_data) {
+    applyPreset(data.preset_name, true);  // true = from collaborative source
+  }
+
+  showCollaborativeNotification(
+    `${data.username} applied preset: ${data.preset_name}`,
+    data.user_color || '#10b981',
+    3000
+  );
 }
 
 function sendCollaborativeMessage(type, data) {
@@ -1259,6 +1489,92 @@ function sendCollaborativeMessage(type, data) {
     };
     ws.send(JSON.stringify(message));
   }
+}
+
+function showCollaborativeNotification(message, userColor = '#00ffff', duration = 3000) {
+  const notification = document.createElement('div');
+  notification.className = 'collab-notification';
+  notification.textContent = message;
+  notification.style.borderLeftColor = userColor;
+
+  document.body.appendChild(notification);
+
+  // Animate in
+  setTimeout(() => notification.classList.add('show'), 10);
+
+  // Remove after duration
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, duration);
+}
+
+function flashParameterWithUserColor(parameterName, userColor) {
+  const control = document.getElementById(parameterName);
+  if (control) {
+    const originalBorder = control.style.border || '';
+    const originalBoxShadow = control.style.boxShadow || '';
+
+    // Flash with user's color
+    control.style.border = `2px solid ${userColor}`;
+    control.style.boxShadow = `0 0 10px ${userColor}`;
+    control.style.transition = 'all 0.2s ease';
+
+    setTimeout(() => {
+      control.style.border = originalBorder;
+      control.style.boxShadow = originalBoxShadow;
+      setTimeout(() => {
+        control.style.transition = '';
+      }, 200);
+    }, 600);
+  }
+}
+
+function handleCollaborativeParameterUpdate(data) {
+  console.log(`🔄 ${data.username} changed ${data.parameter} to ${data.value}`);
+
+  // Show collaborative notification
+  showCollaborativeNotification(
+    `${data.username} adjusted ${data.parameter}`,
+    data.user_color || '#00ffff',
+    2000
+  );
+
+  // Flash parameter control with user's color
+  flashParameterWithUserColor(data.parameter, data.user_color || '#00ffff');
+
+  // Apply parameter update from other user (last-writer-wins)
+  switch (data.parameter) {
+    case 'zeta':
+      zeta = data.value;
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = data.value;
+      document.getElementById('pmw').value = pmw;
+      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = data.value;
+      document.getElementById('unity-val').textContent = data.value.toFixed(3);
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = data.value;
+      document.getElementById('flatness-val').textContent = data.value.toFixed(3);
+      break;
+
+    default:
+      console.warn(`Unknown parameter: ${data.parameter}`);
+  }
+
+  // Show visual feedback
+  showMidiActivity(`${data.parameter} (${data.username})`, data.value);
 }
 
 // Setup cursor tracking for collaborative mode
@@ -1277,6 +1593,99 @@ function setupCursorTracking() {
     sendCollaborativeMessage('cursor_move', { x, y });
     lastCursorUpdate = Date.now();
   });
+}
+
+function setupCollaborativeChat() {
+  if (!collaborativeMode) return;
+
+  const chatOverlay = document.getElementById('chat-overlay');
+  const chatMiniToggle = document.getElementById('chat-mini-toggle');
+  const chatToggle = document.getElementById('chat-toggle');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  // Show chat controls in collaborative mode
+  chatMiniToggle.style.display = 'block';
+
+  // Chat toggle functionality
+  let chatVisible = false;
+
+  function toggleChat() {
+    chatVisible = !chatVisible;
+    chatOverlay.style.display = chatVisible ? 'flex' : 'none';
+    chatMiniToggle.style.display = chatVisible ? 'none' : 'block';
+
+    if (chatVisible) {
+      chatInput.focus();
+    }
+  }
+
+  chatMiniToggle.addEventListener('click', toggleChat);
+  chatToggle.addEventListener('click', toggleChat);
+
+  // Send message functionality
+  function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    sendCollaborativeMessage('chat_message', {
+      message: message,
+      timestamp: Date.now()
+    });
+
+    // Add own message to chat
+    addChatMessage({
+      username: currentUser ? currentUser.username : 'You',
+      user_color: currentUser ? currentUser.color : '#3b82f6',
+      message: message,
+      timestamp: Date.now()
+    }, true);
+
+    chatInput.value = '';
+  }
+
+  chatSend.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+}
+
+function addChatMessage(data, isOwnMessage = false) {
+  const chatMessages = document.getElementById('chat-messages');
+  const messageElement = document.createElement('div');
+  messageElement.className = 'chat-message';
+
+  const timestamp = new Date(data.timestamp).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  messageElement.innerHTML = `
+    <div class="chat-message-header">
+      <span class="chat-username" style="color: ${data.user_color || '#3b82f6'}">
+        ${data.username}
+      </span>
+      <span class="chat-timestamp">${timestamp}</span>
+    </div>
+    <div class="chat-text">${escapeHtml(data.message)}</div>
+  `;
+
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // Auto-remove welcome message when first real message arrives
+  const welcome = chatMessages.querySelector('.chat-welcome');
+  if (welcome && chatMessages.children.length > 1) {
+    welcome.remove();
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // Multi-window synchronization functions
@@ -1863,6 +2272,7 @@ setupWindowFocusHandling(); // Handle window focus/blur for MIDI isolation
 connectWebSocket();
 connectMidiWebSocket();
 setupCursorTracking(); // Initialize cursor tracking for collaborative mode
+setupCollaborativeChat(); // Initialize chat system for collaborative mode
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
