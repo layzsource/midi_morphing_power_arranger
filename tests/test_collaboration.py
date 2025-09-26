@@ -152,6 +152,143 @@ def test_users_online_badge_logic_and_presence_toasts():
     assert ".presence-toast {" in frontend
 
 
+def test_collaborative_sprite_interaction_payload(monkeypatch):
+    manager = ces.CollaborationManager()
+    monkeypatch.setattr(ces, "collaboration_manager", manager)
+
+    session_id = manager.add_user_to_session(ces.User("initiator", DummyWebSocket("initiator")))
+    session = manager.sessions[session_id]
+
+    receiving_ws = DummyWebSocket("receiver")
+    receiver = ces.User("receiver", receiving_ws, session_id)
+    manager.add_user_to_session(receiver, session_id)
+
+    asyncio.run(
+        ces.handle_collaborative_message(
+            "initiator",
+            {
+                "type": "sprite_interaction",
+                "media_id": "portal_001",
+                "interaction_type": "portal_click",
+            },
+        )
+    )
+
+    message = receiving_ws.last_message
+    assert message["type"] == "collaborative_sprite_interaction"
+    assert message["media_id"] == "portal_001"
+    assert message["username"].startswith("User_")
+    assert message["user_color"].startswith("#")
+
+
+def test_collaborative_parameter_update_last_writer_wins(monkeypatch):
+    manager = ces.CollaborationManager()
+    monkeypatch.setattr(ces, "collaboration_manager", manager)
+
+    session_id = manager.add_user_to_session(ces.User("writer", DummyWebSocket("writer")))
+    session = manager.sessions[session_id]
+
+    receiving_ws = DummyWebSocket("observer")
+    observer = ces.User("observer", receiving_ws, session_id)
+    manager.add_user_to_session(observer, session_id)
+
+    async def send_updates():
+        await ces.handle_collaborative_message(
+            "writer",
+            {"type": "parameter_change", "parameter": "zeta", "value": 0.2},
+        )
+        await ces.handle_collaborative_message(
+            "writer",
+            {"type": "parameter_change", "parameter": "zeta", "value": 0.9},
+        )
+
+    asyncio.run(send_updates())
+
+    message = receiving_ws.last_message
+    assert message["type"] == "collaborative_parameter_update"
+    assert message["parameter"] == "zeta"
+    assert message["value"] == 0.9
+    assert message["user_color"].startswith("#")
+
+
+def test_collaborative_chat_message_payload(monkeypatch):
+    manager = ces.CollaborationManager()
+    monkeypatch.setattr(ces, "collaboration_manager", manager)
+
+    session_id = manager.add_user_to_session(ces.User("chatter", DummyWebSocket("chatter")))
+    session = manager.sessions[session_id]
+
+    receiving_ws = DummyWebSocket("audience")
+    audience = ces.User("audience", receiving_ws, session_id)
+    manager.add_user_to_session(audience, session_id)
+
+    asyncio.run(
+        ces.handle_collaborative_message(
+            "chatter",
+            {"type": "chat_message", "message": "Signal→Form live", "timestamp": 123456789},
+        )
+    )
+
+    message = receiving_ws.last_message
+    assert message["type"] == "collaborative_chat_message"
+    assert message["message"] == "Signal→Form live"
+    assert message["username"].startswith("User_")
+    assert message["user_color"].startswith("#")
+    assert "timestamp" in message
+
+
+def test_collaborative_preset_applied_syncs_across_clients(monkeypatch):
+    manager = ces.CollaborationManager()
+    monkeypatch.setattr(ces, "collaboration_manager", manager)
+
+    session_id = manager.add_user_to_session(ces.User("preset-author", DummyWebSocket("author")))
+    session = manager.sessions[session_id]
+
+    receiving_ws = DummyWebSocket("listener")
+    listener = ces.User("listener", receiving_ws, session_id)
+    manager.add_user_to_session(listener, session_id)
+
+    preset_payload = {"zeta": 0.42, "unity": 0.75}
+
+    asyncio.run(
+        ces.handle_collaborative_message(
+            "preset-author",
+            {
+                "type": "preset_applied",
+                "preset_name": "Spectral Glide",
+                "preset_data": preset_payload,
+            },
+        )
+    )
+
+    message = receiving_ws.last_message
+    assert message["type"] == "collaborative_preset_applied"
+    assert message["preset_name"] == "Spectral Glide"
+    assert message["preset_data"] == preset_payload
+    assert message["user_id"] == "preset-author"
+    assert message["user_color"].startswith("#")
+
+
+def test_no_collaboration_payloads_when_session_missing(monkeypatch):
+    manager = ces.CollaborationManager()
+    monkeypatch.setattr(ces, "collaboration_manager", manager)
+
+    user = ces.User("solo", DummyWebSocket("solo"))
+    manager.add_user_to_session(user, "solo-session")
+
+    monkeypatch.setattr(manager, "get_session", lambda _uid: None)
+    monkeypatch.setattr(manager, "get_user", lambda _uid: None)
+
+    asyncio.run(
+        ces.handle_collaborative_message(
+            "solo",
+            {"type": "parameter_change", "parameter": "zeta", "value": 0.5},
+        )
+    )
+
+    assert user.websocket.messages == []
+
+
 def test_engine_telemetry_unaffected_by_collaboration_state():
     runner = ces.EngineRunner()
     telemetry_snapshot = runner.step()
