@@ -365,6 +365,551 @@
       margin-left: 4px;
     }
 
+    /* Input Mapping Scaffold Styling - Phase 2 */
+    .input-mapping-section {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .input-type-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+      flex-wrap: wrap;
+    }
+
+    .input-type-label {
+      font-size: 12px;
+      color: #fbbf24;
+      font-weight: 500;
+      min-width: 50px;
+    }
+
+    .input-mapping-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 10px;
+      border-radius: 3px;
+      min-width: 90px;
+      max-width: 120px;
+    }
+
+    .input-mapping-select:hover {
+      border-color: #6b7280;
+    }
+
+    .input-toggle-btn {
+      background: #374151;
+      color: #9ca3af;
+      border: 1px solid #4b5563;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 28px;
+    }
+
+    .input-toggle-btn:hover {
+      background: #4b5563;
+    }
+
+    .input-toggle-btn.on {
+      background: #1e40af;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    .input-status {
+      font-size: 10px;
+      color: #6b7280;
+      font-style: italic;
+      margin-left: 4px;
+    }
+
+    .input-status.connected {
+      color: #22c55e;
+    }
+
+    .input-status.active {
+      color: #3b82f6;
+    }
+
+    .input-status.detected {
+      color: #f59e0b;
+    }
+
+    /* Geometry Module Styling - Phase 3 */
+    .geometry-modules-section {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .geometry-module {
+      margin: 6px 0;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .geometry-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .geometry-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #e5e7eb;
+      min-width: 80px;
+    }
+
+    .geometry-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .geometry-svg {
+      width: 20px;
+      height: 20px;
+      opacity: 0.8;
+    }
+
+    .geometry-canvas {
+      width: 40px;
+      height: 40px;
+      background: transparent;
+      border-radius: 2px;
+    }
+
+    .geometry-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .geometry-param-label {
+      font-size: 10px;
+      color: #9ca3af;
+      min-width: 35px;
+    }
+
+    .geometry-slider {
+      width: 50px;
+      height: 14px;
+      background: #1f2937;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .geometry-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: #3b82f6;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid #1e40af;
+    }
+
+    .geometry-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: #3b82f6;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid #1e40af;
+      box-shadow: none;
+    }
+
+    .geometry-val {
+      font-size: 9px;
+      color: #6b7280;
+      min-width: 25px;
+      text-align: center;
+    }
+
+    /* Cube Module Specific */
+    #cube-geometry-module {
+      border-left: 3px solid #3b82f6;
+    }
+
+    #cube-geometry-module .geometry-slider::-webkit-slider-thumb {
+      background: #3b82f6;
+      border-color: #1e40af;
+    }
+
+    #cube-geometry-module .geometry-slider::-moz-range-thumb {
+      background: #3b82f6;
+      border-color: #1e40af;
+    }
+
+    /* Sphere Module Specific */
+    #sphere-geometry-module {
+      border-left: 3px solid #10b981;
+    }
+
+    #sphere-geometry-module .geometry-slider::-webkit-slider-thumb {
+      background: #10b981;
+      border-color: #047857;
+    }
+
+    #sphere-geometry-module .geometry-slider::-moz-range-thumb {
+      background: #10b981;
+      border-color: #047857;
+    }
+
+    /* Chestahedron Module Specific */
+    #chestahedron-geometry-module {
+      border-left: 3px solid #f59e0b;
+    }
+
+    #chestahedron-geometry-module .geometry-slider::-webkit-slider-thumb {
+      background: #f59e0b;
+      border-color: #d97706;
+    }
+
+    #chestahedron-geometry-module .geometry-slider::-moz-range-thumb {
+      background: #f59e0b;
+      border-color: #d97706;
+    }
+
+    /* Periaktos Panel Styling - Phase 7 */
+    .periaktos-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .periaktos-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .periaktos-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .periaktos-label {
+      font-size: 11px;
+      color: #e5e7eb;
+      min-width: 80px;
+      font-weight: 500;
+    }
+
+    .periaktos-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .periaktos-canvas {
+      width: 160px;
+      height: 160px;
+      background: transparent;
+      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .periaktos-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .periaktos-param-label {
+      font-size: 10px;
+      color: #9ca3af;
+      min-width: 36px;
+    }
+
+    .periaktos-select {
+      min-width: 90px;
+      font-size: 10px;
+    }
+
+    .periaktos-slider {
+      width: 80px;
+      height: 4px;
+      background: #374151;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .periaktos-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #6366f1;
+      cursor: pointer;
+      border: 1px solid #4f46e5;
+    }
+
+    .periaktos-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #6366f1;
+      cursor: pointer;
+      border: 1px solid #4f46e5;
+    }
+
+    .periaktos-val {
+      font-size: 9px;
+      color: #6b7280;
+      min-width: 24px;
+      text-align: right;
+    }
+
+    /* Signal–Form Pipeline Styling - Phase 5 */
+    .signal-form-section {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .theory-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+      flex-wrap: wrap;
+    }
+
+    .theory-group-label {
+      font-size: 12px;
+      color: #8b5cf6;
+      font-weight: 500;
+      min-width: 80px;
+    }
+
+    .theory-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 10px;
+      border-radius: 3px;
+      min-width: 110px;
+      max-width: 140px;
+    }
+
+    .theory-select:hover {
+      border-color: #8b5cf6;
+    }
+
+    .theory-status {
+      font-size: 10px;
+      color: #8b5cf6;
+      font-style: italic;
+      margin-left: 4px;
+    }
+
+    .cymatic-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+      flex-wrap: wrap;
+    }
+
+    .cymatic-group-label {
+      font-size: 12px;
+      color: #ef4444;
+      font-weight: 500;
+      min-width: 80px;
+    }
+
+    .cymatic-toggle-btn {
+      background: #374151;
+      color: #9ca3af;
+      border: 1px solid #4b5563;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 28px;
+    }
+
+    .cymatic-toggle-btn:hover {
+      background: #4b5563;
+    }
+
+    .cymatic-toggle-btn.on {
+      background: #dc2626;
+      color: white;
+      border-color: #ef4444;
+    }
+
+    .cymatic-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 10px;
+      border-radius: 3px;
+      min-width: 100px;
+      max-width: 120px;
+    }
+
+    .cymatic-select:hover {
+      border-color: #ef4444;
+    }
+
+    .cymatic-param-label {
+      font-size: 10px;
+      color: #9ca3af;
+      min-width: 35px;
+    }
+
+    .cymatic-slider {
+      width: 50px;
+      height: 14px;
+      background: #1f2937;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .cymatic-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: #ef4444;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid #dc2626;
+    }
+
+    .cymatic-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: #ef4444;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid #dc2626;
+      box-shadow: none;
+    }
+
+    .cymatic-val {
+      font-size: 9px;
+      color: #6b7280;
+      min-width: 25px;
+      text-align: center;
+    }
+
+    .cymatic-status {
+      font-size: 10px;
+      color: #6b7280;
+      font-style: italic;
+      margin-left: 4px;
+    }
+
+    .cymatic-status.active {
+      color: #ef4444;
+    }
+
+    .mapping-display-group {
+      margin: 6px 0;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    .mapping-group-label {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 2px;
+      display: block;
+    }
+
+    .mapping-indicators {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mapping-indicator {
+      font-size: 9px;
+      color: #6b7280;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 4px;
+      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mapping-indicator.active {
+      color: #10b981;
+      border-color: #10b981;
+    }
+
+    .cymatic-visualization {
+      margin: 4px 0;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .cymatic-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .cymatic-viz-label {
+      font-size: 10px;
+      color: #ef4444;
+      font-weight: 500;
+    }
+
+    .cymatic-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2px;
+    }
+
+    .cymatic-svg {
+      opacity: 0.8;
+    }
+
     /* FFT Overlay Container */
     .fft-overlay-container {
       position: fixed;
@@ -878,6 +1423,254 @@
       </select>
       <button id="spectral-preset-save" class="preset-save-btn">Save</button>
       <span id="current-preset-name" class="current-preset"></span>
+    </div>
+
+    <!-- Input Mapping Scaffold - Phase 2 -->
+    <div class="input-mapping-section">
+      <label class="spectral-label">Input Mapping:</label>
+
+      <!-- MIDI Input Placeholders -->
+      <div class="input-type-group" id="midi-input-group">
+        <label class="input-type-label">MIDI:</label>
+        <select id="midi-knob-mapping" class="spectral-select input-mapping-select">
+          <option value="">Knob Mapping...</option>
+          <option value="knob1">Knob 1 → FFT Size</option>
+          <option value="knob2">Knob 2 → Mode</option>
+          <option value="knob3">Knob 3 → History</option>
+        </select>
+        <select id="midi-wheel-mapping" class="spectral-select input-mapping-select">
+          <option value="">Wheel Mapping...</option>
+          <option value="wheel1">Wheel → Temporal Depth</option>
+          <option value="wheel2">Wheel → Spectral Range</option>
+        </select>
+        <select id="midi-pad-mapping" class="spectral-select input-mapping-select">
+          <option value="">Pad Mapping...</option>
+          <option value="pad1">Pad 1 → Toggle Spectral</option>
+          <option value="pad2">Pad 2 → Preset Switch</option>
+        </select>
+        <span class="input-status" id="midi-status">Disconnected</span>
+      </div>
+
+      <!-- Voice Input Placeholders -->
+      <div class="input-type-group" id="voice-input-group">
+        <label class="input-type-label">Voice:</label>
+        <button id="voice-toggle" class="spectral-btn input-toggle-btn">OFF</button>
+        <select id="voice-command-slot" class="spectral-select input-mapping-select">
+          <option value="">Command Slot...</option>
+          <option value="slot1">"Toggle Spectral" → ON/OFF</option>
+          <option value="slot2">"Change Mode" → Mode Switch</option>
+          <option value="slot3">"Save Preset" → Save Current</option>
+        </select>
+        <span class="input-status" id="voice-status">Inactive</span>
+      </div>
+
+      <!-- Gesture Input Placeholders -->
+      <div class="input-type-group" id="gesture-input-group">
+        <label class="input-type-label">Gesture:</label>
+        <select id="gesture-webcam-mapping" class="spectral-select input-mapping-select">
+          <option value="">Webcam Mapping...</option>
+          <option value="hand-left">Hand Left → FFT Size</option>
+          <option value="hand-right">Hand Right → Mode</option>
+          <option value="head-nod">Head Nod → Toggle</option>
+        </select>
+        <select id="gesture-touch-mapping" class="spectral-select input-mapping-select">
+          <option value="">Touch Mapping...</option>
+          <option value="swipe-up">Swipe Up → Increase FFT</option>
+          <option value="swipe-down">Swipe Down → Decrease FFT</option>
+          <option value="pinch">Pinch → Mode Switch</option>
+        </select>
+        <span class="input-status" id="gesture-status">Not Detected</span>
+      </div>
+    </div>
+
+    <!-- Geometry Module Integration - Phase 3 -->
+    <div class="geometry-modules-section">
+      <label class="spectral-label">Geometry Modules:</label>
+
+      <!-- Cube Geometry Module -->
+      <div class="geometry-module" id="cube-geometry-module">
+        <div class="geometry-header">
+          <label class="geometry-label">Cube</label>
+          <div class="geometry-placeholder" id="cube-placeholder">
+            <canvas id="cube-canvas" width="48" height="48" class="geometry-canvas"></canvas>
+          </div>
+        </div>
+        <div class="geometry-controls">
+          <label class="geometry-param-label">Rotation:</label>
+          <input type="range" id="cube-rotation" min="0" max="360" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="cube-rotation-val">0°</span>
+          <label class="geometry-param-label">Scale:</label>
+          <input type="range" id="cube-scale" min="0.1" max="2.0" step="0.1" value="1.0" class="geometry-slider">
+          <span class="geometry-val" id="cube-scale-val">1.0x</span>
+          <label class="geometry-param-label">Morph:</label>
+          <input type="range" id="cube-morph" min="0" max="100" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="cube-morph-val">0%</span>
+        </div>
+      </div>
+
+      <!-- Sphere Geometry Module -->
+      <div class="geometry-module" id="sphere-geometry-module">
+        <div class="geometry-header">
+          <label class="geometry-label">Sphere</label>
+          <div class="geometry-placeholder" id="sphere-placeholder">
+            <canvas id="sphere-canvas" width="48" height="48" class="geometry-canvas"></canvas>
+          </div>
+        </div>
+        <div class="geometry-controls">
+          <label class="geometry-param-label">Rotation:</label>
+          <input type="range" id="sphere-rotation" min="0" max="360" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="sphere-rotation-val">0°</span>
+          <label class="geometry-param-label">Scale:</label>
+          <input type="range" id="sphere-scale" min="0.1" max="2.0" step="0.1" value="1.0" class="geometry-slider">
+          <span class="geometry-val" id="sphere-scale-val">1.0x</span>
+          <label class="geometry-param-label">Morph:</label>
+          <input type="range" id="sphere-morph" min="0" max="100" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="sphere-morph-val">0%</span>
+        </div>
+      </div>
+
+      <!-- Chestahedron Geometry Module -->
+      <div class="geometry-module" id="chestahedron-geometry-module">
+        <div class="geometry-header">
+          <label class="geometry-label">Chestahedron</label>
+          <div class="geometry-placeholder" id="chestahedron-placeholder">
+            <canvas id="chestahedron-canvas" width="48" height="48" class="geometry-canvas"></canvas>
+          </div>
+        </div>
+        <div class="geometry-controls">
+          <label class="geometry-param-label">Rotation:</label>
+          <input type="range" id="chestahedron-rotation" min="0" max="360" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="chestahedron-rotation-val">0°</span>
+          <label class="geometry-param-label">Scale:</label>
+          <input type="range" id="chestahedron-scale" min="0.1" max="2.0" step="0.1" value="1.0" class="geometry-slider">
+          <span class="geometry-val" id="chestahedron-scale-val">1.0x</span>
+          <label class="geometry-param-label">Morph:</label>
+          <input type="range" id="chestahedron-morph" min="0" max="100" step="1" value="0" class="geometry-slider">
+          <span class="geometry-val" id="chestahedron-morph-val">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signal–Form Pipeline Controls - Phase 5 -->
+    <div class="signal-form-section">
+      <label class="spectral-label">Signal–Form Pipeline:</label>
+
+      <!-- Musical Theory Controls -->
+      <div class="theory-controls-group">
+        <label class="theory-group-label">Musical Theory:</label>
+        <select id="scale-mode-select" class="spectral-select theory-select">
+          <option value="">Select Scale/Mode...</option>
+          <option value="c-major">C Major (Ionian)</option>
+          <option value="d-dorian">D Dorian</option>
+          <option value="e-phrygian">E Phrygian</option>
+          <option value="f-lydian">F Lydian</option>
+          <option value="g-mixolydian">G Mixolydian</option>
+          <option value="a-aeolian">A Minor (Aeolian)</option>
+          <option value="b-locrian">B Locrian</option>
+          <option value="c-pentatonic">C Pentatonic</option>
+          <option value="chromatic">Chromatic</option>
+        </select>
+        <select id="circle-of-fifths-select" class="spectral-select theory-select">
+          <option value="">Circle of 5ths...</option>
+          <option value="c">C (0♯/♭)</option>
+          <option value="g">G (1♯)</option>
+          <option value="d">D (2♯)</option>
+          <option value="a">A (3♯)</option>
+          <option value="e">E (4♯)</option>
+          <option value="b">B (5♯)</option>
+          <option value="f-sharp">F♯ (6♯)</option>
+          <option value="f">F (1♭)</option>
+          <option value="b-flat">B♭ (2♭)</option>
+          <option value="e-flat">E♭ (3♭)</option>
+          <option value="a-flat">A♭ (4♭)</option>
+          <option value="d-flat">D♭ (5♭)</option>
+        </select>
+        <span class="theory-status" id="theory-status">No Selection</span>
+      </div>
+
+      <!-- Cymatic Layer Controls -->
+      <div class="cymatic-controls-group">
+        <label class="cymatic-group-label">Cymatic Layer:</label>
+        <button id="cymatics-toggle" class="spectral-btn cymatic-toggle-btn">OFF</button>
+        <select id="cymatic-pattern-select" class="spectral-select cymatic-select">
+          <option value="">Pattern...</option>
+          <option value="chladni">Chladni Plates</option>
+          <option value="wave-interference">Wave Interference</option>
+          <option value="particle-flow">Particle Flow</option>
+          <option value="frequency-nodes">Frequency Nodes</option>
+          <option value="resonance-modes">Resonance Modes</option>
+        </select>
+        <label class="cymatic-param-label">Intensity:</label>
+        <input type="range" id="cymatic-intensity" min="0" max="100" step="1" value="50" class="cymatic-slider">
+        <span class="cymatic-val" id="cymatic-intensity-val">50%</span>
+        <span class="cymatic-status" id="cymatic-status">Inactive</span>
+      </div>
+
+      <!-- Theory → Visual Mapping Display -->
+      <div class="mapping-display-group">
+        <label class="mapping-group-label">Active Mappings:</label>
+        <div class="mapping-indicators">
+          <span class="mapping-indicator" id="scale-mapping-indicator">Scale: None</span>
+          <span class="mapping-indicator" id="geometry-mapping-indicator">Geometry: Default</span>
+          <span class="mapping-indicator" id="cymatic-mapping-indicator">Cymatics: Off</span>
+        </div>
+      </div>
+
+      <!-- Cymatic Visualization Placeholder -->
+      <div class="cymatic-visualization" id="cymatic-visualization" style="display: none;">
+        <div class="cymatic-header">
+          <label class="cymatic-viz-label">Cymatic Pattern</label>
+          <div class="cymatic-placeholder" id="cymatic-placeholder">
+            <svg width="60" height="40" viewBox="0 0 60 40" class="cymatic-svg">
+              <defs>
+                <pattern id="wavePattern" patternUnits="userSpaceOnUse" width="8" height="8">
+                  <circle cx="4" cy="4" r="1" fill="#3b82f6" opacity="0.6"/>
+                </pattern>
+              </defs>
+              <rect width="60" height="40" fill="url(#wavePattern)"/>
+              <path d="M5 20 Q15 10, 25 20 T45 20" stroke="#10b981" stroke-width="1.5" fill="none"/>
+              <path d="M5 25 Q15 15, 25 25 T45 25" stroke="#f59e0b" stroke-width="1" fill="none"/>
+              <circle cx="15" cy="20" r="2" fill="#ef4444" opacity="0.8"/>
+              <circle cx="35" cy="20" r="1.5" fill="#8b5cf6" opacity="0.8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Periaktos Panel - Phase 7 -->
+    <div class="periaktos-container">
+      <label class="spectral-label">Periaktos:</label>
+
+      <div class="periaktos-section">
+        <div class="periaktos-header">
+          <label class="periaktos-label">Rotating Prism</label>
+          <div class="periaktos-placeholder" id="periaktos-placeholder">
+            <canvas id="periaktos-canvas" width="200" height="200" class="periaktos-canvas"></canvas>
+          </div>
+        </div>
+
+        <div class="periaktos-controls">
+          <label class="periaktos-param-label">Face:</label>
+          <select id="periaktos-face-select" class="spectral-select periaktos-select">
+            <option value="0">Face A (Red)</option>
+            <option value="1">Face B (Green)</option>
+            <option value="2">Face C (Blue)</option>
+          </select>
+
+          <label class="periaktos-param-label">Rotation:</label>
+          <input type="range" id="periaktos-rotation" min="0" max="360" step="15" value="0" class="periaktos-slider">
+          <span class="periaktos-val" id="periaktos-rotation-val">0°</span>
+
+          <label class="periaktos-param-label">Speed:</label>
+          <select id="periaktos-speed" class="spectral-select periaktos-select">
+            <option value="0">Manual</option>
+            <option value="1">Slow</option>
+            <option value="2">Medium</option>
+            <option value="3">Fast</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1861,39 +2654,6 @@ function updateCollaborativeCursor(data) {
   }
 }
 
-function handleCollaborativeParameterUpdate(data) {
-  console.log(`🔄 ${data.username} changed ${data.parameter} to ${data.value}`);
-
-  // Apply parameter update from other user
-  switch (data.parameter) {
-    case 'zeta':
-      zeta = data.value;
-      document.getElementById('zeta').value = zeta;
-      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
-      updateCamera();
-      updateShells();
-      break;
-
-    case 'pmw':
-      pmw = data.value;
-      document.getElementById('pmw').value = pmw;
-      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
-      break;
-
-    case 'unity':
-      document.getElementById('unity').value = data.value;
-      document.getElementById('unity-val').textContent = data.value.toFixed(3);
-      break;
-
-    case 'flatness':
-      document.getElementById('flatness').value = data.value;
-      document.getElementById('flatness-val').textContent = data.value.toFixed(3);
-      break;
-  }
-
-  // Show visual feedback
-  showMidiActivity(`${data.parameter} (${data.username})`, data.value);
-}
 
 function handleCollaborativeSpriteInteraction(data) {
   console.log(`🎭 ${data.username} interacted with sprite ${data.media_id}`);
@@ -2968,7 +3728,7 @@ let ambientGain = null;
 let spatialMasterGain = null;
 let spectralPeaks = []; // Track spectral peaks over time
 let temporalDepthMs = 15000; // Default 15 seconds
-let spectralHudExpanded = true; // Main spectral HUD state
+let spectralHudExpanded = false; // Main spectral HUD state
 let energyBands = { // Frequency band definitions
   sub: { min: 20, max: 60, energy: 0 },
   bass: { min: 60, max: 250, energy: 0 },
@@ -4152,6 +4912,460 @@ function cleanup3DAudioSystem() {
   console.log('🔇 3D Audio: System cleaned up');
 }
 
+// Geometry Module Parameter Control - Phase 4
+let geometryModules = {
+  cube: { rotation: 0, scale: 1.0, morph: 0 },
+  sphere: { rotation: 0, scale: 1.0, morph: 0 },
+  chestahedron: { rotation: 0, scale: 1.0, morph: 0 }
+};
+
+let voiceInputActive = false;
+let gestureInputActive = false;
+
+function updateGeometryParameter(module, parameter, value) {
+  // Clamp values to valid ranges
+  let clampedValue;
+  switch(parameter) {
+    case 'rotation':
+      clampedValue = Math.max(0, Math.min(360, value));
+      break;
+    case 'scale':
+      clampedValue = Math.max(0.1, Math.min(2.0, value));
+      break;
+    case 'morph':
+      clampedValue = Math.max(0, Math.min(100, value));
+      break;
+    default:
+      return;
+  }
+
+  // Update internal state
+  geometryModules[module][parameter] = clampedValue;
+
+  // Update UI controls
+  const slider = document.getElementById(`${module}-${parameter}`);
+  const valueDisplay = document.getElementById(`${module}-${parameter}-val`);
+
+  if (slider) {
+    slider.value = clampedValue;
+  }
+
+  if (valueDisplay) {
+    let displayValue;
+    switch(parameter) {
+      case 'rotation':
+        displayValue = Math.round(clampedValue) + '°';
+        break;
+      case 'scale':
+        displayValue = clampedValue.toFixed(1) + 'x';
+        break;
+      case 'morph':
+        displayValue = Math.round(clampedValue) + '%';
+        break;
+    }
+    valueDisplay.textContent = displayValue;
+  }
+
+  // Visual feedback flash
+  flashGeometryControl(module, parameter);
+
+  console.log(`📐 ${module} ${parameter} updated to ${clampedValue}`);
+}
+
+function flashGeometryControl(module, parameter) {
+  const control = document.getElementById(`${module}-${parameter}`);
+  if (control) {
+    const originalBackground = control.style.background;
+    control.style.background = '#3b82f6';
+    control.style.transition = 'background 0.2s ease';
+
+    setTimeout(() => {
+      control.style.background = originalBackground;
+      setTimeout(() => {
+        control.style.transition = '';
+      }, 200);
+    }, 200);
+  }
+}
+
+// MIDI Input Logic - Phase 4
+function handleMidiInput(inputType, value, moduleIndex = 0) {
+  const modules = ['cube', 'sphere', 'chestahedron'];
+  const targetModule = modules[moduleIndex % modules.length];
+
+  switch(inputType) {
+    case 'knob':
+      // Knobs control Scale (0-127 MIDI -> 0.1-2.0 scale)
+      const scaleValue = 0.1 + (value / 127) * 1.9;
+      updateGeometryParameter(targetModule, 'scale', scaleValue);
+      updateMidiStatus('Connected', 'knob');
+      break;
+
+    case 'wheel':
+      // Wheels control Rotation (0-127 MIDI -> 0-360 degrees)
+      const rotationValue = (value / 127) * 360;
+      updateGeometryParameter(targetModule, 'rotation', rotationValue);
+      updateMidiStatus('Connected', 'wheel');
+      break;
+
+    case 'pad':
+      // Pads toggle Morph (0/127 MIDI -> 0/100%)
+      const morphValue = value > 63 ? 100 : 0;
+      updateGeometryParameter(targetModule, 'morph', morphValue);
+      updateMidiStatus('Connected', 'pad');
+      break;
+  }
+}
+
+function updateMidiStatus(status, lastInput) {
+  const statusElement = document.getElementById('midi-status');
+  if (statusElement) {
+    statusElement.textContent = `${status} (${lastInput})`;
+    statusElement.className = 'input-status connected';
+  }
+}
+
+// Voice Input Logic - Phase 4
+function toggleVoiceInput() {
+  voiceInputActive = !voiceInputActive;
+  const toggleBtn = document.getElementById('voice-toggle');
+  const statusElement = document.getElementById('voice-status');
+
+  if (toggleBtn) {
+    toggleBtn.textContent = voiceInputActive ? 'ON' : 'OFF';
+    toggleBtn.className = voiceInputActive ? 'spectral-btn input-toggle-btn on' : 'spectral-btn input-toggle-btn';
+  }
+
+  if (statusElement) {
+    statusElement.textContent = voiceInputActive ? 'Listening...' : 'Inactive';
+    statusElement.className = voiceInputActive ? 'input-status active' : 'input-status';
+  }
+
+  console.log(`🎤 Voice input ${voiceInputActive ? 'activated' : 'deactivated'}`);
+}
+
+function executeVoiceCommand(command) {
+  if (!voiceInputActive) return;
+
+  const modules = ['cube', 'sphere', 'chestahedron'];
+
+  switch(command) {
+    case 'reset':
+      modules.forEach(module => {
+        updateGeometryParameter(module, 'rotation', 0);
+        updateGeometryParameter(module, 'scale', 1.0);
+        updateGeometryParameter(module, 'morph', 0);
+      });
+      console.log('🎤 Voice command: Reset all geometry');
+      break;
+
+    case 'randomize':
+      modules.forEach(module => {
+        updateGeometryParameter(module, 'rotation', Math.random() * 360);
+        updateGeometryParameter(module, 'scale', 0.1 + Math.random() * 1.9);
+        updateGeometryParameter(module, 'morph', Math.random() * 100);
+      });
+      console.log('🎤 Voice command: Randomize all geometry');
+      break;
+
+    case 'center':
+      modules.forEach(module => {
+        updateGeometryParameter(module, 'rotation', 180);
+        updateGeometryParameter(module, 'scale', 1.0);
+        updateGeometryParameter(module, 'morph', 50);
+      });
+      console.log('🎤 Voice command: Center all geometry');
+      break;
+  }
+}
+
+// Gesture Input Logic - Phase 4
+function simulateGestureInput() {
+  gestureInputActive = true;
+  const statusElement = document.getElementById('gesture-status');
+
+  if (statusElement) {
+    statusElement.textContent = 'Detected (Demo)';
+    statusElement.className = 'input-status detected';
+  }
+
+  // Demo: Simulate webcam hand gesture affecting morph
+  const modules = ['cube', 'sphere', 'chestahedron'];
+  const demoMorphValue = Math.sin(Date.now() / 1000) * 50 + 50; // Oscillating 0-100
+
+  modules.forEach(module => {
+    updateGeometryParameter(module, 'morph', demoMorphValue);
+  });
+
+  console.log('👋 Gesture input: Demo morph oscillation');
+
+  // Reset status after demo
+  setTimeout(() => {
+    if (statusElement) {
+      statusElement.textContent = 'Not Detected';
+      statusElement.className = 'input-status';
+    }
+    gestureInputActive = false;
+  }, 3000);
+}
+
+// Signal–Form Pipeline System - Phase 5
+let signalFormState = {
+  currentScale: null,
+  currentKey: null,
+  cymaticsActive: false,
+  cymaticPattern: null,
+  cymaticIntensity: 50,
+  theoryMappings: {
+    'c-major': { rotationStep: 30, scaleRange: [0.8, 1.2], colorTheme: 'blue' },
+    'd-dorian': { rotationStep: 36, scaleRange: [0.9, 1.3], colorTheme: 'green' },
+    'e-phrygian': { rotationStep: 40, scaleRange: [0.7, 1.1], colorTheme: 'purple' },
+    'f-lydian': { rotationStep: 45, scaleRange: [1.0, 1.4], colorTheme: 'yellow' },
+    'g-mixolydian': { rotationStep: 32, scaleRange: [0.8, 1.3], colorTheme: 'orange' },
+    'a-aeolian': { rotationStep: 28, scaleRange: [0.6, 1.0], colorTheme: 'red' },
+    'b-locrian': { rotationStep: 24, scaleRange: [0.5, 0.9], colorTheme: 'gray' },
+    'c-pentatonic': { rotationStep: 72, scaleRange: [1.1, 1.5], colorTheme: 'cyan' },
+    'chromatic': { rotationStep: 15, scaleRange: [0.1, 2.0], colorTheme: 'rainbow' }
+  },
+  circleOfFifths: {
+    'c': 0, 'g': 1, 'd': 2, 'a': 3, 'e': 4, 'b': 5, 'f-sharp': 6,
+    'f': -1, 'b-flat': -2, 'e-flat': -3, 'a-flat': -4, 'd-flat': -5
+  }
+};
+
+function applyScaleMapping(scaleKey) {
+  if (!scaleKey || !signalFormState.theoryMappings[scaleKey]) return;
+
+  const mapping = signalFormState.theoryMappings[scaleKey];
+  signalFormState.currentScale = scaleKey;
+
+  // Apply discrete rotation steps based on scale
+  const modules = ['cube', 'sphere', 'chestahedron'];
+  modules.forEach((module, index) => {
+    const baseRotation = index * mapping.rotationStep;
+    const scaledRotation = baseRotation % 360;
+    updateGeometryParameter(module, 'rotation', scaledRotation);
+
+    // Apply scale range based on theory
+    const scaleValue = mapping.scaleRange[0] +
+      (index / (modules.length - 1)) * (mapping.scaleRange[1] - mapping.scaleRange[0]);
+    updateGeometryParameter(module, 'scale', scaleValue);
+  });
+
+  // Update mapping indicators
+  updateMappingIndicators();
+
+  console.log(`🎵 Applied scale mapping: ${scaleKey} (${mapping.rotationStep}° steps)`);
+}
+
+function applyCircleOfFifthsMapping(keySignature) {
+  if (!keySignature || signalFormState.circleOfFifths[keySignature] === undefined) return;
+
+  const fifthsPosition = signalFormState.circleOfFifths[keySignature];
+  signalFormState.currentKey = keySignature;
+
+  // Map circle of fifths position to geometry transformations
+  const modules = ['cube', 'sphere', 'chestahedron'];
+  modules.forEach((module, index) => {
+    // Rotation based on position in circle of fifths
+    const rotationOffset = fifthsPosition * 30; // 30° per fifth
+    const moduleRotation = (index * 120 + rotationOffset) % 360;
+    updateGeometryParameter(module, 'rotation', moduleRotation);
+
+    // Scale based on harmonic relationships
+    const harmonicScale = 1.0 + (Math.abs(fifthsPosition) * 0.1);
+    updateGeometryParameter(module, 'scale', harmonicScale);
+
+    // Morph based on sharp/flat count
+    const morphValue = Math.abs(fifthsPosition) * 15; // 15% per accidental
+    updateGeometryParameter(module, 'morph', morphValue);
+  });
+
+  updateMappingIndicators();
+
+  console.log(`🎼 Applied circle of fifths: ${keySignature} (position: ${fifthsPosition})`);
+}
+
+function toggleCymatics() {
+  signalFormState.cymaticsActive = !signalFormState.cymaticsActive;
+
+  const toggleBtn = document.getElementById('cymatics-toggle');
+  const statusElement = document.getElementById('cymatic-status');
+  const visualizationDiv = document.getElementById('cymatic-visualization');
+
+  if (toggleBtn) {
+    toggleBtn.textContent = signalFormState.cymaticsActive ? 'ON' : 'OFF';
+    toggleBtn.className = signalFormState.cymaticsActive ?
+      'spectral-btn cymatic-toggle-btn on' : 'spectral-btn cymatic-toggle-btn';
+  }
+
+  if (statusElement) {
+    statusElement.textContent = signalFormState.cymaticsActive ? 'Active' : 'Inactive';
+    statusElement.className = signalFormState.cymaticsActive ? 'cymatic-status active' : 'cymatic-status';
+  }
+
+  if (visualizationDiv) {
+    visualizationDiv.style.display = signalFormState.cymaticsActive ? 'block' : 'none';
+  }
+
+  if (signalFormState.cymaticsActive) {
+    startCymaticAnimation();
+  } else {
+    stopCymaticAnimation();
+  }
+
+  updateMappingIndicators();
+
+  console.log(`🌊 Cymatics ${signalFormState.cymaticsActive ? 'activated' : 'deactivated'}`);
+}
+
+let cymaticAnimationId = null;
+
+function startCymaticAnimation() {
+  if (cymaticAnimationId) return; // Already running
+
+  function animateCymatics() {
+    if (!signalFormState.cymaticsActive) return;
+
+    // Get current geometry states to influence cymatic pattern
+    const cubeRotation = geometryModules.cube.rotation;
+    const sphereScale = geometryModules.sphere.scale;
+    const chestaRotation = geometryModules.chestahedron.rotation;
+
+    // Apply cymatic influence to geometry (subtle feedback loop)
+    const cymaticInfluence = Math.sin(Date.now() / 2000) * signalFormState.cymaticIntensity / 100;
+
+    ['cube', 'sphere', 'chestahedron'].forEach((module, index) => {
+      const currentMorph = geometryModules[module].morph;
+      const influencedMorph = Math.max(0, Math.min(100,
+        currentMorph + cymaticInfluence * (index + 1) * 2));
+
+      if (Math.abs(influencedMorph - currentMorph) > 0.5) {
+        updateGeometryParameter(module, 'morph', influencedMorph);
+      }
+    });
+
+    // Update cymatic visualization (animate SVG)
+    updateCymaticVisualization();
+
+    cymaticAnimationId = requestAnimationFrame(animateCymatics);
+  }
+
+  cymaticAnimationId = requestAnimationFrame(animateCymatics);
+}
+
+function stopCymaticAnimation() {
+  if (cymaticAnimationId) {
+    cancelAnimationFrame(cymaticAnimationId);
+    cymaticAnimationId = null;
+  }
+}
+
+function updateCymaticVisualization() {
+  const svg = document.querySelector('.cymatic-svg');
+  if (!svg) return;
+
+  const time = Date.now() / 1000;
+  const intensity = signalFormState.cymaticIntensity / 100;
+
+  // Animate wave paths
+  const wave1 = svg.querySelector('path[stroke="#10b981"]');
+  const wave2 = svg.querySelector('path[stroke="#f59e0b"]');
+
+  if (wave1) {
+    const offset = Math.sin(time * 2) * 5 * intensity;
+    wave1.setAttribute('d', `M5 ${20 + offset} Q15 ${10 + offset}, 25 ${20 + offset} T45 ${20 + offset}`);
+  }
+
+  if (wave2) {
+    const offset = Math.cos(time * 1.5) * 3 * intensity;
+    wave2.setAttribute('d', `M5 ${25 + offset} Q15 ${15 + offset}, 25 ${25 + offset} T45 ${25 + offset}`);
+  }
+
+  // Animate particles
+  const circles = svg.querySelectorAll('circle[fill="#ef4444"], circle[fill="#8b5cf6"]');
+  circles.forEach((circle, index) => {
+    const baseX = parseFloat(circle.getAttribute('cx'));
+    const oscillation = Math.sin(time * (2 + index) + index) * 3 * intensity;
+    circle.setAttribute('cx', baseX + oscillation);
+  });
+}
+
+function updateCymaticIntensity(value) {
+  signalFormState.cymaticIntensity = value;
+
+  const valueDisplay = document.getElementById('cymatic-intensity-val');
+  if (valueDisplay) {
+    valueDisplay.textContent = Math.round(value) + '%';
+  }
+
+  console.log(`🌊 Cymatic intensity: ${value}%`);
+}
+
+function applyCymaticPattern(pattern) {
+  signalFormState.cymaticPattern = pattern;
+
+  // Different patterns could modify geometry in different ways
+  const modules = ['cube', 'sphere', 'chestahedron'];
+
+  switch(pattern) {
+    case 'chladni':
+      // Chladni plates create node patterns
+      modules.forEach((module, index) => {
+        const nodeRotation = index * 45; // 45° nodes
+        updateGeometryParameter(module, 'rotation', nodeRotation);
+      });
+      break;
+
+    case 'wave-interference':
+      // Wave interference creates complex patterns
+      modules.forEach((module, index) => {
+        const interferenceScale = 1.0 + Math.sin(index) * 0.3;
+        updateGeometryParameter(module, 'scale', interferenceScale);
+      });
+      break;
+
+    case 'particle-flow':
+      // Particle flow affects morph values
+      modules.forEach((module, index) => {
+        const flowMorph = (index + 1) * 25; // 25%, 50%, 75%
+        updateGeometryParameter(module, 'morph', flowMorph);
+      });
+      break;
+  }
+
+  console.log(`🌊 Applied cymatic pattern: ${pattern}`);
+}
+
+function updateMappingIndicators() {
+  const scaleIndicator = document.getElementById('scale-mapping-indicator');
+  const geometryIndicator = document.getElementById('geometry-mapping-indicator');
+  const cymaticIndicator = document.getElementById('cymatic-mapping-indicator');
+
+  if (scaleIndicator) {
+    scaleIndicator.textContent = `Scale: ${signalFormState.currentScale || 'None'}`;
+    scaleIndicator.className = signalFormState.currentScale ? 'mapping-indicator active' : 'mapping-indicator';
+  }
+
+  if (geometryIndicator) {
+    const status = signalFormState.currentScale || signalFormState.currentKey ? 'Theory-Mapped' : 'Default';
+    geometryIndicator.textContent = `Geometry: ${status}`;
+    geometryIndicator.className = status !== 'Default' ? 'mapping-indicator active' : 'mapping-indicator';
+  }
+
+  if (cymaticIndicator) {
+    cymaticIndicator.textContent = `Cymatics: ${signalFormState.cymaticsActive ? 'Active' : 'Off'}`;
+    cymaticIndicator.className = signalFormState.cymaticsActive ? 'mapping-indicator active' : 'mapping-indicator';
+  }
+
+  // Update theory status
+  const theoryStatus = document.getElementById('theory-status');
+  if (theoryStatus) {
+    const activeTheory = signalFormState.currentScale || signalFormState.currentKey;
+    theoryStatus.textContent = activeTheory || 'No Selection';
+  }
+}
+
 function setupSpectralControls() {
   const hudToggleBtn = document.getElementById('spectral-hud-toggle');
   const advancedControls = document.getElementById('spectral-advanced-controls');
@@ -4167,6 +5381,15 @@ function setupSpectralControls() {
   const spatialModeSelect = document.getElementById('spatial-mode');
   const spatialSpreadSlider = document.getElementById('spatial-spread');
   const spatialSpreadVal = document.getElementById('spatial-spread-val');
+
+  // Initialize HUD to collapsed state
+  if (hudToggleBtn) {
+    hudToggleBtn.textContent = spectralHudExpanded ? 'ON' : 'OFF';
+    hudToggleBtn.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
+  }
+  if (advancedControls) {
+    advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+  }
 
   // Main Spectral HUD toggle
   hudToggleBtn.addEventListener('click', () => {
@@ -4493,6 +5716,231 @@ function setupSpectralControls() {
   presetBtns.forEach(btn => {
     btn.addEventListener('click', clearCurrentPreset);
   });
+
+  // Input Mapping Event Listeners - Phase 4
+  setupInputEventListeners();
+}
+
+function setupInputEventListeners() {
+  // Voice Input Event Listeners
+  const voiceToggle = document.getElementById('voice-toggle');
+  const voiceCommandSelect = document.getElementById('voice-command-slot');
+
+  if (voiceToggle) {
+    voiceToggle.addEventListener('click', toggleVoiceInput);
+  }
+
+  if (voiceCommandSelect) {
+    voiceCommandSelect.addEventListener('change', (e) => {
+      const command = e.target.value;
+      if (command && voiceInputActive) {
+        executeVoiceCommand(command);
+        // Reset selection after execution
+        setTimeout(() => {
+          e.target.value = '';
+        }, 500);
+      }
+    });
+  }
+
+  // MIDI Input Event Listeners (Simulation)
+  const midiKnobSelect = document.getElementById('midi-knob-mapping');
+  const midiWheelSelect = document.getElementById('midi-wheel-mapping');
+  const midiPadSelect = document.getElementById('midi-pad-mapping');
+
+  if (midiKnobSelect) {
+    midiKnobSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        // Simulate MIDI knob input (random value for demo)
+        const simulatedValue = Math.floor(Math.random() * 128);
+        handleMidiInput('knob', simulatedValue, 0);
+        console.log(`🎛️ MIDI Knob simulation: ${simulatedValue}`);
+      }
+    });
+  }
+
+  if (midiWheelSelect) {
+    midiWheelSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        // Simulate MIDI wheel input (random value for demo)
+        const simulatedValue = Math.floor(Math.random() * 128);
+        handleMidiInput('wheel', simulatedValue, 1);
+        console.log(`🎛️ MIDI Wheel simulation: ${simulatedValue}`);
+      }
+    });
+  }
+
+  if (midiPadSelect) {
+    midiPadSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        // Simulate MIDI pad input (random value for demo)
+        const simulatedValue = Math.random() > 0.5 ? 127 : 0;
+        handleMidiInput('pad', simulatedValue, 2);
+        console.log(`🎛️ MIDI Pad simulation: ${simulatedValue}`);
+      }
+    });
+  }
+
+  // Gesture Input Event Listeners (Simulation)
+  const gestureWebcamSelect = document.getElementById('gesture-webcam-mapping');
+  const gestureTouchSelect = document.getElementById('gesture-touch-mapping');
+
+  if (gestureWebcamSelect) {
+    gestureWebcamSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        simulateGestureInput();
+        console.log('👋 Webcam gesture simulation triggered');
+        // Reset selection after execution
+        setTimeout(() => {
+          e.target.value = '';
+        }, 3500);
+      }
+    });
+  }
+
+  if (gestureTouchSelect) {
+    gestureTouchSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        simulateGestureInput();
+        console.log('👋 Touch gesture simulation triggered');
+        // Reset selection after execution
+        setTimeout(() => {
+          e.target.value = '';
+        }, 3500);
+      }
+    });
+  }
+
+  // Signal–Form Pipeline Event Listeners - Phase 5
+  const scaleSelect = document.getElementById('scale-mode-select');
+  const circleOfFifthsSelect = document.getElementById('circle-of-fifths-select');
+  const cymaticsToggle = document.getElementById('cymatics-toggle');
+  const cymaticPatternSelect = document.getElementById('cymatic-pattern-select');
+  const cymaticIntensitySlider = document.getElementById('cymatic-intensity');
+
+  if (scaleSelect) {
+    scaleSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        applyScaleMapping(e.target.value);
+        // Clear circle of fifths selection when scale is selected
+        if (circleOfFifthsSelect) circleOfFifthsSelect.value = '';
+      }
+    });
+  }
+
+  if (circleOfFifthsSelect) {
+    circleOfFifthsSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        applyCircleOfFifthsMapping(e.target.value);
+        // Clear scale selection when circle of fifths is selected
+        if (scaleSelect) scaleSelect.value = '';
+      }
+    });
+  }
+
+  if (cymaticsToggle) {
+    cymaticsToggle.addEventListener('click', toggleCymatics);
+  }
+
+  if (cymaticPatternSelect) {
+    cymaticPatternSelect.addEventListener('change', (e) => {
+      if (e.target.value && signalFormState.cymaticsActive) {
+        applyCymaticPattern(e.target.value);
+      }
+    });
+  }
+
+  if (cymaticIntensitySlider) {
+    cymaticIntensitySlider.addEventListener('input', (e) => {
+      updateCymaticIntensity(parseFloat(e.target.value));
+    });
+  }
+
+  // Enhanced Voice Commands for Theory → Visual Integration
+  const originalExecuteVoiceCommand = executeVoiceCommand;
+  window.executeVoiceCommand = function(command) {
+    if (!voiceInputActive) return;
+
+    // Handle new theory-related voice commands
+    switch(command) {
+      case 'change_mode':
+        // Cycle through scales
+        const scales = Object.keys(signalFormState.theoryMappings);
+        const currentIndex = scales.indexOf(signalFormState.currentScale);
+        const nextScale = scales[(currentIndex + 1) % scales.length];
+        applyScaleMapping(nextScale);
+        if (scaleSelect) scaleSelect.value = nextScale;
+        console.log('🎤 Voice command: Changed to scale', nextScale);
+        break;
+
+      case 'toggle_cymatics':
+        toggleCymatics();
+        console.log('🎤 Voice command: Toggled cymatics');
+        break;
+
+      default:
+        // Fall back to original voice commands
+        originalExecuteVoiceCommand(command);
+        break;
+    }
+  };
+
+  // Add keyboard shortcuts for testing
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case '1':
+          e.preventDefault();
+          handleMidiInput('knob', Math.floor(Math.random() * 128), 0);
+          console.log('⌨️ Keyboard shortcut: MIDI Knob simulation');
+          break;
+        case '2':
+          e.preventDefault();
+          handleMidiInput('wheel', Math.floor(Math.random() * 128), 1);
+          console.log('⌨️ Keyboard shortcut: MIDI Wheel simulation');
+          break;
+        case '3':
+          e.preventDefault();
+          handleMidiInput('pad', Math.random() > 0.5 ? 127 : 0, 2);
+          console.log('⌨️ Keyboard shortcut: MIDI Pad simulation');
+          break;
+        case '4':
+          e.preventDefault();
+          if (!voiceInputActive) toggleVoiceInput();
+          executeVoiceCommand('randomize');
+          console.log('⌨️ Keyboard shortcut: Voice randomize');
+          break;
+        case '5':
+          e.preventDefault();
+          simulateGestureInput();
+          console.log('⌨️ Keyboard shortcut: Gesture simulation');
+          break;
+        case '6':
+          e.preventDefault();
+          // Test scale mapping
+          applyScaleMapping('c-major');
+          if (scaleSelect) scaleSelect.value = 'c-major';
+          console.log('⌨️ Keyboard shortcut: Apply C Major scale');
+          break;
+        case '7':
+          e.preventDefault();
+          // Test circle of fifths
+          applyCircleOfFifthsMapping('g');
+          if (circleOfFifthsSelect) circleOfFifthsSelect.value = 'g';
+          console.log('⌨️ Keyboard shortcut: Apply G major (1♯)');
+          break;
+        case '8':
+          e.preventDefault();
+          // Test cymatics toggle
+          toggleCymatics();
+          console.log('⌨️ Keyboard shortcut: Toggle cymatics');
+          break;
+      }
+    }
+  });
+
+  console.log('🎮 Input event listeners initialized');
+  console.log('🎵 Signal–Form Pipeline listeners initialized');
 }
 
 function setupFFTInteractions() {
@@ -4694,6 +6142,603 @@ init3DAudioSystem(); // Initialize 3D audio spatialization
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
+
+// ==========================================
+// Three.js Geometry Modules System - Phase 6
+// ==========================================
+
+// Geometry module renderers and scene management
+let geometryRenderers = {};
+let geometryScenes = {};
+let geometryCameras = {};
+let geometryMeshes = {};
+let geometryAnimationIds = {};
+
+// Initialize Three.js geometry modules
+function initializeGeometryModules() {
+  console.log('🔷 Initializing Three.js Geometry Modules...');
+
+  const modules = ['cube', 'sphere', 'chestahedron'];
+
+  modules.forEach(moduleName => {
+    const canvas = document.getElementById(`${moduleName}-canvas`);
+    if (!canvas) {
+      console.warn(`Canvas not found for ${moduleName}`);
+      return;
+    }
+
+    // Create renderer
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true
+    });
+    renderer.setSize(48, 48);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    geometryRenderers[moduleName] = renderer;
+
+    // Create scene
+    const scene = new THREE.Scene();
+    geometryScenes[moduleName] = scene;
+
+    // Create camera
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(2, 2, 2);
+    camera.lookAt(0, 0, 0);
+    geometryCameras[moduleName] = camera;
+
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
+
+    // Create geometry based on module type
+    createGeometryMesh(moduleName, scene);
+
+    // Start animation loop
+    startGeometryAnimation(moduleName);
+  });
+
+  console.log('✅ Geometry modules initialized:', Object.keys(geometryRenderers));
+}
+
+// Create individual geometry meshes
+function createGeometryMesh(moduleName, scene) {
+  let geometry, material;
+
+  // Color coding: blue, green, orange
+  const colors = {
+    'cube': 0x3b82f6,      // Blue
+    'sphere': 0x10b981,    // Green
+    'chestahedron': 0xf59e0b // Orange
+  };
+
+  switch (moduleName) {
+    case 'cube':
+      // Wireframe cube
+      geometry = new THREE.BoxGeometry(1, 1, 1);
+      material = new THREE.MeshBasicMaterial({
+        color: colors.cube,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.8
+      });
+      break;
+
+    case 'sphere':
+      // Wireframe sphere with latitude/longitude lines
+      geometry = new THREE.SphereGeometry(0.6, 16, 12);
+      material = new THREE.MeshBasicMaterial({
+        color: colors.sphere,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.8
+      });
+      break;
+
+    case 'chestahedron':
+      // Approximate chestahedron as octahedron
+      geometry = new THREE.OctahedronGeometry(0.7);
+      material = new THREE.MeshBasicMaterial({
+        color: colors.chestahedron,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.8
+      });
+      break;
+
+    default:
+      console.warn(`Unknown geometry module: ${moduleName}`);
+      return;
+  }
+
+  const mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+  geometryMeshes[moduleName] = mesh;
+
+  console.log(`📐 Created ${moduleName} geometry mesh`);
+}
+
+// Animation loop for geometry modules
+function startGeometryAnimation(moduleName) {
+  function animate() {
+    if (!geometryRenderers[moduleName] || !geometryScenes[moduleName] || !geometryCameras[moduleName]) {
+      return;
+    }
+
+    // Update mesh transformations based on current geometry module state
+    updateGeometryMeshFromState(moduleName);
+
+    // Render the scene
+    geometryRenderers[moduleName].render(geometryScenes[moduleName], geometryCameras[moduleName]);
+
+    // Continue animation
+    geometryAnimationIds[moduleName] = requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+
+// Update Three.js mesh based on geometry module state
+function updateGeometryMeshFromState(moduleName) {
+  const mesh = geometryMeshes[moduleName];
+  const moduleState = geometryModules[moduleName];
+
+  if (!mesh || !moduleState) return;
+
+  // Apply rotation (convert degrees to radians)
+  const rotationRad = (moduleState.rotation * Math.PI) / 180;
+  mesh.rotation.x = rotationRad * 0.7;
+  mesh.rotation.y = rotationRad;
+  mesh.rotation.z = rotationRad * 0.3;
+
+  // Apply scale
+  const scale = moduleState.scale;
+  mesh.scale.setScalar(scale);
+
+  // Apply morph (affects opacity and slight scale variation)
+  const morphFactor = moduleState.morph / 100;
+  const material = mesh.material;
+  material.opacity = 0.6 + morphFactor * 0.4; // 0.6 to 1.0
+
+  // Slight scale variation based on morph
+  const morphScale = 1.0 + morphFactor * 0.2;
+  mesh.scale.setScalar(scale * morphScale);
+}
+
+// Enhanced updateGeometryParameter to trigger Three.js updates
+const originalUpdateGeometryParameter = updateGeometryParameter;
+window.updateGeometryParameter = function(module, parameter, value) {
+  // Call original function
+  originalUpdateGeometryParameter(module, parameter, value);
+
+  // Trigger immediate Three.js update
+  updateGeometryMeshFromState(module);
+
+  // Visual feedback flash for Three.js canvas
+  const canvas = document.getElementById(`${module}-canvas`);
+  if (canvas) {
+    canvas.style.transform = 'scale(1.1)';
+    canvas.style.transition = 'transform 0.1s ease-out';
+    setTimeout(() => {
+      canvas.style.transform = 'scale(1.0)';
+      setTimeout(() => {
+        canvas.style.transition = '';
+      }, 100);
+    }, 50);
+  }
+};
+
+// Cleanup function for geometry modules
+function cleanupGeometryModules() {
+  Object.values(geometryAnimationIds).forEach(id => {
+    if (id) cancelAnimationFrame(id);
+  });
+
+  Object.values(geometryRenderers).forEach(renderer => {
+    if (renderer) renderer.dispose();
+  });
+
+  geometryRenderers = {};
+  geometryScenes = {};
+  geometryCameras = {};
+  geometryMeshes = {};
+  geometryAnimationIds = {};
+}
+
+// Initialize geometry modules when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Small delay to ensure all elements are rendered
+  setTimeout(() => {
+    initializeGeometryModules();
+    initializePeriaktos();
+
+    // Set initial visibility based on HUD state
+    // Check spectralHudExpanded global variable for accurate state
+    const isVisible = typeof spectralHudExpanded !== 'undefined' ? spectralHudExpanded : true; // Default to visible for testing
+    console.log('🔺 HUD visible state:', isVisible);
+    handleGeometryModuleVisibility(isVisible);
+    handlePeriaktosVisibility(isVisible);
+  }, 100);
+});
+
+// HUD Toggle Integration - ensure geometry modules hide/show properly
+function handleGeometryModuleVisibility(isVisible) {
+  const modules = ['cube', 'sphere', 'chestahedron'];
+
+  modules.forEach(moduleName => {
+    const canvas = document.getElementById(`${moduleName}-canvas`);
+    if (canvas) {
+      canvas.style.display = isVisible ? 'block' : 'none';
+    }
+
+    // Pause/resume animation when hidden to save performance
+    if (isVisible) {
+      if (!geometryAnimationIds[moduleName]) {
+        startGeometryAnimation(moduleName);
+      }
+    } else {
+      if (geometryAnimationIds[moduleName]) {
+        cancelAnimationFrame(geometryAnimationIds[moduleName]);
+        geometryAnimationIds[moduleName] = null;
+      }
+    }
+  });
+
+  console.log(`🔷 Geometry modules ${isVisible ? 'shown' : 'hidden'}`);
+}
+
+// Hook into existing HUD toggle system
+document.addEventListener('DOMContentLoaded', () => {
+  // Find the HUD toggle button and add listener
+  const hudToggle = document.getElementById('hud-toggle');
+  if (hudToggle) {
+    hudToggle.addEventListener('click', () => {
+      // Check HUD state after toggle using global variable
+      setTimeout(() => {
+        const isVisible = typeof spectralHudExpanded !== 'undefined' ? spectralHudExpanded : false;
+        handleGeometryModuleVisibility(isVisible);
+        handlePeriaktosVisibility(isVisible);
+      }, 50);
+    });
+  }
+});
+
+console.log('🔷 Three.js Geometry Modules system loaded');
+
+// ==========================================
+// Periaktos System - Phase 7
+// ==========================================
+
+// Periaktos state and rendering
+let periaktosRenderer = null;
+let periaktosScene = null;
+let periaktosCamera = null;
+let periaktosMesh = null;
+let periaktosAnimationId = null;
+let periaktosState = {
+  rotation: 0,           // Manual rotation angle
+  currentFace: 0,        // Currently selected face (0, 1, 2)
+  autoSpeed: 0,          // Auto-rotation speed (0=manual, 1-3=speeds)
+  lastAutoRotation: 0    // Track auto-rotation progress
+};
+
+// Initialize Three.js periaktos
+function initializePeriaktos() {
+  console.log('🔺 Initializing Periaktos System...');
+
+  const canvas = document.getElementById('periaktos-canvas');
+  if (!canvas) {
+    console.error('❌ Periaktos canvas not found');
+    return;
+  }
+
+  console.log('✅ Periaktos canvas found:', canvas);
+  console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+  console.log('Canvas style:', canvas.style.cssText);
+
+  try {
+    // Create renderer
+    periaktosRenderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true
+    });
+    periaktosRenderer.setSize(200, 200);
+    periaktosRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    periaktosRenderer.setClearColor(0x000000, 1); // Black background for better color contrast
+    console.log('✅ Periaktos renderer created');
+
+    // Create scene
+    periaktosScene = new THREE.Scene();
+    console.log('✅ Periaktos scene created');
+
+    // Create camera - adjust position for better framing
+    periaktosCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    periaktosCamera.position.set(0, 0, 200);
+    periaktosCamera.lookAt(0, 0, 0);
+    console.log('✅ Periaktos camera created at position:', periaktosCamera.position);
+
+    // Add minimal lighting (MeshBasicMaterial doesn't need much lighting)
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+    periaktosScene.add(ambientLight);
+
+    console.log('✅ Periaktos lighting added');
+
+    // Create periaktos geometry (3 cubes for now)
+    createPeriaktosGeometry();
+
+    // Start animation loop
+    startPeriaktosAnimation();
+
+    // Force an initial render
+    if (periaktosRenderer && periaktosScene && periaktosCamera) {
+      console.log('🔺 Forcing initial periaktos render...');
+      periaktosRenderer.render(periaktosScene, periaktosCamera);
+    }
+
+    console.log('✅ Periaktos initialization complete');
+  } catch (error) {
+    console.error('❌ Error initializing periaktos:', error);
+  }
+}
+
+// Create periaktos geometry (3 cubes arranged in triangular formation)
+function createPeriaktosGeometry() {
+  console.log('🔺 Creating periaktos geometry...');
+
+  try {
+    // Create main group to hold all cubes
+    const group = new THREE.Group();
+
+    // Define cube positions and colors - using larger scale with vibrant colors
+    const cubes = [
+      { position: [-60, 0, 0], color: 0xff0000, name: 'Face A (Red)' },      // Left - Bright Red
+      { position: [60, 0, 0], color: 0x00ff00, name: 'Face B (Green)' },     // Right - Bright Green
+      { position: [0, 60, 0], color: 0x0000ff, name: 'Face C (Blue)' }       // Top - Bright Blue
+    ];
+
+    cubes.forEach((cubeData, index) => {
+      // Create cube geometry - much larger size
+      const geometry = new THREE.BoxGeometry(40, 40, 40);
+
+      // Create material - using MeshBasicMaterial for pure colors
+      const material = new THREE.MeshBasicMaterial({
+        color: cubeData.color,
+        transparent: false,
+        opacity: 1.0
+      });
+
+      // Create wireframe overlay
+      const wireframeGeometry = new THREE.BoxGeometry(40, 40, 40);
+      const wireframeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.4
+      });
+
+      // Create meshes
+      const cubeMesh = new THREE.Mesh(geometry, material);
+      const wireframeMesh = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+
+      // Position the cube
+      cubeMesh.position.set(...cubeData.position);
+      wireframeMesh.position.set(...cubeData.position);
+
+      // Add to group
+      group.add(cubeMesh);
+      group.add(wireframeMesh);
+
+      console.log(`✅ Created ${cubeData.name} at position:`, cubeData.position, 'with color:', cubeData.color.toString(16));
+    });
+
+    // Add group to scene
+    periaktosScene.add(group);
+    periaktosMesh = group;
+
+    console.log(`✅ Periaktos geometry created with ${group.children.length} meshes`);
+    console.log('Scene children count:', periaktosScene.children.length);
+
+  } catch (error) {
+    console.error('❌ Error creating periaktos geometry:', error);
+  }
+}
+
+// Animation loop for periaktos
+function startPeriaktosAnimation() {
+  console.log('🔺 Starting periaktos animation...');
+
+  function animate() {
+    if (!periaktosRenderer || !periaktosScene || !periaktosCamera) {
+      console.warn('❌ Periaktos animation components missing');
+      return;
+    }
+
+    // Update rotation based on state
+    updatePeriaktosRotation();
+
+    // Render the scene
+    try {
+      periaktosRenderer.render(periaktosScene, periaktosCamera);
+    } catch (error) {
+      console.error('❌ Error rendering periaktos:', error);
+    }
+
+    // Continue animation
+    periaktosAnimationId = requestAnimationFrame(animate);
+  }
+
+  periaktosAnimationId = requestAnimationFrame(animate);
+  console.log('✅ Periaktos animation started');
+}
+
+// Update periaktos rotation
+function updatePeriaktosRotation() {
+  if (!periaktosMesh) return;
+
+  let targetRotation = periaktosState.rotation;
+
+  // Handle auto-rotation
+  if (periaktosState.autoSpeed > 0) {
+    const speedMultiplier = periaktosState.autoSpeed * 0.5; // 0.5, 1.0, 1.5
+    periaktosState.lastAutoRotation += speedMultiplier;
+    targetRotation = periaktosState.lastAutoRotation % 360;
+
+    // Update UI slider
+    const slider = document.getElementById('periaktos-rotation');
+    const valueDisplay = document.getElementById('periaktos-rotation-val');
+    if (slider) slider.value = targetRotation;
+    if (valueDisplay) valueDisplay.textContent = `${Math.round(targetRotation)}°`;
+  }
+
+  // Apply rotation to mesh
+  periaktosMesh.rotation.y = (targetRotation * Math.PI) / 180;
+
+  // Slight tilt for better visibility of faces
+  periaktosMesh.rotation.x = 0.2;
+  periaktosMesh.rotation.z = 0.1;
+}
+
+// Handle periaktos face selection
+function selectPeriaktosFace(faceIndex) {
+  periaktosState.currentFace = parseInt(faceIndex);
+
+  // Rotate to show selected face prominently
+  const targetRotations = [0, 120, 240]; // Face A, B, C
+  const targetRotation = targetRotations[periaktosState.currentFace];
+
+  // Stop auto-rotation when manually selecting face
+  periaktosState.autoSpeed = 0;
+  periaktosState.rotation = targetRotation;
+
+  // Update UI
+  const speedSelect = document.getElementById('periaktos-speed');
+  const rotationSlider = document.getElementById('periaktos-rotation');
+  const rotationValue = document.getElementById('periaktos-rotation-val');
+
+  if (speedSelect) speedSelect.value = '0';
+  if (rotationSlider) rotationSlider.value = targetRotation;
+  if (rotationValue) rotationValue.textContent = `${targetRotation}°`;
+
+  console.log(`🔺 Selected Face ${String.fromCharCode(65 + periaktosState.currentFace)} (${['Red', 'Green', 'Blue'][periaktosState.currentFace]})`);
+}
+
+// Handle periaktos rotation change
+function updatePeriaktosRotation_Manual(value) {
+  periaktosState.rotation = parseFloat(value);
+
+  // Stop auto-rotation when manually adjusting
+  periaktosState.autoSpeed = 0;
+  const speedSelect = document.getElementById('periaktos-speed');
+  if (speedSelect) speedSelect.value = '0';
+
+  // Update value display
+  const valueDisplay = document.getElementById('periaktos-rotation-val');
+  if (valueDisplay) valueDisplay.textContent = `${Math.round(periaktosState.rotation)}°`;
+
+  // Visual feedback flash for periaktos canvas
+  const canvas = document.getElementById('periaktos-canvas');
+  if (canvas) {
+    canvas.style.transform = 'scale(1.05)';
+    canvas.style.transition = 'transform 0.1s ease-out';
+    setTimeout(() => {
+      canvas.style.transform = 'scale(1.0)';
+      setTimeout(() => {
+        canvas.style.transition = '';
+      }, 100);
+    }, 50);
+  }
+}
+
+// Handle periaktos speed change
+function updatePeriaktosSpeed(speed) {
+  periaktosState.autoSpeed = parseInt(speed);
+
+  if (periaktosState.autoSpeed > 0) {
+    // Start auto-rotation from current position
+    periaktosState.lastAutoRotation = periaktosState.rotation;
+    console.log(`🔺 Auto-rotation started at speed ${periaktosState.autoSpeed}`);
+  } else {
+    console.log('🔺 Manual rotation mode');
+  }
+}
+
+// Cleanup function for periaktos
+function cleanupPeriaktos() {
+  if (periaktosAnimationId) {
+    cancelAnimationFrame(periaktosAnimationId);
+    periaktosAnimationId = null;
+  }
+
+  if (periaktosRenderer) {
+    periaktosRenderer.dispose();
+    periaktosRenderer = null;
+  }
+
+  periaktosScene = null;
+  periaktosCamera = null;
+  periaktosMesh = null;
+}
+
+// Periaktos visibility handler for HUD toggle integration
+function handlePeriaktosVisibility(isVisible) {
+  const canvas = document.getElementById('periaktos-canvas');
+  if (canvas) {
+    canvas.style.display = isVisible ? 'block' : 'none';
+    console.log('🔺 Canvas display set to:', canvas.style.display);
+    console.log('Canvas computed style:', window.getComputedStyle(canvas).display);
+  } else {
+    console.error('❌ Periaktos canvas not found in visibility handler');
+  }
+
+  // Pause/resume animation when hidden to save performance
+  if (isVisible) {
+    if (!periaktosAnimationId) {
+      startPeriaktosAnimation();
+    }
+  } else {
+    if (periaktosAnimationId) {
+      cancelAnimationFrame(periaktosAnimationId);
+      periaktosAnimationId = null;
+    }
+  }
+
+  console.log(`🔺 Periaktos ${isVisible ? 'shown' : 'hidden'}`);
+}
+
+// Periaktos Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Face selection dropdown
+  const faceSelect = document.getElementById('periaktos-face-select');
+  if (faceSelect) {
+    faceSelect.addEventListener('change', (e) => {
+      selectPeriaktosFace(e.target.value);
+    });
+  }
+
+  // Rotation slider
+  const rotationSlider = document.getElementById('periaktos-rotation');
+  if (rotationSlider) {
+    rotationSlider.addEventListener('input', (e) => {
+      updatePeriaktosRotation_Manual(e.target.value);
+    });
+  }
+
+  // Speed selection dropdown
+  const speedSelect = document.getElementById('periaktos-speed');
+  if (speedSelect) {
+    speedSelect.addEventListener('change', (e) => {
+      updatePeriaktosSpeed(e.target.value);
+    });
+  }
+});
+
+console.log('🔺 Periaktos system loaded');
 console.log('Configuration:', config);
 
 // Test CC scaling function
