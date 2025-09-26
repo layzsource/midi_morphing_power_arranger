@@ -1,0 +1,29 @@
+--- a/index_latest.html
++++ b/index_latest.html
+@@ -1135,7 +1135,9 @@
+   }
+ 
+-  function handleCollaborativeParameterUpdate(data) {
+-    // duplicate copy – REMOVE THIS
+-  }
++  // 🔧 Duplicate handleCollaborativeParameterUpdate removed
++  // function handleCollaborativeParameterUpdate(data) {
++  //   // duplicate copy – commented out to prevent redeclaration
++  // }
+ 
+   // other functions below…
+
+--- a/microfiche/index.html
++++ b/microfiche/index.html
+@@ -1166,7 +1166,9 @@
+   }
+ 
+-  function handleCollaborativeParameterUpdate(data) {
+-    // duplicate copy – REMOVE THIS
+-  }
++  // 🔧 Duplicate handleCollaborativeParameterUpdate removed
++  // function handleCollaborativeParameterUpdate(data) {
++  //   // duplicate copy – commented out to prevent redeclaration
++  // }
+ 
+   // other functions below…
