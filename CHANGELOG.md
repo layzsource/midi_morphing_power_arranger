@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-01-XX — 3D Audio Spatialization Engine
+
+### Immersive Spatial Audio System
+- **3D Audio Engine**: Integrated Web Audio API AudioContext with PannerNode + AudioListener for true 3D positional audio rendering
+- **Binaural Processing**: HRTF-based binaural rendering with ConvolverNode for immersive headphone experience
+- **Eigenmode Audio Mapping**: Dynamic mapping of eigenmode coefficients to 3D spatial positions and audio parameters
+- **Sprite Audio Sources**: Each portal sprite rendered as individual positional audio source with distance attenuation
+
+### Advanced Spatial Controls & Parameter Mapping
+- **HUD Controls**: Added "3D Audio" toggle, "Spatial Mode" dropdown (binaural/stereo/ambient), and "Spread" slider
+- **Parameter Integration**: Zeta (zoom) controls listener position, Unity/Flatness mapped to spatial spread and diffusion
+- **Ambient Soundscape**: Layered ambient audio with positional sprite playback for comprehensive spatial experience
+- **Real-time Updates**: Continuous spatial audio updates synchronized with main animation loop
+
+### Collaborative Spatial Audio Events
+- **spatial_audio_enabled**: Real-time 3D audio toggle synchronization across all collaborative sessions
+- **spatial_audio_mode**: Spatial mode switching (binaural/stereo/ambient) with user attribution and toast notifications
+- **spatial_audio_spread**: Spatial spread parameter changes broadcast with enhanced user color feedback
+- **Enhanced Toast System**: Contextual 3D audio notifications with user color coding and parameter-specific messages
+
+### Backward Compatibility & Fallbacks
+- **AudioContext Fallback**: Graceful fallback to flat stereo if AudioContext unavailable with UI state updates
+- **Error Handling**: Comprehensive error handling with fallback states and disabled controls on initialization failure
+- **Legacy Preservation**: All existing audio features and spectral analysis preserved unchanged
+- **Progressive Enhancement**: 3D audio features layer on top of existing system without breaking changes
+
+*"The 3D Audio Spatialization Engine transforms the Signal→Form Engine into an immersive spatial audio platform, mapping mathematical elegance to three-dimensional sonic space."*
+
+---
+
 ## [0.3.0] - 2024-12-26 — Advanced Spectral Analysis
 
 ### Modal Energy Distribution & Temporal History
