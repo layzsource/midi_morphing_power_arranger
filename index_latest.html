@@ -822,6 +822,31 @@
     <label class="spectral-label">Spectral HUD:</label>
     <button id="spectral-hud-toggle" class="spectral-btn">ON</button>
   </div>
+  <div class="row spectral-controls">
+    <label class="spectral-label">3D Audio:</label>
+    <button id="audio-3d-toggle" class="spectral-btn">ON</button>
+    <label class="spectral-fft-label">Mode:</label>
+    <select id="spatial-mode" class="spectral-select">
+      <option value="binaural">Binaural</option>
+      <option value="stereo">Stereo</option>
+      <option value="ambient">Ambient Only</option>
+    </select>
+    <label class="spectral-depth-label">Spread:</label>
+    <input type="range" id="spatial-spread" min="0" max="1" step="0.1" value="0.7" class="spectral-slider">
+    <span id="spatial-spread-val" class="spectral-val">0.7</span>
+  </div>
+  <div class="row spectral-controls">
+    <label class="spectral-label">Position:</label>
+    <label class="spectral-fft-label">X:</label>
+    <input type="range" id="spatial-pos-x" min="-10" max="10" step="0.5" value="0" class="spectral-slider">
+    <span id="spatial-pos-x-val" class="spectral-val">0.0</span>
+    <label class="spectral-fft-label">Y:</label>
+    <input type="range" id="spatial-pos-y" min="-10" max="10" step="0.5" value="0" class="spectral-slider">
+    <span id="spatial-pos-y-val" class="spectral-val">0.0</span>
+    <label class="spectral-fft-label">Z:</label>
+    <input type="range" id="spatial-pos-z" min="-10" max="10" step="0.5" value="0" class="spectral-slider">
+    <span id="spatial-pos-z-val" class="spectral-val">0.0</span>
+  </div>
   <div id="spectral-advanced-controls" class="row spectral-controls">
     <button id="spectral-toggle" class="spectral-btn">ON</button>
     <select id="spectral-mode" class="spectral-select">
@@ -2148,6 +2173,61 @@ function handleCollaborativeParameterUpdate(data) {
       showCollaborativeSpectralToast(data.username, 'spectral_log_scale', data.value, data.user_color);
       break;
 
+    case 'spectral_audio_enabled':
+      spatialAudioEnabled = data.value;
+      const audio3DToggle = document.getElementById('audio-3d-toggle');
+      audio3DToggle.textContent = spatialAudioEnabled ? 'ON' : 'OFF';
+      audio3DToggle.className = spatialAudioEnabled ? 'spectral-btn' : 'spectral-btn off';
+      if (spatialAudioEnabled) {
+        init3DAudioSystem();
+      } else {
+        cleanup3DAudioSystem();
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_audio_enabled', data.value, data.user_color);
+      break;
+
+    case 'spectral_audio_mode':
+      spatialMode = data.value;
+      document.getElementById('spatial-mode').value = spatialMode;
+      updateSpatialMode();
+      showCollaborativeSpectralToast(data.username, 'spectral_audio_mode', data.value, data.user_color);
+      break;
+
+    case 'spectral_audio_spread':
+      spatialSpread = parseFloat(data.value);
+      document.getElementById('spatial-spread').value = spatialSpread;
+      document.getElementById('spatial-spread-val').textContent = spatialSpread.toFixed(1);
+      updateSpatialSpread();
+      showCollaborativeSpectralToast(data.username, 'spectral_audio_spread', data.value, data.user_color);
+      break;
+
+    case 'spectral_audio_position':
+      // Update listener position based on eigenmode coefficients
+      if (data.value && typeof data.value === 'object') {
+        listenerPosition.x = data.value.x || 0;
+        listenerPosition.y = data.value.y || 0;
+        listenerPosition.z = data.value.z || 0;
+        updateListenerPosition();
+
+        // Update position controls if they exist
+        const posXControl = document.getElementById('spatial-pos-x');
+        const posYControl = document.getElementById('spatial-pos-y');
+        const posZControl = document.getElementById('spatial-pos-z');
+        if (posXControl) posXControl.value = listenerPosition.x;
+        if (posYControl) posYControl.value = listenerPosition.y;
+        if (posZControl) posZControl.value = listenerPosition.z;
+
+        // Update display values
+        const posXVal = document.getElementById('spatial-pos-x-val');
+        const posYVal = document.getElementById('spatial-pos-y-val');
+        const posZVal = document.getElementById('spatial-pos-z-val');
+        if (posXVal) posXVal.textContent = listenerPosition.x.toFixed(1);
+        if (posYVal) posYVal.textContent = listenerPosition.y.toFixed(1);
+        if (posZVal) posZVal.textContent = listenerPosition.z.toFixed(1);
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_audio_position', data.value, data.user_color);
+      break;
+
     case 'spectral_hud_expanded':
       spectralHudExpanded = data.value;
       const hudToggle = document.getElementById('spectral-hud-toggle');
@@ -2874,6 +2954,18 @@ let gradientCache = new Map();
 // Advanced spectral analysis data
 let temporalBuffer = []; // For temporal evolution tracking
 let modalEnergyHistory = []; // For modal energy distribution
+
+// 3D Audio Spatialization System
+let spatialAudioEnabled = true;
+let spatialMode = 'binaural'; // binaural | stereo | ambient
+let spatialSpread = 0.7;
+let listenerPosition = { x: 0, y: 0, z: 0 }; // Listener position in 3D space
+let listenerNode = null;
+let pannerNodes = new Map(); // sprite_id -> PannerNode
+let audioSources = new Map(); // sprite_id -> AudioBufferSourceNode
+let convolver = null; // For binaural processing
+let ambientGain = null;
+let spatialMasterGain = null;
 let spectralPeaks = []; // Track spectral peaks over time
 let temporalDepthMs = 15000; // Default 15 seconds
 let spectralHudExpanded = true; // Main spectral HUD state
@@ -3714,6 +3806,352 @@ function setTemporalDepth(depthMs) {
   }
 }
 
+// ========================================
+// 3D AUDIO SPATIALIZATION ENGINE
+// ========================================
+
+async function init3DAudioSystem() {
+  // Backward compatibility check - fallback to flat stereo if AudioContext unavailable
+  if (!audioContext) {
+    console.warn('🔇 AudioContext not available, falling back to flat stereo');
+    spatialAudioEnabled = false;
+    const audio3DToggle = document.getElementById('audio-3d-toggle');
+    if (audio3DToggle) {
+      audio3DToggle.textContent = 'UNAVAILABLE';
+      audio3DToggle.className = 'spectral-btn off';
+      audio3DToggle.disabled = true;
+    }
+    return false;
+  }
+
+  try {
+    // Create listener node for 3D positioning
+    if (audioContext.listener) {
+      listenerNode = audioContext.listener;
+      // Set listener orientation (forward and up vectors)
+      if (listenerNode.forwardX) {
+        listenerNode.forwardX.setValueAtTime(0, audioContext.currentTime);
+        listenerNode.forwardY.setValueAtTime(0, audioContext.currentTime);
+        listenerNode.forwardZ.setValueAtTime(-1, audioContext.currentTime);
+        listenerNode.upX.setValueAtTime(0, audioContext.currentTime);
+        listenerNode.upY.setValueAtTime(1, audioContext.currentTime);
+        listenerNode.upZ.setValueAtTime(0, audioContext.currentTime);
+      }
+    }
+
+    // Create master gain for spatial audio
+    spatialMasterGain = audioContext.createGain();
+    spatialMasterGain.gain.setValueAtTime(0.7, audioContext.currentTime);
+    spatialMasterGain.connect(audioContext.destination);
+
+    // Create ambient gain for background soundscape
+    ambientGain = audioContext.createGain();
+    ambientGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    ambientGain.connect(spatialMasterGain);
+
+    // Initialize binaural processing if supported
+    if (spatialMode === 'binaural') {
+      await initBinauralProcessing();
+    }
+
+    console.log('🎧 3D Audio: Spatialization engine initialized');
+    return true;
+  } catch (error) {
+    console.warn('3D Audio initialization failed:', error);
+    // Fallback to flat stereo on any initialization error
+    spatialAudioEnabled = false;
+    const audio3DToggle = document.getElementById('audio-3d-toggle');
+    if (audio3DToggle) {
+      audio3DToggle.textContent = 'ERROR';
+      audio3DToggle.className = 'spectral-btn off';
+      audio3DToggle.disabled = true;
+    }
+    return false;
+  }
+}
+
+async function initBinauralProcessing() {
+  try {
+    // Create convolver for HRTF processing (placeholder - in production would load HRTF impulse responses)
+    convolver = audioContext.createConvolver();
+
+    // Generate basic binaural impulse response (placeholder)
+    const impulseLength = audioContext.sampleRate * 0.1; // 100ms
+    const impulse = audioContext.createBuffer(2, impulseLength, audioContext.sampleRate);
+
+    // Simple HRTF approximation for demonstration
+    for (let channel = 0; channel < 2; channel++) {
+      const channelData = impulse.getChannelData(channel);
+      for (let i = 0; i < impulseLength; i++) {
+        const t = i / audioContext.sampleRate;
+        // Basic head-related transfer function approximation
+        channelData[i] = Math.random() * 0.1 * Math.exp(-t * 10) * (channel === 0 ? 1 : 0.8);
+      }
+    }
+
+    convolver.buffer = impulse;
+    console.log('🎧 3D Audio: Binaural processing initialized');
+  } catch (error) {
+    console.warn('Binaural processing initialization failed:', error);
+  }
+}
+
+function createSpriteAudioSource(spriteId, position) {
+  if (!audioContext || !spatialAudioEnabled) return null;
+
+  try {
+    // Create panner node for 3D positioning
+    const panner = audioContext.createPanner();
+
+    // Configure panner for spatial audio
+    panner.panningModel = 'HRTF';
+    panner.distanceModel = 'inverse';
+    panner.refDistance = 1;
+    panner.maxDistance = 20;
+    panner.rolloffFactor = 1;
+
+    // Set initial position based on sprite location
+    panner.positionX.setValueAtTime(position.x, audioContext.currentTime);
+    panner.positionY.setValueAtTime(position.y, audioContext.currentTime);
+    panner.positionZ.setValueAtTime(position.z, audioContext.currentTime);
+
+    // Create audio source (oscillator for demonstration)
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    // Configure oscillator based on sprite properties
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(200 + Math.random() * 800, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+    // Connect audio graph
+    oscillator.connect(gain);
+    gain.connect(panner);
+
+    // Route through binaural processing if enabled
+    if (spatialMode === 'binaural' && convolver) {
+      panner.connect(convolver);
+      convolver.connect(spatialMasterGain);
+    } else {
+      panner.connect(spatialMasterGain);
+    }
+
+    // Store references
+    pannerNodes.set(spriteId, panner);
+    audioSources.set(spriteId, { oscillator, gain });
+
+    // Start oscillator
+    oscillator.start();
+
+    return { panner, oscillator, gain };
+  } catch (error) {
+    console.warn(`Failed to create audio source for sprite ${spriteId}:`, error);
+    return null;
+  }
+}
+
+function updateSpatialAudio() {
+  if (!spatialAudioEnabled || !audioContext) return;
+
+  // Update listener position based on camera/ζ position
+  updateListenerPosition();
+
+  // Update sprite audio sources based on eigenmode coefficients
+  updateSpriteAudioPositions();
+
+  // Update ambient soundscape
+  updateAmbientSoundscape();
+}
+
+function updateListenerPosition() {
+  if (!listenerNode) return;
+
+  // Use manual listener position if set via controls, otherwise map from eigenmode coefficients
+  let x = listenerPosition.x;
+  let y = listenerPosition.y;
+  let z = listenerPosition.z;
+
+  // If position is at origin (0,0,0), map from eigenmode coefficients automatically
+  if (x === 0 && y === 0 && z === 0 && telemetryData.c) {
+    // Map first few eigenmode coefficients to spatial position
+    const coeff0 = telemetryData.c[0] ? Math.abs(telemetryData.c[0]) : 0;
+    const coeff1 = telemetryData.c[1] ? Math.abs(telemetryData.c[1]) : 0;
+    const coeff2 = telemetryData.c[2] ? Math.abs(telemetryData.c[2]) : 0;
+
+    // Map coefficients to position with scaling
+    const scale = 5.0;
+    x = (coeff0 - 0.5) * scale; // Range roughly -2.5 to 2.5
+    y = (coeff1 - 0.5) * scale;
+    z = (coeff2 - 0.5) * scale;
+
+    // Also incorporate zeta for depth traversal
+    const listenerRadius = lerp(config.shells.radii[0], 0.1, zeta);
+    const theta = Date.now() * 0.0001; // Subtle rotation
+
+    x += listenerRadius * Math.cos(theta) * 0.3;
+    z += listenerRadius * Math.sin(theta) * 0.3;
+  }
+
+  // Update listener position
+  if (listenerNode.positionX) {
+    listenerNode.positionX.setValueAtTime(x, audioContext.currentTime);
+    listenerNode.positionY.setValueAtTime(y, audioContext.currentTime);
+    listenerNode.positionZ.setValueAtTime(z, audioContext.currentTime);
+  }
+}
+
+function updateSpriteAudioPositions() {
+  if (!telemetryData.c || !sprites.length) return;
+
+  sprites.forEach((sprite, index) => {
+    const spriteId = sprite.userData.id;
+    const panner = pannerNodes.get(spriteId);
+    const audioSource = audioSources.get(spriteId);
+
+    if (!panner || !audioSource) {
+      // Create new audio source if it doesn't exist
+      const position = {
+        x: sprite.position.x,
+        y: sprite.position.y,
+        z: sprite.position.z
+      };
+      createSpriteAudioSource(spriteId, position);
+      return;
+    }
+
+    // Map eigenmode coefficients to 3D positions and audio parameters
+    const coeffIndex = index % telemetryData.c.length;
+    const coefficient = telemetryData.c[coeffIndex] || 0;
+
+    // Modulate position based on eigenmode activity
+    const basePos = sprite.position;
+    const spatialOffset = coefficient * spatialSpread * 2;
+
+    const x = basePos.x + Math.cos(index) * spatialOffset;
+    const y = basePos.y + Math.sin(index * 1.3) * spatialOffset;
+    const z = basePos.z + Math.sin(index * 0.7) * spatialOffset;
+
+    // Update panner position
+    panner.positionX.setValueAtTime(x, audioContext.currentTime);
+    panner.positionY.setValueAtTime(y, audioContext.currentTime);
+    panner.positionZ.setValueAtTime(z, audioContext.currentTime);
+
+    // Modulate frequency and gain based on eigenmode energy
+    const energy = Math.abs(coefficient);
+    audioSource.oscillator.frequency.setValueAtTime(
+      200 + energy * 600 + index * 50,
+      audioContext.currentTime
+    );
+    audioSource.gain.gain.setValueAtTime(
+      0.05 + energy * 0.1,
+      audioContext.currentTime
+    );
+  });
+}
+
+function updateAmbientSoundscape() {
+  if (!ambientGain || !telemetryData.S) return;
+
+  // Map Unity/Flatness to spatial spread and diffusion
+  const unity = telemetryData.S.U || 0.5;
+  const flatness = telemetryData.S.F || 0.5;
+
+  // Adjust ambient gain based on unity
+  const ambientLevel = 0.2 + unity * 0.3;
+  ambientGain.gain.setValueAtTime(ambientLevel, audioContext.currentTime);
+
+  // Adjust spatial spread based on flatness
+  const currentSpread = 0.3 + flatness * 0.7;
+  if (Math.abs(currentSpread - spatialSpread) > 0.05) {
+    spatialSpread = currentSpread;
+    updateSpatialSpreadControl();
+  }
+}
+
+function setSpatialMode(mode) {
+  spatialMode = mode;
+
+  // Reconfigure audio routing based on mode
+  pannerNodes.forEach((panner, spriteId) => {
+    // Disconnect from current routing
+    panner.disconnect();
+
+    if (mode === 'binaural' && convolver) {
+      panner.connect(convolver);
+      convolver.connect(spatialMasterGain);
+    } else if (mode === 'ambient') {
+      panner.connect(ambientGain);
+    } else {
+      // Stereo mode
+      panner.connect(spatialMasterGain);
+    }
+  });
+}
+
+function setSpatialSpread(spread) {
+  spatialSpread = Math.max(0, Math.min(1, spread));
+  updateSpatialSpreadControl();
+}
+
+function updateSpatialSpreadControl() {
+  const spreadSlider = document.getElementById('spatial-spread');
+  const spreadVal = document.getElementById('spatial-spread-val');
+  if (spreadSlider && spreadVal) {
+    spreadSlider.value = spatialSpread;
+    spreadVal.textContent = spatialSpread.toFixed(1);
+  }
+}
+
+function cleanup3DAudioSystem() {
+  // Stop and disconnect all audio sources
+  audioSources.forEach((source, spriteId) => {
+    try {
+      if (source.oscillator) {
+        source.oscillator.stop();
+        source.oscillator.disconnect();
+      }
+      if (source.gain) {
+        source.gain.disconnect();
+      }
+    } catch (error) {
+      console.warn(`Error cleaning up audio source ${spriteId}:`, error);
+    }
+  });
+
+  // Disconnect panner nodes
+  pannerNodes.forEach((panner, spriteId) => {
+    try {
+      panner.disconnect();
+    } catch (error) {
+      console.warn(`Error disconnecting panner ${spriteId}:`, error);
+    }
+  });
+
+  // Clear maps
+  audioSources.clear();
+  pannerNodes.clear();
+
+  // Disconnect system components
+  if (spatialMasterGain) {
+    spatialMasterGain.disconnect();
+    spatialMasterGain = null;
+  }
+
+  if (ambientGain) {
+    ambientGain.disconnect();
+    ambientGain = null;
+  }
+
+  if (convolver) {
+    convolver.disconnect();
+    convolver = null;
+  }
+
+  listenerNode = null;
+
+  console.log('🔇 3D Audio: System cleaned up');
+}
+
 function setupSpectralControls() {
   const hudToggleBtn = document.getElementById('spectral-hud-toggle');
   const advancedControls = document.getElementById('spectral-advanced-controls');
@@ -3723,6 +4161,12 @@ function setupSpectralControls() {
   const fftVal = document.getElementById('spectral-fft-val');
   const temporalDepthSelect = document.getElementById('temporal-depth');
   const presetBtns = document.querySelectorAll('.fft-preset-btn');
+
+  // 3D Audio controls
+  const audio3DToggle = document.getElementById('audio-3d-toggle');
+  const spatialModeSelect = document.getElementById('spatial-mode');
+  const spatialSpreadSlider = document.getElementById('spatial-spread');
+  const spatialSpreadVal = document.getElementById('spatial-spread-val');
 
   // Main Spectral HUD toggle
   hudToggleBtn.addEventListener('click', () => {
@@ -3849,6 +4293,127 @@ function setupSpectralControls() {
     setTemporalDepth(newDepth);
     showSpectralToast(`History depth: ${newDepth / 1000}s`);
   });
+
+  // 3D Audio Controls
+  if (audio3DToggle) {
+    audio3DToggle.addEventListener('click', () => {
+      spatialAudioEnabled = !spatialAudioEnabled;
+      audio3DToggle.textContent = spatialAudioEnabled ? 'ON' : 'OFF';
+      audio3DToggle.className = spatialAudioEnabled ? 'spectral-btn' : 'spectral-btn off';
+
+      // Initialize or cleanup 3D audio system
+      if (spatialAudioEnabled) {
+        init3DAudioSystem();
+      } else {
+        cleanup3DAudioSystem();
+      }
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_enabled',
+          value: spatialAudioEnabled,
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`3D Audio ${spatialAudioEnabled ? 'enabled' : 'disabled'}`);
+      }
+    });
+  }
+
+  if (spatialModeSelect) {
+    spatialModeSelect.addEventListener('change', () => {
+      setSpatialMode(spatialModeSelect.value);
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_mode',
+          value: spatialMode,
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`Spatial mode: ${spatialMode}`);
+      }
+    });
+  }
+
+  if (spatialSpreadSlider) {
+    spatialSpreadSlider.addEventListener('input', () => {
+      const newSpread = parseFloat(spatialSpreadSlider.value);
+      setSpatialSpread(newSpread);
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_spread',
+          value: newSpread,
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`Spatial spread: ${newSpread.toFixed(1)}`);
+      }
+    });
+  }
+
+  // Position controls event handlers
+  const posXSlider = document.getElementById('spatial-pos-x');
+  const posYSlider = document.getElementById('spatial-pos-y');
+  const posZSlider = document.getElementById('spatial-pos-z');
+  const posXVal = document.getElementById('spatial-pos-x-val');
+  const posYVal = document.getElementById('spatial-pos-y-val');
+  const posZVal = document.getElementById('spatial-pos-z-val');
+
+  if (posXSlider) {
+    posXSlider.addEventListener('input', () => {
+      listenerPosition.x = parseFloat(posXSlider.value);
+      posXVal.textContent = listenerPosition.x.toFixed(1);
+      updateListenerPosition();
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_position',
+          value: { ...listenerPosition },
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`Position X: ${listenerPosition.x.toFixed(1)}`);
+      }
+    });
+  }
+
+  if (posYSlider) {
+    posYSlider.addEventListener('input', () => {
+      listenerPosition.y = parseFloat(posYSlider.value);
+      posYVal.textContent = listenerPosition.y.toFixed(1);
+      updateListenerPosition();
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_position',
+          value: { ...listenerPosition },
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`Position Y: ${listenerPosition.y.toFixed(1)}`);
+      }
+    });
+  }
+
+  if (posZSlider) {
+    posZSlider.addEventListener('input', () => {
+      listenerPosition.z = parseFloat(posZSlider.value);
+      posZVal.textContent = listenerPosition.z.toFixed(1);
+      updateListenerPosition();
+
+      // Broadcast to collaborative users
+      if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_audio_position',
+          value: { ...listenerPosition },
+          source: '3d_audio_controls'
+        });
+        showSpectralToast(`Position Z: ${listenerPosition.z.toFixed(1)}`);
+      }
+    });
+  }
 
   // Spectral Preset Controls
   const presetSelect = document.getElementById('spectral-preset-select');
@@ -4018,7 +4583,11 @@ function showCollaborativeSpectralToast(username, parameter, value, userColor) {
     spectral_enabled: 'Spectral overlay',
     spectral_mode: 'Spectral mode',
     spectral_fft_size: 'FFT size',
-    spectral_log_scale: 'Log frequency'
+    spectral_log_scale: 'Log frequency',
+    spectral_audio_enabled: '3D Audio',
+    spectral_audio_mode: 'Spatial mode',
+    spectral_audio_spread: 'Spatial spread',
+    spectral_audio_position: 'Spatial position'
   };
 
   const paramName = parameterNames[parameter] || parameter;
@@ -4028,6 +4597,14 @@ function showCollaborativeSpectralToast(username, parameter, value, userColor) {
     valueText = value ? 'enabled' : 'disabled';
   } else if (parameter === 'spectral_log_scale') {
     valueText = value ? 'ON' : 'OFF';
+  } else if (parameter === 'spectral_audio_enabled') {
+    valueText = value ? 'enabled' : 'disabled';
+  } else if (parameter === 'spectral_audio_spread') {
+    valueText = parseFloat(value).toFixed(1);
+  } else if (parameter === 'spectral_audio_position') {
+    if (typeof value === 'object' && value.x !== undefined) {
+      valueText = `(${value.x.toFixed(1)}, ${value.y.toFixed(1)}, ${value.z.toFixed(1)})`;
+    }
   }
 
   const message = `${username} changed ${paramName}: ${valueText}`;
@@ -4048,6 +4625,7 @@ function onWindowResize() {
 function animate() {
   updateCamera();
   updateInstrument();
+  updateSpatialAudio(); // Update 3D audio spatialization
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -4112,6 +4690,7 @@ setupCursorTracking(); // Initialize cursor tracking for collaborative mode
 setupCollaborativeChat(); // Initialize chat system for collaborative mode
 setupSpectralControls(); // Initialize spectral overlay controls
 startFFTAnalysis(); // Start FFT spectral analysis
+init3DAudioSystem(); // Initialize 3D audio spatialization
 animate();
 
 console.log('🌊 Signal→Form Spherical POV initialized');
