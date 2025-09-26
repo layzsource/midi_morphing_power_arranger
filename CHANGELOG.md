@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2024-12-26 — Advanced Spectral Analysis
+
+### Modal Energy Distribution & Temporal History
+- **Modal Energy Visualization**: Color-coded frequency bands with dominant mode tracking, enhanced with exponential fade curves and pulsing energy indicators
+- **Extended Waterfall Buffer**: Temporal band history buffer with 15-second persistence and scrolling spectrogram with enhanced color mapping
+- **Frequency Grid Overlays**: Time and frequency grid lines for professional spectral analysis readability
+- **Enhanced Color Palette**: Sub-bass through brilliance frequency range mapping with dynamic alpha blending
+
+### Collaborative Spectral Events with Full User Attribution
+- **spectral_enabled**: Real-time toggle synchronization across all collaborative sessions with toast notifications
+- **spectral_mode**: Mode switching (bars, waterfall, modal_energy, temporal_evolution) with user attribution
+- **spectral_fft_size**: FFT size changes broadcast with enhanced user color feedback
+- **spectral_log_scale**: Linear/logarithmic frequency scaling toggle with collaborative sync
+- **Enhanced Toast System**: Contextual spectral notifications with user color coding and 3-second auto-dismiss
+
+### Performance & Compatibility
+- **Efficient Rendering**: Optimized canvas operations with timestamp-based temporal fade calculations
+- **Backward Compatibility**: All existing bars and waterfall modes preserved unchanged with no performance regressions
+- **Collaborative Integration**: Seamless real-time parameter synchronization across multi-user sessions
+
+*"Advanced spectral analysis modes transform the Signal→Form Engine into a professional-grade collaborative audio visualization platform."*
+
+---
+
 ## [0.2.1] - 2024-12-26 — Spectral Overlay Refinements
 
 ### Enhanced FFT Controls & Visual Experience
