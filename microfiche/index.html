@@ -4,26 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Signal→Form: Spherical POV Microfiche</title>
+
+  <!-- UI Seed: Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
+    /* UI Seed: CSS Variables and Typography */
+    :root {
+      --accent: #00bfa6; /* cyan/teal accent */
+      --bg: #000000;      /* keep dark background for visualization */
+      --fg: #eaeaea;      /* light text for dark theme */
+      --panel: #1a1a1a;   /* dark panel background */
+      --panel-light: #2a2a2a; /* lighter panel for depth */
+    }
+
     html, body {
       margin: 0;
       height: 100%;
       overflow: hidden;
-      background: #000;
-      color: #eaeaea;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+    }
+
+    /* UI Seed: Panel Depth with Enhanced Design */
+    .panel, #hud {
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .panel:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.5);
+      transform: translateY(-1px);
     }
 
     #hud {
       position: fixed;
       top: 12px;
       left: 12px;
-      background: rgba(0,0,0,0.7);
-      padding: 12px 16px;
-      border-radius: 16px;
       min-width: 320px;
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.1);
     }
 
     #hud .row {
@@ -247,25 +270,49 @@
       margin: 0;
     }
 
-    .spectral-btn {
-      background: #1e40af;
+    /* UI Seed: Accent Button Styling */
+    .spectral-btn, .accent {
+      background: var(--accent);
       color: white;
-      border: 1px solid #3b82f6;
-      padding: 2px 8px;
+      border: 1px solid var(--accent);
+      padding: 6px 12px;
       font-size: 11px;
-      border-radius: 3px;
+      border-radius: 6px;
       cursor: pointer;
       min-width: 30px;
+      transition: all 0.2s ease;
     }
 
-    .spectral-btn:hover {
-      background: #2563eb;
+    .spectral-btn:hover, .accent:hover {
+      background: #00a693;
+      border-color: #00a693;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 191, 166, 0.3);
     }
 
     .spectral-btn.off {
       background: #374151;
       border-color: #6b7280;
       color: #9ca3af;
+    }
+
+    /* UI Seed: Breathing Glow Animation */
+    .glow-tile {
+      animation: breathe 4s ease-in-out infinite;
+      border: 2px solid var(--accent);
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.9;
+        box-shadow: 0 0 5px rgba(0, 191, 166, 0.3);
+      }
+      50% {
+        transform: scale(1.02);
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(0, 191, 166, 0.6), 0 0 30px rgba(0, 191, 166, 0.4);
+      }
     }
 
     .spectral-select {
@@ -808,7 +855,7 @@
 
 <!-- HUD Controls -->
 <div id="hud">
-  <div class="title">Signal→Form Spherical POV</div>
+  <div class="title glow-tile">Signal→Form Spherical POV</div>
 
   <div class="row">
     <span class="param">Zoom (ζ)</span>
@@ -2729,25 +2776,50 @@ function setupWindowFocusHandling() {
 }
 
 // MIDI WebSocket connection
+// Enhanced MIDI WebSocket with comprehensive error handling and resilience
+let midiReconnectAttempts = 0;
+const maxMidiReconnectAttempts = 10;
+const midiReconnectDelay = 3000;
+let midiLastConnected = null;
+
 function connectMidiWebSocket() {
   try {
+    // Close existing connection if present
+    if (midiWS && (midiWS.readyState === WebSocket.OPEN || midiWS.readyState === WebSocket.CONNECTING)) {
+      midiWS.close();
+    }
+
     midiWS = new WebSocket('ws://localhost:7072/midi');
 
     midiWS.onopen = () => {
       document.getElementById('midi-status').textContent = 'MIDI: Connected';
       document.getElementById('midi-status').style.color = '#34d399';
-      console.log('MIDI WebSocket connected');
+      midiReconnectAttempts = 0; // Reset reconnect counter on successful connection
+      midiLastConnected = Date.now();
+      console.log('🎛️ MIDI WebSocket connected successfully');
     };
 
     midiWS.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
 
+        // Validate message structure
+        if (!data || typeof data !== 'object') {
+          console.warn('Invalid MIDI message structure:', data);
+          return;
+        }
+
         // Handle CC (Control Change) messages
         if (data.type === 'cc' && typeof data.cc === 'number' && typeof data.value === 'number') {
           // Only process MIDI if this window is active
           if (!isWindowActive) {
             console.log(`🔇 Ignoring MIDI CC${data.cc} - window not active`);
+            return;
+          }
+
+          // Validate CC values
+          if (data.cc < 0 || data.cc > 127 || data.value < 0 || data.value > 127) {
+            console.warn(`Invalid MIDI CC values: CC${data.cc}=${data.value}`);
             return;
           }
 
@@ -2876,27 +2948,73 @@ function connectMidiWebSocket() {
         }
 
       } catch (error) {
-        console.warn('Error parsing MIDI data:', error);
+        console.warn('Error parsing MIDI data:', error, 'Raw data:', event.data);
       }
     };
 
-    midiWS.onerror = () => {
+    midiWS.onerror = (error) => {
+      console.error('MIDI WebSocket error:', error);
       document.getElementById('midi-status').textContent = 'MIDI: Error';
       document.getElementById('midi-status').style.color = '#ef4444';
+
+      // Update reconnect attempts
+      midiReconnectAttempts++;
     };
 
-    midiWS.onclose = () => {
+    midiWS.onclose = (event) => {
+      const wasConnected = midiLastConnected && (Date.now() - midiLastConnected) > 1000;
+
+      console.log(`MIDI WebSocket closed. Code: ${event.code}, Reason: ${event.reason}, Was connected: ${wasConnected}`);
+
       document.getElementById('midi-status').textContent = 'MIDI: Disconnected';
       document.getElementById('midi-status').style.color = '#f59e0b';
-      // Reconnect after delay
-      setTimeout(connectMidiWebSocket, 3000);
+
+      // Implement exponential backoff for reconnection
+      if (midiReconnectAttempts < maxMidiReconnectAttempts) {
+        const delay = Math.min(midiReconnectDelay * Math.pow(2, midiReconnectAttempts), 30000);
+        console.log(`Attempting MIDI reconnect ${midiReconnectAttempts + 1}/${maxMidiReconnectAttempts} in ${delay}ms`);
+
+        setTimeout(() => {
+          if (midiReconnectAttempts < maxMidiReconnectAttempts) {
+            connectMidiWebSocket();
+          }
+        }, delay);
+      } else {
+        console.error('Max MIDI reconnection attempts reached. Manual intervention required.');
+        document.getElementById('midi-status').textContent = 'MIDI: Failed (Max retries)';
+        document.getElementById('midi-status').style.color = '#dc2626';
+      }
     };
+
+    // Set connection timeout
+    setTimeout(() => {
+      if (midiWS && midiWS.readyState === WebSocket.CONNECTING) {
+        console.warn('MIDI WebSocket connection timeout');
+        midiWS.close();
+      }
+    }, 10000); // 10 second timeout
 
   } catch (error) {
     console.error('MIDI WebSocket connection failed:', error);
     document.getElementById('midi-status').textContent = 'MIDI: Failed';
     document.getElementById('midi-status').style.color = '#ef4444';
+
+    // Attempt reconnect on initial failure
+    if (midiReconnectAttempts < maxMidiReconnectAttempts) {
+      setTimeout(() => {
+        midiReconnectAttempts++;
+        connectMidiWebSocket();
+      }, midiReconnectDelay);
+    }
   }
+}
+
+// Helper function to reset MIDI connection manually
+function resetMidiConnection() {
+  console.log('🔄 Manually resetting MIDI connection...');
+  midiReconnectAttempts = 0;
+  midiLastConnected = null;
+  connectMidiWebSocket();
 }
 
 // Load collection data

@@ -10,46 +10,64 @@ import json
 import time
 import math
 import random
-from typing import Dict, List, Any
+import logging
+from typing import Dict, List, Any, Set
 
 class EigenmodeStreamServer:
     def __init__(self, port: int = 7070):
         self.port = port
-        self.clients = set()
+        self.clients: Set[websockets.WebSocketServerProtocol] = set()
         self.running = True
+        self.logger = logging.getLogger(__name__)
+
+        # Thread-safe data access
+        self._data_lock = asyncio.Lock()
 
         # Synthetic data for testing (replace with real SpectralGraphEngine output)
         self.coeffs = [0.2, 0.4, 0.3, 0.2]  # c[0..3] for φ₀..φ₃
         self.pmw = 0.5  # Pineal mod wheel
 
-        print(f"🌊 Eigenmode bridge starting on ws://localhost:{port}")
+        self.logger.info(f"🌊 Eigenmode bridge starting on ws://localhost:{port}")
 
     async def register_client(self, websocket, path):
-        """Register new WebSocket client"""
-        self.clients.add(websocket)
-        print(f"📡 Client connected: {len(self.clients)} total")
-
+        """Register new WebSocket client with comprehensive error handling"""
         try:
+            self.clients.add(websocket)
+            self.logger.info(f"📡 Client connected from {websocket.remote_address}: {len(self.clients)} total")
+
+            # Send initial state to new client
+            initial_frame = await self._generate_frame()
+            await websocket.send(json.dumps(initial_frame))
+
             await websocket.wait_closed()
+
+        except Exception as e:
+            self.logger.warning(f"Client connection error: {e}")
         finally:
-            self.clients.remove(websocket)
-            print(f"📡 Client disconnected: {len(self.clients)} total")
+            self.clients.discard(websocket)
+            self.logger.info(f"📡 Client disconnected: {len(self.clients)} total")
 
     async def broadcast_frame(self, frame_data: Dict[str, Any]):
-        """Send frame to all connected clients"""
+        """Send frame to all connected clients with resilient error handling"""
         if not self.clients:
             return
 
-        message = json.dumps(frame_data)
+        try:
+            message = json.dumps(frame_data)
+        except (TypeError, ValueError) as e:
+            self.logger.error(f"Failed to serialize frame data: {e}")
+            return
+
         dead_clients = []
 
-        for client in self.clients:
+        # Create copy of clients to avoid modification during iteration
+        for client in list(self.clients):
             try:
                 await client.send(message)
             except websockets.exceptions.ConnectionClosed:
                 dead_clients.append(client)
             except Exception as e:
-                print(f"❌ Broadcast error: {e}")
+                self.logger.warning(f"Failed to send to client {client.remote_address}: {e}")
                 dead_clients.append(client)
 
         # Clean up dead connections
@@ -102,54 +120,125 @@ class EigenmodeStreamServer:
             "source": "midi"
         }
 
+    async def _generate_frame(self) -> Dict[str, Any]:
+        """Generate current frame data for new clients"""
+        async with self._data_lock:
+            return {
+                "c": self.coeffs.copy(),
+                "pmw": self.pmw,
+                "timestamp": time.time(),
+                "source": "current_state"
+            }
+
     async def data_generator(self):
-        """Main data generation loop"""
+        """Main data generation loop with enhanced error handling"""
         start_time = time.time()
         frame_count = 0
+        error_count = 0
+        max_errors = 100
+
+        self.logger.info("🌊 Data generator started")
 
         while self.running:
-            current_time = time.time()
-            elapsed = current_time - start_time
+            try:
+                current_time = time.time()
+                elapsed = current_time - start_time
 
-            # Generate frame data
-            frame_data = self.generate_synthetic_data(elapsed)
+                # Generate frame data with thread safety
+                async with self._data_lock:
+                    frame_data = self.generate_synthetic_data(elapsed)
+                    # Update internal state
+                    self.coeffs = frame_data["c"]
+                    self.pmw = frame_data["pmw"]
 
-            # Broadcast to all clients
-            await self.broadcast_frame(frame_data)
+                # Broadcast to all clients
+                await self.broadcast_frame(frame_data)
 
-            frame_count += 1
-            if frame_count % 300 == 0:  # Log every 5 seconds at 60fps
-                print(f"🌊 Streamed {frame_count} frames, {len(self.clients)} clients")
+                frame_count += 1
+                error_count = 0  # Reset error count on successful frame
 
-            # Maintain ~60 FPS
-            await asyncio.sleep(1/60.0)
+                if frame_count % 300 == 0:  # Log every 5 seconds at 60fps
+                    self.logger.info(f"🌊 Streamed {frame_count} frames, {len(self.clients)} clients")
+
+                # Maintain ~60 FPS
+                await asyncio.sleep(1/60.0)
+
+            except Exception as e:
+                error_count += 1
+                self.logger.error(f"Data generation error {error_count}/{max_errors}: {e}")
+
+                if error_count >= max_errors:
+                    self.logger.critical("Too many data generation errors, stopping")
+                    self.running = False
+                    break
+
+                # Brief pause before retry
+                await asyncio.sleep(0.1)
+
+        self.logger.info("🌊 Data generator stopped")
 
     async def start_server(self):
-        """Start WebSocket server and data generator"""
-
-        # Start WebSocket server
-        server = await websockets.serve(
-            self.register_client,
-            "localhost",
-            self.port,
-            ping_interval=None,  # Disable ping/pong for performance
-            ping_timeout=None
-        )
-
-        print(f"🚀 Server running on ws://localhost:{self.port}")
-        print("📖 Open eigenmode_cube.html in browser to see live visualization")
-
-        # Start data generator
-        data_task = asyncio.create_task(self.data_generator())
+        """Start WebSocket server and data generator with comprehensive error handling"""
+        data_task = None
+        server = None
 
         try:
+            # Start WebSocket server
+            server = await websockets.serve(
+                self.register_client,
+                "localhost",
+                self.port,
+                ping_interval=20,  # Keep connections alive
+                ping_timeout=10,
+                close_timeout=10
+            )
+
+            self.logger.info(f"🚀 Server running on ws://localhost:{self.port}")
+            self.logger.info("📖 Open eigenmode_cube.html in browser to see live visualization")
+
+            # Start data generator
+            data_task = asyncio.create_task(self.data_generator())
+
+            # Wait for shutdown
             await server.wait_closed()
+
         except KeyboardInterrupt:
-            print("\n🛑 Shutting down...")
-            self.running = False
+            self.logger.info("Shutdown requested via KeyboardInterrupt")
+        except Exception as e:
+            self.logger.error(f"Server error: {e}")
+        finally:
+            await self._cleanup(server, data_task)
+
+    async def _cleanup(self, server, data_task):
+        """Clean shutdown of all resources"""
+        self.logger.info("Shutting down Eigenmode Bridge...")
+
+        self.running = False
+
+        # Stop data generator
+        if data_task and not data_task.done():
             data_task.cancel()
+            try:
+                await data_task
+            except asyncio.CancelledError:
+                pass
+
+        # Close server
+        if server:
             server.close()
             await server.wait_closed()
+
+        # Close remaining WebSocket connections
+        if self.clients:
+            self.logger.info(f"Closing {len(self.clients)} remaining connections")
+            for client in list(self.clients):
+                try:
+                    await client.close()
+                except Exception:
+                    pass
+            self.clients.clear()
+
+        self.logger.info("Eigenmode Bridge shutdown complete")
 
 # Integration hook for real SpectralGraphEngine
 class SpectralEngineAdapter:
@@ -189,13 +278,29 @@ class SpectralEngineAdapter:
         await self.server.broadcast_frame(frame_data)
 
 async def main():
-    """Main entry point"""
+    """Main entry point with proper logging setup"""
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler('eigenmode_bridge.log', mode='a')
+        ]
+    )
+
+    logger = logging.getLogger(__name__)
+    logger.info("🌊 Signal→Form Eigenmode Bridge starting...")
+
     server = EigenmodeStreamServer(port=7070)
 
     try:
         await server.start_server()
     except KeyboardInterrupt:
-        print("👋 Goodbye!")
+        logger.info("👋 Goodbye!")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        raise
 
 if __name__ == "__main__":
     print("🌊 Signal→Form Eigenmode Bridge")
