@@ -14,15 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sprite Audio Sources**: Each portal sprite rendered as individual positional audio source with distance attenuation
 
 ### Advanced Spatial Controls & Parameter Mapping
-- **HUD Controls**: Added "3D Audio" toggle, "Spatial Mode" dropdown (binaural/stereo/ambient), and "Spread" slider
+- **HUD Controls**: Added "3D Audio" toggle, "Spatial Mode" dropdown (binaural/stereo/ambient), "Spread" slider, and X/Y/Z Position controls
+- **Eigenmode Mapping**: Automatic mapping of first 3 eigenmode coefficients to listener X/Y/Z position in 3D space
 - **Parameter Integration**: Zeta (zoom) controls listener position, Unity/Flatness mapped to spatial spread and diffusion
+- **Manual Positioning**: Direct control of listener position via HUD sliders with real-time collaborative sync
 - **Ambient Soundscape**: Layered ambient audio with positional sprite playback for comprehensive spatial experience
 - **Real-time Updates**: Continuous spatial audio updates synchronized with main animation loop
 
 ### Collaborative Spatial Audio Events
-- **spatial_audio_enabled**: Real-time 3D audio toggle synchronization across all collaborative sessions
-- **spatial_audio_mode**: Spatial mode switching (binaural/stereo/ambient) with user attribution and toast notifications
-- **spatial_audio_spread**: Spatial spread parameter changes broadcast with enhanced user color feedback
+- **spectral_audio_enabled**: Real-time 3D audio toggle synchronization across all collaborative sessions
+- **spectral_audio_mode**: Spatial mode switching (binaural/stereo/ambient) with user attribution and toast notifications
+- **spectral_audio_spread**: Spatial spread parameter changes broadcast with enhanced user color feedback
+- **spectral_audio_position**: Real-time listener position updates with x,y,z coordinates synchronized across sessions
 - **Enhanced Toast System**: Contextual 3D audio notifications with user color coding and parameter-specific messages
 
 ### Backward Compatibility & Fallbacks
