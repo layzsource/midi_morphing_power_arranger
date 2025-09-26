@@ -5491,7 +5491,17 @@ function setupSpectralControls() {
     spectralHudExpanded = !spectralHudExpanded;
     hudToggleBtn.textContent = spectralHudExpanded ? 'ON' : 'OFF';
     hudToggleBtn.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
-    advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+    advancedControls.style.display = spectralHudExpanded ? 'block' : 'none';
+
+    // Emergency fix: also toggle Mythic Cycle containers
+    const rod = document.querySelector('.dowsing-rod-container');
+    if (rod) rod.style.display = spectralHudExpanded ? 'block' : 'none';
+
+    const peri = document.querySelector('.periaktos-container');
+    if (peri) peri.style.display = spectralHudExpanded ? 'block' : 'none';
+
+    const rgb = document.querySelector('.rgb-hexagon-container');
+    if (rgb) rgb.style.display = spectralHudExpanded ? 'block' : 'none';
 
     // Broadcast to collaborative users if applicable
     if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
