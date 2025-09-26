@@ -241,7 +241,7 @@
       flex-wrap: wrap;
     }
 
-    .spectral-label, .spectral-fft-label {
+    .spectral-label, .spectral-fft-label, .spectral-depth-label {
       font-size: 12px;
       color: #94a3b8;
       margin: 0;
@@ -819,15 +819,27 @@
     <span id="users-online-badge" class="users-online-badge" style="display: none;">👥 <span id="users-count">0</span></span>
   </div>
   <div class="row spectral-controls">
-    <label class="spectral-label">Spectral:</label>
+    <label class="spectral-label">Spectral HUD:</label>
+    <button id="spectral-hud-toggle" class="spectral-btn">ON</button>
+  </div>
+  <div id="spectral-advanced-controls" class="row spectral-controls">
     <button id="spectral-toggle" class="spectral-btn">ON</button>
     <select id="spectral-mode" class="spectral-select">
       <option value="bars">Bars</option>
       <option value="waterfall">Waterfall</option>
+      <option value="modal_energy">Modal Energy</option>
+      <option value="temporal_evolution">Temporal Evolution</option>
+      <option value="advanced_spectrogram">Advanced Spectrogram</option>
     </select>
     <label class="spectral-fft-label">FFT:</label>
     <input type="range" id="spectral-fft-size" min="256" max="2048" step="256" value="256" class="spectral-slider">
     <span id="spectral-fft-val" class="spectral-val">256</span>
+    <label class="spectral-depth-label">History:</label>
+    <select id="temporal-depth" class="spectral-select">
+      <option value="5000">5s</option>
+      <option value="15000" selected>15s</option>
+      <option value="60000">60s</option>
+    </select>
     <div class="fft-presets">
       <button class="fft-preset-btn" data-size="256">256</button>
       <button class="fft-preset-btn" data-size="512">512</button>
@@ -2091,7 +2103,11 @@ function handleCollaborativeParameterUpdate(data) {
     case 'spectral_mode':
       spectralMode = data.value;
       document.getElementById('spectral-mode').value = spectralMode;
-      waterfallBuffer = []; // Reset waterfall buffer
+      // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
       showCollaborativeSpectralToast(data.username, 'spectral_mode', data.value, data.user_color);
       break;
 
@@ -2105,7 +2121,11 @@ function handleCollaborativeParameterUpdate(data) {
         if (analyser) {
           analyser.fftSize = fftSize;
           fftDataArray = new Uint8Array(analyser.frequencyBinCount);
-          waterfallBuffer = []; // Reset waterfall buffer
+          // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
         }
       }
       showCollaborativeSpectralToast(data.username, 'spectral_fft_size', data.value, data.user_color);
@@ -2117,11 +2137,39 @@ function handleCollaborativeParameterUpdate(data) {
       if (logToggle) {
         logToggle.classList.toggle('active', logFrequencyScale);
       }
-      waterfallBuffer = []; // Reset waterfall buffer
+      // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
       if (typeof gradientCache !== 'undefined') {
         gradientCache.clear();
       }
       showCollaborativeSpectralToast(data.username, 'spectral_log_scale', data.value, data.user_color);
+      break;
+
+    case 'spectral_hud_expanded':
+      spectralHudExpanded = data.value;
+      const hudToggle = document.getElementById('spectral-hud-toggle');
+      const advancedControls = document.getElementById('spectral-advanced-controls');
+      if (hudToggle) {
+        hudToggle.textContent = spectralHudExpanded ? 'ON' : 'OFF';
+        hudToggle.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
+      }
+      if (advancedControls) {
+        advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_hud', spectralHudExpanded ? 'expanded' : 'collapsed', data.user_color);
+      break;
+
+    case 'spectral_history_depth':
+      temporalDepthMs = data.value;
+      const depthSelect = document.getElementById('temporal-depth');
+      if (depthSelect) {
+        depthSelect.value = temporalDepthMs.toString();
+      }
+      temporalBuffer = []; // Clear buffer when depth changes
+      showCollaborativeSpectralToast(data.username, 'history_depth', `${data.value / 1000}s`, data.user_color);
       break;
 
     default:
@@ -2823,6 +2871,22 @@ let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
 let gradientCache = new Map();
 
+// Advanced spectral analysis data
+let temporalBuffer = []; // For temporal evolution tracking
+let modalEnergyHistory = []; // For modal energy distribution
+let spectralPeaks = []; // Track spectral peaks over time
+let temporalDepthMs = 15000; // Default 15 seconds
+let spectralHudExpanded = true; // Main spectral HUD state
+let energyBands = { // Frequency band definitions
+  sub: { min: 20, max: 60, energy: 0 },
+  bass: { min: 60, max: 250, energy: 0 },
+  lowMid: { min: 250, max: 500, energy: 0 },
+  mid: { min: 500, max: 2000, energy: 0 },
+  highMid: { min: 2000, max: 4000, energy: 0 },
+  high: { min: 4000, max: 8000, energy: 0 },
+  ultra: { min: 8000, max: 20000, energy: 0 }
+};
+
 // Spectral Preset System
 let spectralPresets = {};
 let currentSpectralPreset = null;
@@ -3004,8 +3068,11 @@ function resizeFFTCanvas() {
   fftCanvas.width = containerRect.width;
   fftCanvas.height = containerRect.height - headerHeight;
 
-  // Clear waterfall buffer on resize
+  // Clear all spectral buffers on resize
   waterfallBuffer = [];
+  temporalBuffer = [];
+  modalEnergyHistory = [];
+  spectralPeaks = [];
   gradientCache.clear();
 }
 
@@ -3027,6 +3094,12 @@ function updateFFTVisualization() {
     renderFFTBars(ctx, canvas);
   } else if (spectralMode === 'waterfall') {
     renderFFTWaterfall(ctx, canvas);
+  } else if (spectralMode === 'modal_energy') {
+    renderModalEnergy(ctx, canvas);
+  } else if (spectralMode === 'temporal_evolution') {
+    renderTemporalEvolution(ctx, canvas);
+  } else if (spectralMode === 'advanced_spectrogram') {
+    renderAdvancedSpectrogram(ctx, canvas);
   }
 
   requestAnimationFrame(updateFFTVisualization);
@@ -3070,12 +3143,14 @@ function renderFFTBars(ctx, canvas) {
 }
 
 function renderFFTWaterfall(ctx, canvas) {
-  // Shift waterfall buffer down
-  if (waterfallBuffer.length >= canvas.height) {
+  // Enhanced waterfall with temporal band history buffer (longer persistence)
+  const maxBufferSize = Math.max(canvas.height * 3, 800); // Extended buffer for scrolling spectrogram
+
+  if (waterfallBuffer.length >= maxBufferSize) {
     waterfallBuffer.shift();
   }
 
-  // Process new line with log-frequency if enabled
+  // Process new line with enhanced frequency mapping
   let processedLine;
   if (logFrequencyScale) {
     processedLine = new Array(canvas.width);
@@ -3091,6 +3166,8 @@ function renderFFTWaterfall(ctx, canvas) {
     }
   }
 
+  // Add timestamp for temporal band tracking
+  processedLine.timestamp = Date.now();
   waterfallBuffer.push(processedLine);
 
   // Create gradient if not cached
@@ -3105,31 +3182,96 @@ function renderFFTWaterfall(ctx, canvas) {
     gradientCache.set(gradientKey, gradient);
   }
 
-  // Render waterfall with smooth gradients
+  // Enhanced scrolling spectrogram with temporal persistence
   const imageData = ctx.createImageData(canvas.width, canvas.height);
   const data = imageData.data;
+  const currentTime = Date.now();
+  const fadeTime = 15000; // 15 second fade for longer persistence
 
-  for (let y = 0; y < waterfallBuffer.length; y++) {
-    const lineData = waterfallBuffer[y];
+  // Render with temporal fade and enhanced spectral bands
+  const displayHeight = Math.min(waterfallBuffer.length, canvas.height);
+  const startIndex = Math.max(0, waterfallBuffer.length - displayHeight);
+
+  for (let y = 0; y < displayHeight; y++) {
+    const bufferIndex = startIndex + y;
+    const lineData = waterfallBuffer[bufferIndex];
+    const age = currentTime - (lineData.timestamp || currentTime);
+    const fadeFactor = Math.max(0.2, 1 - (age / fadeTime));
+
     for (let x = 0; x < lineData.length && x < canvas.width; x++) {
-      const intensity = lineData[x] / 255;
+      const intensity = (lineData[x] / 255) * fadeFactor;
       const pixelIndex = (y * canvas.width + x) * 4;
 
-      // Smooth color interpolation
-      const hue = 240 - (intensity * 200); // Blue to red
-      const saturation = 70 + (intensity * 30);
-      const lightness = intensity * 60;
+      // Enhanced spectral color mapping with temporal bands
+      let r, g, b;
+      if (intensity < 0.25) {
+        // Low: Deep blue to cyan
+        const t = intensity * 4;
+        r = Math.floor(t * 50);
+        g = Math.floor(t * 150);
+        b = Math.floor(200 + t * 55);
+      } else if (intensity < 0.5) {
+        // Mid-low: Cyan to green
+        const t = (intensity - 0.25) * 4;
+        r = Math.floor(50 * (1 - t));
+        g = Math.floor(150 + t * 105);
+        b = Math.floor(255 * (1 - t * 0.8));
+      } else if (intensity < 0.75) {
+        // Mid-high: Green to yellow
+        const t = (intensity - 0.5) * 4;
+        r = Math.floor(t * 255);
+        g = 255;
+        b = Math.floor(50 * (1 - t));
+      } else {
+        // High: Yellow to red with white peaks
+        const t = (intensity - 0.75) * 4;
+        r = 255;
+        g = Math.floor(255 * (1 - t * 0.6));
+        b = Math.floor(20 * (1 - t));
 
-      const rgb = hslToRgb(hue / 360, saturation / 100, lightness / 100);
+        // Add white highlights for extreme peaks
+        if (intensity > 0.9) {
+          const whiteFactor = (intensity - 0.9) * 10;
+          r = Math.floor(r + (255 - r) * whiteFactor);
+          g = Math.floor(g + (255 - g) * whiteFactor);
+          b = Math.floor(b + (255 - b) * whiteFactor);
+        }
+      }
 
-      data[pixelIndex] = rgb[0];     // R
-      data[pixelIndex + 1] = rgb[1]; // G
-      data[pixelIndex + 2] = rgb[2]; // B
-      data[pixelIndex + 3] = Math.min(255, 200 + intensity * 55); // A
+      data[pixelIndex] = r;     // Red
+      data[pixelIndex + 1] = g; // Green
+      data[pixelIndex + 2] = b; // Blue
+      data[pixelIndex + 3] = Math.floor(255 * Math.min(1, fadeFactor + 0.1)); // Alpha with fade
     }
   }
 
-  ctx.putImageData(imageData, 0, 0);
+  ctx.putImageData(imageData, 0, canvas.height - displayHeight);
+
+  // Add temporal frequency grid for better readability
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1;
+
+  // Frequency grid lines
+  for (let i = 0; i < 10; i++) {
+    const x = (i / 9) * canvas.width;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  // Time grid lines (every 2 seconds)
+  const timeGridSpacing = 120; // ~2 seconds at 60fps
+  for (let i = timeGridSpacing; i < displayHeight; i += timeGridSpacing) {
+    const y = canvas.height - i;
+    if (y > 0) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }
 }
 
 function getLogIndex(linearIndex, linearMax, dataLength) {
@@ -3164,12 +3306,440 @@ function hslToRgb(h, s, l) {
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
+// Advanced Spectral Visualization Functions
+
+function renderModalEnergy(ctx, canvas) {
+  // Calculate energy for each frequency band and eigenmode
+  updateEnergyBands();
+  updateModalEigenmodes();
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Add current snapshot to modal energy history
+  const currentSnapshot = {};
+  const bandNames = Object.keys(energyBands);
+  bandNames.forEach(bandName => {
+    currentSnapshot[bandName] = energyBands[bandName].energy;
+  });
+
+  modalEnergyHistory.push(currentSnapshot);
+  const maxHistoryLength = Math.min(canvas.width * 2, 300); // Increased history depth
+  if (modalEnergyHistory.length > maxHistoryLength) {
+    modalEnergyHistory.shift();
+  }
+
+  // Draw stacked curves per eigenmode with fading history
+  const timeStep = canvas.width / Math.max(1, modalEnergyHistory.length - 1);
+  const modeColors = [
+    'rgba(255, 100, 100, 0.9)', // Red
+    'rgba(100, 255, 100, 0.9)', // Green
+    'rgba(100, 100, 255, 0.9)', // Blue
+    'rgba(255, 255, 100, 0.9)', // Yellow
+    'rgba(255, 100, 255, 0.9)', // Magenta
+    'rgba(100, 255, 255, 0.9)', // Cyan
+    'rgba(255, 150, 0, 0.9)'    // Orange
+  ];
+
+  // Draw historical curves with fading
+  bandNames.forEach((bandName, bandIndex) => {
+    if (modalEnergyHistory.length < 2) return;
+
+    const color = modeColors[bandIndex % modeColors.length];
+    const [r, g, b] = color.match(/\d+/g).map(Number);
+
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+
+    for (let i = 0; i < modalEnergyHistory.length; i++) {
+      const snapshot = modalEnergyHistory[i];
+      const energy = snapshot[bandName] || 0;
+
+      // Fade older history
+      const age = (modalEnergyHistory.length - 1 - i) / modalEnergyHistory.length;
+      const alpha = Math.max(0.1, 1 - age * 0.8);
+
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+      const x = i * timeStep;
+      const y = canvas.height - (energy * canvas.height * 0.8) - 20; // Leave space for labels
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.stroke();
+
+    // Draw current energy level with glow
+    const currentEnergy = energyBands[bandName].energy;
+    const currentY = canvas.height - (currentEnergy * canvas.height * 0.8) - 20;
+
+    ctx.beginPath();
+    ctx.arc(canvas.width - 5, currentY, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // Draw eigenmode labels and current values
+  const labelY = canvas.height - 5;
+  const labelSpacing = canvas.width / bandNames.length;
+
+  bandNames.forEach((bandName, index) => {
+    const x = (index + 0.5) * labelSpacing;
+    const energy = energyBands[bandName].energy;
+    const color = modeColors[index % modeColors.length];
+
+    // Mode label
+    ctx.fillStyle = color.replace('0.9', '1');
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`M${index + 1}`, x, labelY);
+
+    // Energy percentage
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '8px Arial';
+    ctx.fillText(`${(energy * 100).toFixed(0)}%`, x, labelY - 12);
+  });
+
+  // Add time axis
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height - 25);
+  ctx.lineTo(canvas.width, canvas.height - 25);
+  ctx.stroke();
+
+  // Time labels
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = '8px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Past', 5, canvas.height - 28);
+  ctx.textAlign = 'right';
+  ctx.fillText('Now', canvas.width - 5, canvas.height - 28);
+}
+
+function renderTemporalEvolution(ctx, canvas) {
+  // Track spectral evolution over time with adjustable depth
+  const currentSpectrum = Array.from(fftDataArray).map(val => val / 255);
+  temporalBuffer.push({
+    spectrum: currentSpectrum,
+    timestamp: Date.now()
+  });
+
+  // Calculate buffer size based on temporal depth setting
+  const temporalDepthMs = getTemporalDepth();
+  const frameRate = 60; // Assume 60 FPS for buffer calculation
+  const maxBufferSize = Math.min(
+    Math.floor((temporalDepthMs / 1000) * frameRate),
+    canvas.height
+  );
+
+  // Remove old frames beyond temporal depth
+  const cutoffTime = Date.now() - temporalDepthMs;
+  while (temporalBuffer.length > 0 && temporalBuffer[0].timestamp < cutoffTime) {
+    temporalBuffer.shift();
+  }
+
+  // Also limit by buffer size for performance
+  if (temporalBuffer.length > maxBufferSize) {
+    temporalBuffer.shift();
+  }
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Create temporal evolution display with rolling history
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let t = 0; t < temporalBuffer.length; t++) {
+    const spectrumData = temporalBuffer[t];
+    const spectrum = spectrumData.spectrum;
+    const age = (Date.now() - spectrumData.timestamp) / temporalDepthMs;
+
+    // Y position based on time (newest at top)
+    const y = canvas.height - ((t + 1) / temporalBuffer.length) * canvas.height;
+
+    for (let f = 0; f < Math.min(spectrum.length, canvas.width); f++) {
+      const x = (f / spectrum.length) * canvas.width;
+      const intensity = spectrum[f];
+
+      if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+        const pixelIndex = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
+
+        // Time-based fading (recent = bright, older = dim)
+        const timeAlpha = Math.max(0.1, 1 - age * 0.9);
+        const baseIntensity = intensity * timeAlpha;
+
+        // Enhanced color mapping for frequency content
+        const hue = 240 - (f / spectrum.length) * 180; // Blue to red across frequency
+        const saturation = 0.8 + intensity * 0.2;
+        const lightness = baseIntensity * 0.7;
+
+        const rgb = hslToRgb(hue / 360, saturation, lightness);
+
+        if (pixelIndex >= 0 && pixelIndex < data.length - 3) {
+          data[pixelIndex] = rgb[0];     // R
+          data[pixelIndex + 1] = rgb[1]; // G
+          data[pixelIndex + 2] = rgb[2]; // B
+          data[pixelIndex + 3] = Math.min(255, baseIntensity * 200); // A
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Add enhanced temporal axis and time markers
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.lineWidth = 1;
+
+  // Time grid lines
+  const timeSteps = 5;
+  for (let i = 1; i < timeSteps; i++) {
+    const y = (i / timeSteps) * canvas.height;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+
+    // Time labels
+    const timeAgo = (temporalDepthMs * i / timeSteps) / 1000;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '8px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`-${timeAgo.toFixed(1)}s`, 2, y - 2);
+  }
+
+  // Frequency markers
+  const freqSteps = 4;
+  for (let i = 1; i < freqSteps; i++) {
+    const x = (i / freqSteps) * canvas.width;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+
+    // Frequency labels
+    const freq = (i / freqSteps) * ((audioContext?.sampleRate || 44100) / 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '8px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${(freq / 1000).toFixed(1)}kHz`, x, canvas.height - 2);
+  }
+
+  // Current time and depth indicator
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Depth: ${temporalDepthMs / 1000}s`, canvas.width - 5, 15);
+  ctx.fillText('Now', canvas.width - 5, canvas.height - 5);
+}
+
+function renderAdvancedSpectrogram(ctx, canvas) {
+  // Enhanced spectrogram with peak tracking and harmonic analysis
+  const currentSpectrum = Array.from(fftDataArray).map(val => val / 255);
+
+  // Detect and track spectral peaks
+  detectSpectralPeaks(currentSpectrum);
+
+  // Enhanced waterfall with peak overlays
+  renderFFTWaterfall(ctx, canvas);
+
+  // Overlay spectral peaks
+  if (spectralPeaks.length > 0) {
+    ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+
+    spectralPeaks.forEach(peak => {
+      const x = (peak.frequency / (fftDataArray.length / 2)) * canvas.width;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+
+      // Peak label
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+      ctx.font = '8px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${peak.frequency.toFixed(0)}Hz`, x, 12);
+      ctx.fillText(`${(peak.magnitude * 100).toFixed(0)}%`, x, 24);
+    });
+
+    ctx.setLineDash([]);
+  }
+
+  // Add harmonic series visualization
+  if (spectralPeaks.length > 0) {
+    const fundamental = spectralPeaks[0]; // Assume strongest peak is fundamental
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+
+    // Draw harmonic series
+    for (let harmonic = 2; harmonic <= 8; harmonic++) {
+      const harmonicFreq = fundamental.frequency * harmonic;
+      if (harmonicFreq < fftDataArray.length / 2) {
+        const x = (harmonicFreq / (fftDataArray.length / 2)) * canvas.width;
+        ctx.beginPath();
+        ctx.moveTo(x, canvas.height * 0.8);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function updateEnergyBands() {
+  // Calculate energy in each frequency band
+  const nyquist = audioContext ? audioContext.sampleRate / 2 : 22050;
+  const binSize = nyquist / (fftDataArray.length / 2);
+
+  // Reset energy values
+  Object.keys(energyBands).forEach(key => {
+    energyBands[key].energy = 0;
+  });
+
+  // Calculate energy for each band
+  for (let i = 0; i < fftDataArray.length; i++) {
+    const frequency = i * binSize;
+    const magnitude = fftDataArray[i] / 255;
+
+    Object.keys(energyBands).forEach(bandName => {
+      const band = energyBands[bandName];
+      if (frequency >= band.min && frequency <= band.max) {
+        band.energy += magnitude * magnitude; // Energy is magnitude squared
+      }
+    });
+  }
+
+  // Normalize energy values
+  Object.keys(energyBands).forEach(bandName => {
+    const band = energyBands[bandName];
+    const bandWidth = band.max - band.min;
+    band.energy = Math.sqrt(band.energy / bandWidth); // RMS energy
+  });
+}
+
+function updateModalEigenmodes() {
+  // Update eigenmode energy distribution based on FFT data
+  // This simulates modal decomposition for visualization
+  const modeCount = Object.keys(energyBands).length;
+
+  // Apply modal transformation to frequency bands
+  // Each eigenmode contributes differently to the frequency spectrum
+  const modalWeights = [
+    [1.0, 0.8, 0.3, 0.1, 0.05, 0.02, 0.01], // Mode 1: Fundamental
+    [0.3, 1.0, 0.7, 0.4, 0.2, 0.1, 0.05],   // Mode 2: First harmonic
+    [0.1, 0.4, 1.0, 0.8, 0.5, 0.3, 0.1],    // Mode 3: Second harmonic
+    [0.05, 0.2, 0.5, 1.0, 0.7, 0.4, 0.2],   // Mode 4: Third harmonic
+    [0.02, 0.1, 0.3, 0.6, 1.0, 0.8, 0.4],   // Mode 5: Fourth harmonic
+    [0.01, 0.05, 0.1, 0.3, 0.6, 1.0, 0.7],  // Mode 6: Fifth harmonic
+    [0.005, 0.02, 0.05, 0.1, 0.3, 0.6, 1.0] // Mode 7: High harmonics
+  ];
+
+  const bandNames = Object.keys(energyBands);
+  bandNames.forEach((bandName, bandIndex) => {
+    const rawEnergy = energyBands[bandName].energy;
+
+    // Apply modal weighting - simulate eigenmode contribution
+    if (modalWeights[bandIndex]) {
+      let modalContribution = 0;
+      modalWeights[bandIndex].forEach((weight, freqIndex) => {
+        if (freqIndex < fftDataArray.length / 16) { // Sample subset for performance
+          const freqBinEnergy = (fftDataArray[freqIndex * 16] || 0) / 255;
+          modalContribution += weight * freqBinEnergy;
+        }
+      });
+
+      // Blend raw frequency energy with modal contribution
+      energyBands[bandName].energy = (rawEnergy * 0.7) + (modalContribution * 0.3);
+    }
+  });
+}
+
+function detectSpectralPeaks(spectrum) {
+  spectralPeaks = [];
+  const minPeakHeight = 0.1; // Minimum peak magnitude
+  const minPeakDistance = 5; // Minimum distance between peaks
+
+  for (let i = 1; i < spectrum.length - 1; i++) {
+    if (spectrum[i] > spectrum[i-1] &&
+        spectrum[i] > spectrum[i+1] &&
+        spectrum[i] > minPeakHeight) {
+
+      // Check minimum distance from other peaks
+      const frequency = i;
+      const tooClose = spectralPeaks.some(peak =>
+        Math.abs(peak.frequency - frequency) < minPeakDistance
+      );
+
+      if (!tooClose) {
+        spectralPeaks.push({
+          frequency: frequency,
+          magnitude: spectrum[i]
+        });
+      }
+    }
+  }
+
+  // Sort by magnitude (strongest first) and keep top 10
+  spectralPeaks.sort((a, b) => b.magnitude - a.magnitude);
+  spectralPeaks = spectralPeaks.slice(0, 10);
+}
+
+function getTemporalDepth() {
+  return temporalDepthMs;
+}
+
+function setTemporalDepth(depthMs) {
+  temporalDepthMs = depthMs;
+  // Clear temporal buffer when depth changes
+  temporalBuffer = [];
+
+  // Broadcast to collaborative users if applicable
+  if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+    sendCollaborativeMessage('parameter_change', {
+      parameter: 'spectral_history_depth',
+      value: depthMs,
+      source: 'spectral_controls'
+    });
+  }
+}
+
 function setupSpectralControls() {
+  const hudToggleBtn = document.getElementById('spectral-hud-toggle');
+  const advancedControls = document.getElementById('spectral-advanced-controls');
   const toggleBtn = document.getElementById('spectral-toggle');
   const modeSelect = document.getElementById('spectral-mode');
   const fftSizeSlider = document.getElementById('spectral-fft-size');
   const fftVal = document.getElementById('spectral-fft-val');
+  const temporalDepthSelect = document.getElementById('temporal-depth');
   const presetBtns = document.querySelectorAll('.fft-preset-btn');
+
+  // Main Spectral HUD toggle
+  hudToggleBtn.addEventListener('click', () => {
+    spectralHudExpanded = !spectralHudExpanded;
+    hudToggleBtn.textContent = spectralHudExpanded ? 'ON' : 'OFF';
+    hudToggleBtn.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
+    advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+
+    // Broadcast to collaborative users if applicable
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_hud_expanded',
+        value: spectralHudExpanded,
+        source: 'spectral_controls'
+      });
+    }
+  });
 
   // Toggle spectral overlay
   toggleBtn.addEventListener('click', () => {
@@ -3178,30 +3748,34 @@ function setupSpectralControls() {
     toggleBtn.className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
     fftContainer.style.display = spectralEnabled ? 'block' : 'none';
 
-    // Broadcast to collaborative users if applicable
+    // Broadcast to collaborative users with enhanced user attribution
     if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
       sendCollaborativeMessage('parameter_change', {
         parameter: 'spectral_enabled',
         value: spectralEnabled,
         source: 'spectral_controls'
       });
-      showSpectralToast('Spectral overlay ' + (spectralEnabled ? 'enabled' : 'disabled'));
+      showSpectralToast(`Spectral overlay ${spectralEnabled ? 'enabled' : 'disabled'}`);
     }
   });
 
   // Change visualization mode
   modeSelect.addEventListener('change', () => {
     spectralMode = modeSelect.value;
-    waterfallBuffer = []; // Reset waterfall buffer
+    // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
 
-    // Broadcast to collaborative users if applicable
+    // Broadcast to collaborative users with enhanced user attribution
     if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
       sendCollaborativeMessage('parameter_change', {
         parameter: 'spectral_mode',
         value: spectralMode,
         source: 'spectral_controls'
       });
-      showSpectralToast(`Spectral mode: ${spectralMode}`);
+      showSpectralToast(`Spectral mode: ${spectralMode.replace('_', ' ')}`);
     }
   });
 
@@ -3236,7 +3810,21 @@ function setupSpectralControls() {
       if (analyser) {
         analyser.fftSize = fftSize;
         fftDataArray = new Uint8Array(analyser.frequencyBinCount);
-        waterfallBuffer = []; // Reset waterfall buffer
+        // Reset all spectral buffers
+        waterfallBuffer = [];
+        temporalBuffer = [];
+        modalEnergyHistory = [];
+        spectralPeaks = [];
+      }
+
+      // Broadcast to collaborative users with enhanced user attribution
+      if (fromUser && collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_fft_size',
+          value: fftSize,
+          source: 'spectral_controls'
+        });
+        showSpectralToast(`FFT size: ${fftSize}`);
       }
 
       // Broadcast to collaborative users if applicable
@@ -3254,6 +3842,13 @@ function setupSpectralControls() {
   // Initialize preset buttons
   updatePresetButtons();
   window.updateFFTSize = updateFFTSize; // Make available globally for collaborative updates
+
+  // Temporal Depth Control
+  temporalDepthSelect.addEventListener('change', () => {
+    const newDepth = parseInt(temporalDepthSelect.value);
+    setTemporalDepth(newDepth);
+    showSpectralToast(`History depth: ${newDepth / 1000}s`);
+  });
 
   // Spectral Preset Controls
   const presetSelect = document.getElementById('spectral-preset-select');
@@ -3343,10 +3938,14 @@ function setupFFTInteractions() {
   logToggle.addEventListener('click', () => {
     logFrequencyScale = !logFrequencyScale;
     logToggle.classList.toggle('active', logFrequencyScale);
-    waterfallBuffer = []; // Reset waterfall buffer
+    // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
     gradientCache.clear();
 
-    // Broadcast to collaborative users if applicable
+    // Broadcast to collaborative users with enhanced user attribution
     if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
       sendCollaborativeMessage('parameter_change', {
         parameter: 'spectral_log_scale',
