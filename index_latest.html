@@ -2574,7 +2574,7 @@ function connectMidiWebSocket() {
       console.log('MIDI WebSocket connected');
     };
 
-    midiWS.onmessage = (event) => {
+    midiWS.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
 
