@@ -1,0 +1,4129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Signal→Form: Spherical POV Microfiche</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #eaeaea;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial;
+    }
+
+    #hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 12px 16px;
+      border-radius: 16px;
+      min-width: 320px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #hud .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    #hud .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+
+    #hud .param {
+      font-size: 12px;
+      width: 100px;
+      color: #b8c6d1;
+    }
+
+    #hud input[type=range] {
+      width: 160px;
+      height: 4px;
+      background: #1f2937;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    #hud input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #60a5fa;
+      cursor: pointer;
+    }
+
+    #hud .value {
+      font-size: 11px;
+      color: #9ca3af;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    #hud .status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: #1f2937;
+      font-size: 11px;
+      color: #34d399;
+    }
+
+    #hud .meters {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #hud .meter {
+      flex: 1;
+      height: 24px;
+      background: #1f2937;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hud .meter .fill {
+      height: 100%;
+      transition: width 0.1s ease;
+      border-radius: 4px;
+    }
+
+    #hud .meter.unity .fill { background: #10b981; }
+    #hud .meter.entropy .fill { background: #3b82f6; }
+    #hud .meter.temporal .fill { background: #ef4444; }
+
+    #hud .meter .label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      color: #fff;
+      mix-blend-mode: difference;
+      font-weight: 500;
+    }
+
+    .controls-help {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #9ca3af;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #center-me {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    #center-me:hover {
+      background: rgba(239, 68, 68, 1);
+      transform: scale(1.05);
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .sprite-card {
+      position: absolute;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      pointer-events: none;
+      max-width: 200px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      z-index: 1000;
+    }
+
+    .sprite-card .id {
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 4px;
+    }
+
+    .sprite-card .palette {
+      display: flex;
+      gap: 2px;
+      margin-top: 4px;
+    }
+
+    .sprite-card .color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    /* MIDI Activity Feedback */
+    .midi-activity {
+      position: fixed;
+      top: 20px;
+      right: 350px;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      backdrop-filter: blur(8px);
+    }
+
+    .midi-activity.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .preset-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      opacity: 0;
+      scale: 0.8;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 2000;
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .preset-notification.show {
+      opacity: 1;
+      scale: 1;
+    }
+
+    /* Spectral Controls Styling */
+    .spectral-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .spectral-label, .spectral-fft-label, .spectral-depth-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .spectral-btn {
+      background: #1e40af;
+      color: white;
+      border: 1px solid #3b82f6;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 30px;
+    }
+
+    .spectral-btn:hover {
+      background: #2563eb;
+    }
+
+    .spectral-btn.off {
+      background: #374151;
+      border-color: #6b7280;
+      color: #9ca3af;
+    }
+
+    .spectral-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 11px;
+      border-radius: 3px;
+    }
+
+    .spectral-slider {
+      width: 60px;
+      height: 16px;
+    }
+
+    .spectral-val {
+      font-size: 11px;
+      color: #94a3b8;
+      min-width: 30px;
+    }
+
+    .fft-presets {
+      display: flex;
+      gap: 2px;
+      margin-left: 4px;
+    }
+
+    .fft-preset-btn {
+      background: #374151;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 1px 4px;
+      font-size: 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      min-width: 22px;
+    }
+
+    .fft-preset-btn:hover {
+      background: #4b5563;
+    }
+
+    .fft-preset-btn.active {
+      background: #1e40af;
+      border-color: #3b82f6;
+    }
+
+    .spectral-presets {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .preset-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .preset-select {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+      padding: 2px 4px;
+      font-size: 11px;
+      border-radius: 3px;
+      min-width: 80px;
+    }
+
+    .preset-save-btn {
+      background: #059669;
+      color: white;
+      border: 1px solid #10b981;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .preset-save-btn:hover {
+      background: #047857;
+    }
+
+    .preset-save-btn:disabled {
+      background: #374151;
+      border-color: #6b7280;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .current-preset {
+      font-size: 10px;
+      color: #22c55e;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
+    /* FFT Overlay Container */
+    .fft-overlay-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 220px;
+      height: 180px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #333;
+      border-radius: 6px;
+      display: block;
+      z-index: 100;
+      resize: both;
+      overflow: hidden;
+      min-width: 180px;
+      min-height: 140px;
+      max-width: 400px;
+      max-height: 300px;
+    }
+
+    .fft-header {
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      padding: 4px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      height: 20px;
+      font-size: 11px;
+    }
+
+    .fft-title {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    .fft-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fft-toggle-btn {
+      background: #374151;
+      color: #9ca3af;
+      border: 1px solid #4b5563;
+      padding: 1px 4px;
+      font-size: 9px;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .fft-toggle-btn:hover {
+      background: #4b5563;
+    }
+
+    .fft-toggle-btn.active {
+      background: #1e40af;
+      color: #e5e7eb;
+      border-color: #3b82f6;
+    }
+
+    .fft-resize-handle {
+      width: 12px;
+      height: 12px;
+      background: linear-gradient(-45deg, transparent 40%, #666 42%, #666 58%, transparent 60%);
+      cursor: se-resize;
+      opacity: 0.6;
+    }
+
+    .fft-resize-handle:hover {
+      opacity: 1;
+    }
+
+    #fft-canvas {
+      width: 100%;
+      height: calc(100% - 20px);
+      display: block;
+    }
+
+    /* Toast Notifications */
+    .spectral-toast {
+      position: fixed;
+      top: 120px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      border-left: 3px solid;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 250px;
+    }
+
+    .spectral-toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Users Online Badge */
+    .users-online-badge {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-left: 8px;
+    }
+
+    .users-online-badge:empty {
+      display: none !important;
+    }
+
+    /* Presence Toast Notifications */
+    .presence-toast {
+      position: fixed;
+      top: 160px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      border-left: 3px solid;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 200px;
+    }
+
+    .presence-toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .presence-toast.join {
+      border-color: #22c55e;
+    }
+
+    .presence-toast.leave {
+      border-color: #f59e0b;
+    }
+
+    /* MIDI Panel Indicator */
+    .midi-panel-indicator {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      margin-left: 8px;
+    }
+
+    .midi-panel-indicator.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .collab-notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border-left: 4px solid #00ffff;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.3s ease;
+      z-index: 2000;
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    .collab-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .chat-overlay {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      height: 400px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 1800;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .chat-toggle {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-toggle:hover {
+      color: white;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chat-welcome {
+      color: #888;
+      font-style: italic;
+      text-align: center;
+      font-size: 12px;
+      margin: 20px 0;
+    }
+
+    .chat-message {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .chat-message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .chat-username {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .chat-timestamp {
+      font-size: 10px;
+      color: #888;
+    }
+
+    .chat-text {
+      color: white;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .chat-input-container {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      gap: 8px;
+    }
+
+    #chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: white;
+      font-size: 13px;
+    }
+
+    #chat-input::placeholder {
+      color: #888;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    #chat-send {
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #chat-send:hover {
+      background: #2563eb;
+    }
+
+    .chat-mini-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 1700;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-mini-toggle:hover {
+      background: #2563eb;
+    }
+
+    .midi-indicator {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-left: 4px;
+      opacity: 0;
+      animation: midiFlash 0.2s ease-out;
+    }
+
+    @keyframes midiFlash {
+      0% { opacity: 0; scale: 0.5; }
+      50% { opacity: 1; scale: 1.5; background: #10b981; }
+      100% { opacity: 0; scale: 1; }
+    }
+
+    /* Collaborative Cursors */
+    .collab-cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+      z-index: 1500;
+      transition: transform 0.1s ease;
+    }
+
+    .cursor-pointer {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .cursor-label {
+      position: absolute;
+      top: -25px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      white-space: nowrap;
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HUD Controls -->
+<div id="hud">
+  <div class="title">Signal→Form Spherical POV</div>
+
+  <div class="row">
+    <span class="param">Zoom (ζ)</span>
+    <input id="zeta" type="range" min="0" max="1" step="0.001" value="0.0">
+    <span id="zeta-val" class="value">0.000</span>
+  </div>
+
+  <div class="row">
+    <span class="param">PMW</span>
+    <input id="pmw" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="pmw-val" class="value">0.500</span>
+  </div>
+
+  <div class="row">
+    <span class="param">Unity (U)</span>
+    <input id="unity" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="unity-val" class="value">0.500</span>
+  </div>
+
+  <div class="row">
+    <span class="param">Flatness (F)</span>
+    <input id="flatness" type="range" min="0" max="1" step="0.001" value="0.5">
+    <span id="flatness-val" class="value">0.500</span>
+  </div>
+
+  <!-- Telemetry Meters -->
+  <div class="meters">
+    <div class="meter unity">
+      <div class="fill" id="unity-meter" style="width: 50%"></div>
+      <div class="label">U</div>
+    </div>
+    <div class="meter entropy">
+      <div class="fill" id="entropy-meter" style="width: 40%"></div>
+      <div class="label">E</div>
+    </div>
+    <div class="meter temporal">
+      <div class="fill" id="temporal-meter" style="width: 20%"></div>
+      <div class="label">R</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span id="ws-status" class="status">Connecting...</span>
+  </div>
+  <div class="row">
+    <span id="midi-status" class="status" style="color: #f59e0b;">MIDI: Disconnected</span>
+    <span class="midi-indicator" id="midi-indicator"></span>
+    <span id="midi-panel-indicator" class="midi-panel-indicator" style="display: none;">Panel: <span id="active-panel-name">Global</span></span>
+  </div>
+  <div class="row">
+    <span id="multiwindow-status" class="status" style="color: #38bdf8;">Multi-Window: Active</span>
+  </div>
+  <div class="row">
+    <span id="collab-status" class="status" style="color: #94a3b8;">Collab: Single-User</span>
+    <span id="users-online-badge" class="users-online-badge" style="display: none;">👥 <span id="users-count">0</span></span>
+  </div>
+  <div class="row spectral-controls">
+    <label class="spectral-label">Spectral HUD:</label>
+    <button id="spectral-hud-toggle" class="spectral-btn">ON</button>
+  </div>
+  <div id="spectral-advanced-controls" class="row spectral-controls">
+    <button id="spectral-toggle" class="spectral-btn">ON</button>
+    <select id="spectral-mode" class="spectral-select">
+      <option value="bars">Bars</option>
+      <option value="waterfall">Waterfall</option>
+      <option value="modal_energy">Modal Energy</option>
+      <option value="temporal_evolution">Temporal Evolution</option>
+      <option value="advanced_spectrogram">Advanced Spectrogram</option>
+    </select>
+    <label class="spectral-fft-label">FFT:</label>
+    <input type="range" id="spectral-fft-size" min="256" max="2048" step="256" value="256" class="spectral-slider">
+    <span id="spectral-fft-val" class="spectral-val">256</span>
+    <label class="spectral-depth-label">History:</label>
+    <select id="temporal-depth" class="spectral-select">
+      <option value="5000">5s</option>
+      <option value="15000" selected>15s</option>
+      <option value="60000">60s</option>
+    </select>
+    <div class="fft-presets">
+      <button class="fft-preset-btn" data-size="256">256</button>
+      <button class="fft-preset-btn" data-size="512">512</button>
+      <button class="fft-preset-btn" data-size="1024">1K</button>
+      <button class="fft-preset-btn" data-size="2048">2K</button>
+    </div>
+    <div class="spectral-presets">
+      <label class="preset-label">Presets:</label>
+      <select id="spectral-preset-select" class="preset-select">
+        <option value="">Choose preset...</option>
+      </select>
+      <button id="spectral-preset-save" class="preset-save-btn">Save</button>
+      <span id="current-preset-name" class="current-preset"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Controls Help -->
+<div class="controls-help">
+  <div><strong>Mouse:</strong> Orbit • <strong>Wheel:</strong> Zoom ζ • <strong>Click sprite:</strong> Portal</div>
+  <div><strong>Outside→Inside:</strong> Universe → Surface → Center POV</div>
+  <div><strong>MIDI Panels:</strong> Ctrl+1 Global • Ctrl+2 Spectral • Ctrl+3 Cymatic • Ctrl+4 Collab • Esc Clear</div>
+</div>
+
+<!-- Center Me Button -->
+<button id="center-me">CENTER ME</button>
+
+<!-- Collaborative Chat Overlay -->
+<div id="chat-overlay" class="chat-overlay" style="display: none;">
+  <div class="chat-header">
+    <span>💬 Collaborative Chat</span>
+    <button id="chat-toggle" class="chat-toggle">×</button>
+  </div>
+  <div id="chat-messages" class="chat-messages">
+    <div class="chat-welcome">Chat active for collaborative sessions</div>
+  </div>
+  <div class="chat-input-container">
+    <input id="chat-input" type="text" placeholder="Type a message..." maxlength="200" autocomplete="off">
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
+<!-- Chat Toggle Button (Mini) -->
+<button id="chat-mini-toggle" class="chat-mini-toggle" style="display: none;">💬</button>
+
+<!-- Sprite Info Card -->
+<div id="sprite-card" class="sprite-card" style="display: none;">
+  <div class="id"></div>
+  <div class="type"></div>
+  <div class="palette"></div>
+</div>
+
+<!-- Main Canvas -->
+<canvas id="canvas"></canvas>
+
+<!-- FFT Spectral Overlay -->
+<div id="fft-overlay-container" class="fft-overlay-container">
+  <div class="fft-header">
+    <span class="fft-title">FFT Spectral</span>
+    <div class="fft-controls">
+      <button id="fft-log-toggle" class="fft-toggle-btn" title="Toggle log frequency">LOG</button>
+      <div class="fft-resize-handle"></div>
+    </div>
+  </div>
+  <canvas id="fft-canvas"></canvas>
+</div>
+
+<!-- MIDI Activity Feedback -->
+<div id="midi-activity" class="midi-activity"></div>
+
+<!-- Preset Notification -->
+<div id="preset-notification" class="preset-notification"></div>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+// Configuration from microfiche_config.json
+const config = {
+  ws_telemetry: "ws://localhost:7070/telemetry",
+  http_control: "http://localhost:7070/control",
+  encoder_base: "http://localhost:7071",
+  collection_id: "home_cube",
+  shells: {
+    radii: [8.0, 4.0, 2.0],
+    membrane_enter: 0.45,
+    membrane_exit: 0.70,
+    center_view: 0.80
+  }
+};
+
+// Three.js setup
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 100);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+directionalLight.position.set(10, 10, 5);
+scene.add(directionalLight);
+
+// State
+let zeta = 0.0; // Outside→inside parameter [0,1]
+let pmw = 0.5;
+let collection = null;
+let sprites = [];
+let shells = [];
+let instrumentMesh = null;
+let ws = null;
+let midiWS = null;
+let telemetryData = {};
+let midiMapping = {}; // CC number -> parameter name mapping
+let midiPanelConfig = {}; // Extended MIDI panel configuration
+let midiConfigLastModified = null; // Track config file changes for hot-reload
+let presets = {}; // Preset configurations
+let midiActivity = {}; // Track recent MIDI activity for visual feedback
+
+// Panel focus tracking
+let activePanel = null; // Currently active panel for MIDI routing
+let panelMappings = {}; // Panel-specific CC mappings
+let globalMapping = {}; // Fallback global mapping
+
+// Multi-window synchronization
+let broadcastChannel = null;
+let isWindowActive = true;
+let windowId = Math.random().toString(36).substring(2, 9);
+let connectedWindows = new Set([windowId]);
+let lastSyncTime = 0;
+
+// Network collaboration
+let collaborativeMode = false;
+let sessionId = null;
+let userId = null;
+let currentUser = null;
+let collaborativeUsers = new Map();
+let collaborativePresets = {};
+let cursorTracking = true;
+
+// ζ-Camera system
+function updateCamera() {
+  const radii = config.shells.radii;
+  const R_out = radii[0]; // 8.0
+  const R_in = 0.01;
+
+  // Smooth transition with membrane easing
+  const membrane_t = smoothstep(config.shells.membrane_enter, config.shells.membrane_exit, zeta);
+  const r = lerp(R_out, R_in, zeta);
+
+  // Position camera along radius
+  const theta = Date.now() * 0.0003; // Subtle rotation
+  const x = r * Math.cos(theta);
+  const z = r * Math.sin(theta);
+  camera.position.set(x, 0, z);
+
+  // Look at center
+  camera.lookAt(0, 0, 0);
+
+  // Up vector slerp for smooth membrane crossing
+  const upOuter = new THREE.Vector3(0, 1, 0);
+  const upInner = new THREE.Vector3(0, -1, 0);
+  const up = upOuter.clone().lerp(upInner, zeta).normalize();
+  camera.up.copy(up);
+
+  // Adjust FOV for inside view
+  camera.fov = lerp(60, 90, smoothstep(0.7, 1.0, zeta));
+  camera.updateProjectionMatrix();
+}
+
+// Utility functions
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+// Create spherical shells
+function createShells() {
+  const radii = config.shells.radii; // [8.0, 4.0, 2.0]
+
+  radii.forEach((radius, i) => {
+    const geometry = new THREE.SphereGeometry(radius, 32, 16);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.1,
+      side: zeta > 0.75 ? THREE.BackSide : THREE.FrontSide
+    });
+
+    const shell = new THREE.Mesh(geometry, material);
+    shell.userData = { radius, index: i };
+    shells.push(shell);
+    scene.add(shell);
+  });
+}
+
+// Create instrument at center (cube→sphere morph)
+function createInstrument() {
+  const geometry = new THREE.BoxGeometry(1, 1, 1, 4, 4, 4);
+  const material = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.8,
+    side: THREE.DoubleSide
+  });
+
+  instrumentMesh = new THREE.Mesh(geometry, material);
+  scene.add(instrumentMesh);
+}
+
+// Create sprite billboards on shells
+function createSprites() {
+  if (!collection) return;
+
+  const outerRadius = config.shells.radii[0]; // 8.0
+  const spriteGeometry = new THREE.PlaneGeometry(0.3, 0.3);
+
+  collection.media.forEach((media, i) => {
+    // Distribute sprites on outer shell using spherical coordinates
+    const phi = (i / collection.media.length) * Math.PI * 2;
+    const theta = Math.acos(1 - 2 * (i * 0.618034) % 1); // Golden ratio distribution
+
+    const x = outerRadius * Math.sin(theta) * Math.cos(phi);
+    const y = outerRadius * Math.cos(theta);
+    const z = outerRadius * Math.sin(theta) * Math.sin(phi);
+
+    // Create sprite material with color from palette
+    const color = new THREE.Color().setRGB(
+      media.palette[0],
+      media.palette[1],
+      media.palette[2]
+    );
+
+    const material = new THREE.MeshBasicMaterial({
+      color: color,
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide
+    });
+
+    const sprite = new THREE.Mesh(spriteGeometry, material);
+    sprite.position.set(x, y, z);
+    sprite.lookAt(0, 0, 0); // Face center
+    sprite.userData = { media, id: media.id };
+
+    sprites.push(sprite);
+    scene.add(sprite);
+  });
+}
+
+// Update shell rendering based on ζ
+function updateShells() {
+  shells.forEach(shell => {
+    const inside = zeta > 0.75;
+    shell.material.side = inside ? THREE.BackSide : THREE.FrontSide;
+    shell.material.opacity = lerp(0.1, 0.05, zeta);
+  });
+}
+
+// Morphing instrument (cube→sphere)
+function updateInstrument() {
+  if (!instrumentMesh) return;
+
+  const morphProgress = smoothstep(config.shells.membrane_enter, config.shells.membrane_exit, zeta);
+  const geometry = instrumentMesh.geometry;
+  const positions = geometry.attributes.position;
+
+  // Store original positions
+  if (!geometry.userData.originalPositions) {
+    geometry.userData.originalPositions = new Float32Array(positions.array);
+  }
+
+  const original = geometry.userData.originalPositions;
+
+  // Morph vertices cube→sphere
+  for (let i = 0; i < positions.count; i++) {
+    const x = original[i * 3];
+    const y = original[i * 3 + 1];
+    const z = original[i * 3 + 2];
+
+    // Calculate sphere position
+    const length = Math.sqrt(x*x + y*y + z*z);
+    const sphereRadius = 0.7;
+
+    if (length > 0) {
+      const sphereX = (x / length) * sphereRadius;
+      const sphereY = (y / length) * sphereRadius;
+      const sphereZ = (z / length) * sphereRadius;
+
+      // Interpolate cube→sphere
+      positions.setXYZ(i,
+        lerp(x, sphereX, morphProgress),
+        lerp(y, sphereY, morphProgress),
+        lerp(z, sphereZ, morphProgress)
+      );
+    }
+  }
+
+  positions.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  // Apply modal coefficients if available
+  if (telemetryData.c && telemetryData.c.length >= 4) {
+    // Simple deformation based on spectral coefficients
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      const z = positions.getZ(i);
+
+      const r = Math.sqrt(x*x + y*y + z*z);
+      const theta = Math.atan2(y, x);
+      const phi = Math.acos(z / (r || 1));
+
+      // Apply eigenmode deformation
+      let displacement = 0;
+      displacement += telemetryData.c[0] * 0.1 * Math.sin(2 * r);
+      displacement += telemetryData.c[1] * 0.1 * Math.sin(3 * theta);
+      displacement += telemetryData.c[2] * 0.1 * (y*y - 0.3);
+      displacement += telemetryData.c[3] * 0.05 * Math.sin(8 * x) * Math.cos(8 * z);
+
+      const normal = new THREE.Vector3(x, y, z).normalize();
+      positions.setXYZ(i,
+        x + normal.x * displacement,
+        y + normal.y * displacement,
+        z + normal.z * displacement
+      );
+    }
+    positions.needsUpdate = true;
+  }
+
+  // Update material based on PMW
+  const tint = 0.5 + 0.5 * pmw;
+  instrumentMesh.material.color.setRGB(tint, tint, tint);
+}
+
+// WebSocket connection
+function connectWebSocket() {
+  // Check if collaborative mode is enabled via URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  sessionId = urlParams.get('session_id');
+  userId = urlParams.get('user_id') || windowId;
+
+  let wsUrl = config.ws_telemetry;
+
+  // If session_id is provided, use collaborative server
+  if (sessionId) {
+    collaborativeMode = true;
+    wsUrl = `ws://localhost:7070/telemetry?session_id=${sessionId}&user_id=${userId}`;
+    console.log(`🤝 Connecting to collaborative session: ${sessionId}`);
+  }
+
+  try {
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      document.getElementById('ws-status').textContent = 'Connected';
+      document.getElementById('ws-status').style.color = '#34d399';
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+      } catch (e) {
+        console.warn('Invalid WebSocket data:', e);
+      }
+    };
+
+    ws.onerror = () => {
+      document.getElementById('ws-status').textContent = 'Error';
+      document.getElementById('ws-status').style.color = '#ef4444';
+    };
+
+    ws.onclose = () => {
+      document.getElementById('ws-status').textContent = 'Disconnected';
+      document.getElementById('ws-status').style.color = '#f59e0b';
+      // Reconnect after delay
+      setTimeout(connectWebSocket, 2000);
+    };
+  } catch (e) {
+    console.error('WebSocket connection failed:', e);
+    document.getElementById('ws-status').textContent = 'Failed';
+    document.getElementById('ws-status').style.color = '#ef4444';
+  }
+}
+
+function handleWebSocketMessage(data) {
+  const messageType = data.type;
+
+  if (messageType === 'telemetry' || !messageType) {
+    // Handle standard telemetry data
+    telemetryData = data;
+    updateTelemetryDisplay();
+
+    // Update collaboration status if in collaborative mode
+    if (data.collaboration) {
+      updateCollaborationStatus(data.collaboration);
+    }
+
+  } else if (messageType === 'connection_established') {
+    // Handle initial connection to collaborative session
+    currentUser = data.user_info;
+    sessionId = data.session_id;
+    console.log(`✅ Connected to session ${sessionId} as ${currentUser.username}`);
+    updateCollaborationStatus({ users_count: 1, session_id: sessionId });
+
+  } else if (messageType === 'user_joined') {
+    // Handle new user joining session
+    console.log(`👤 User joined: ${data.user.username}`);
+    addCollaborativeUser(data.user);
+    updateCollaborationStatus({ users_count: data.users_in_session.length });
+
+  } else if (messageType === 'user_left') {
+    // Handle user leaving session
+    console.log(`👋 User left: ${data.username}`);
+    removeCollaborativeUser(data.user_id);
+    updateCollaborationStatus({ users_count: data.users_in_session.length });
+
+  } else if (messageType === 'cursor_update') {
+    // Handle cursor position updates from other users
+    updateCollaborativeCursor(data);
+
+  } else if (messageType === 'collaborative_parameter_update') {
+    // Handle parameter changes from other users
+    handleCollaborativeParameterUpdate(data);
+
+  } else if (messageType === 'collaborative_sprite_interaction') {
+    // Handle sprite interactions from other users
+    handleCollaborativeSpriteInteraction(data);
+
+  } else if (messageType === 'collaborative_preset_applied') {
+    // Handle preset applications from other users
+    handleCollaborativePresetApplied(data);
+
+  } else if (messageType === 'collaborative_chat_message') {
+    // Handle chat messages from other users
+    addChatMessage(data);
+
+  } else if (messageType === 'collaborative_user_join') {
+    // Handle user joining the session
+    handleUserJoin(data);
+
+  } else if (messageType === 'collaborative_user_leave') {
+    // Handle user leaving the session
+    handleUserLeave(data);
+  }
+}
+
+// Update telemetry display
+function updateTelemetryDisplay() {
+  if (!telemetryData) return;
+
+  // Update meters
+  if (telemetryData.S) {
+    const unity = telemetryData.S.U || 0;
+    document.getElementById('unity-meter').style.width = `${unity * 100}%`;
+  }
+
+  if (typeof telemetryData.entropy === 'number') {
+    document.getElementById('entropy-meter').style.width = `${telemetryData.entropy * 100}%`;
+  }
+
+  if (typeof telemetryData.R === 'number') {
+    document.getElementById('temporal-meter').style.width = `${Math.min(telemetryData.R * 100, 100)}%`;
+  }
+
+  // Update PMW if provided
+  if (typeof telemetryData.pmw === 'number') {
+    pmw = telemetryData.pmw;
+    document.getElementById('pmw').value = pmw;
+    document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+  }
+}
+
+// Portal system (sprite click → control)
+async function handleSpriteClick(sprite) {
+  const mediaId = sprite.userData.media.id;
+  console.log('Portal clicked:', mediaId);
+
+  // Broadcast sprite interaction to other windows
+  broadcastUpdate('sprite_interaction', {
+    mediaId: mediaId,
+    type: 'portal_click'
+  });
+
+  // Send collaborative update
+  sendCollaborativeMessage('sprite_interaction', {
+    media_id: mediaId,
+    interaction_type: 'portal_click'
+  });
+
+  try {
+    // Get stimulus from encoder
+    const stimResponse = await fetch(`${config.encoder_base}/stim/${encodeURIComponent(mediaId)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const stimulus = await stimResponse.json();
+    console.log('Stimulus:', stimulus);
+
+    // Send control to engine
+    const controlResponse = await fetch(config.http_control, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        set: { pmw: stimulus.pmw_hint || pmw },
+        pulse: stimulus.pulse || { k: 5, amp: 0.6, decay: 0.92 },
+        bias: stimulus.bias_modes ? { weights: stimulus.bias_modes } : undefined
+      })
+    });
+
+    console.log('Control sent, status:', controlResponse.status);
+
+    // Visual feedback
+    sprite.material.emissive.setHex(0xff4444);
+    setTimeout(() => {
+      sprite.material.emissive.setHex(0x000000);
+    }, 200);
+
+  } catch (error) {
+    console.error('Portal error:', error);
+  }
+}
+
+// Load MIDI mapping configuration
+async function loadMidiMapping() {
+  try {
+    // Try to load extended panel config first
+    const panelResponse = await fetch('./midi_panels.json?t=' + Date.now());
+    if (panelResponse.ok) {
+      midiPanelConfig = await panelResponse.json();
+      midiMapping = midiPanelConfig.cc_mappings || {};
+      presets = midiPanelConfig.presets || {};
+      console.log('🎛️ Extended MIDI panel config loaded:', midiPanelConfig);
+      return;
+    }
+
+    // Fallback to simple mapping file
+    const response = await fetch('./midi_map.json?t=' + Date.now());
+    if (response.ok) {
+      const lastModified = response.headers.get('Last-Modified');
+
+      // Check if config has changed
+      if (midiConfigLastModified && lastModified && lastModified === midiConfigLastModified) {
+        return; // No changes, skip reload
+      }
+
+      const rawMapping = await response.json();
+      midiConfigLastModified = lastModified;
+
+      // Check if new panel-based schema or legacy format
+      if (rawMapping.global || Object.keys(rawMapping).some(key => typeof rawMapping[key] === 'object')) {
+        // New panel-based schema
+        panelMappings = { ...rawMapping };
+        globalMapping = panelMappings.global || {};
+        midiMapping = globalMapping; // Start with global as default
+        console.log('🎛️ Panel-based MIDI mapping loaded:', panelMappings);
+      } else {
+        // Legacy format - treat as global mapping
+        globalMapping = { ...rawMapping };
+        midiMapping = globalMapping;
+        panelMappings = { global: globalMapping };
+        console.log('🎛️ Legacy MIDI mapping loaded:', midiMapping);
+      }
+
+      // Update panel indicator
+      updateMidiPanelIndicator();
+    } else {
+      console.warn('Could not load MIDI config files, using defaults');
+      setDefaultMidiConfig();
+    }
+  } catch (error) {
+    console.error('Failed to load MIDI mapping:', error);
+    setDefaultMidiConfig();
+  }
+}
+
+// Set default MIDI configuration
+function setDefaultMidiConfig() {
+  globalMapping = {
+    "1": "zeta",
+    "2": "pmw",
+    "3": "unity",
+    "4": "flatness"
+  };
+  midiMapping = globalMapping;
+  panelMappings = { global: globalMapping };
+  activePanel = null;
+  presets = {
+    "preset_outside": { name: "Outside", zeta: 0.0, pmw: 0.3, unity: 0.5, flatness: 0.4 },
+    "preset_center": { name: "Center", zeta: 1.0, pmw: 0.9, unity: 0.8, flatness: 0.9 }
+  };
+  console.log('Using default MIDI configuration');
+  updateMidiPanelIndicator();
+}
+
+// Periodically check for MIDI config changes
+function startMidiConfigWatcher() {
+  setInterval(async () => {
+    await loadMidiMapping();
+  }, 5000); // Check every 5 seconds
+}
+
+// Panel focus management
+function setActivePanel(panelName) {
+  activePanel = panelName;
+
+  // Update active mapping based on panel focus
+  if (panelName && panelMappings[panelName]) {
+    // Use panel-specific mapping, with global fallback
+    midiMapping = { ...globalMapping, ...panelMappings[panelName] };
+    console.log(`🎛️ MIDI Panel "${panelName}" activated:`, midiMapping);
+  } else {
+    // Fall back to global mapping
+    midiMapping = { ...globalMapping };
+    console.log('🎛️ MIDI Panel fallback to global mapping:', midiMapping);
+  }
+
+  updateMidiPanelIndicator();
+
+  // Broadcast panel change in collaborative mode
+  if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+    sendCollaborativeMessage('panel_change', {
+      panel: panelName || 'global',
+      timestamp: Date.now()
+    });
+  }
+}
+
+function clearActivePanel() {
+  setActivePanel(null);
+}
+
+function updateMidiPanelIndicator() {
+  const indicator = document.getElementById('midi-panel-indicator');
+  const panelName = document.getElementById('active-panel-name');
+
+  if (activePanel && panelMappings[activePanel]) {
+    indicator.style.display = 'inline';
+    indicator.classList.add('active');
+    panelName.textContent = activePanel.charAt(0).toUpperCase() + activePanel.slice(1);
+  } else {
+    indicator.style.display = 'inline';
+    indicator.classList.remove('active');
+    panelName.textContent = 'Global';
+  }
+}
+
+// Scale MIDI CC value (0-127) to parameter range (0.0-1.0)
+function scaleMidiValue(ccValue) {
+  return Math.max(0, Math.min(1, ccValue / 127.0));
+}
+
+// Update parameter based on MIDI mapping
+function updateParameterFromMidi(paramName, value) {
+  const scaledValue = scaleMidiValue(value);
+
+  // Track MIDI activity for visual feedback
+  midiActivity[paramName] = { value: scaledValue, timestamp: Date.now() };
+  showMidiActivity(paramName, scaledValue);
+
+  switch (paramName) {
+    case 'zeta':
+      zeta = scaledValue;
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = scaledValue;
+      document.getElementById('pmw').value = pmw;
+      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+      sendControl({ set: { pmw: pmw } });
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = scaledValue;
+      document.getElementById('unity-val').textContent = scaledValue.toFixed(3);
+      sendControl({ set: { unity: scaledValue } });
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = scaledValue;
+      document.getElementById('flatness-val').textContent = scaledValue.toFixed(3);
+      sendControl({ set: { flatness: scaledValue } });
+      break;
+
+    // Extended parameters
+    case 'shell_opacity':
+      updateShellOpacity(scaledValue);
+      break;
+
+    case 'instrument_scale':
+      updateInstrumentScale(scaledValue);
+      break;
+
+    case 'deform_intensity':
+      updateDeformIntensity(scaledValue);
+      break;
+
+    default:
+      console.warn(`Unknown parameter: ${paramName}`);
+  }
+}
+
+// Apply preset configuration
+function applyPreset(presetName, fromCollaborative = false) {
+  const preset = presets[presetName] || collaborativePresets[presetName];
+  if (!preset) {
+    console.warn(`Preset not found: ${presetName}`);
+    return;
+  }
+
+  console.log(`🎹 Applying preset: ${preset.name}`);
+
+  // Broadcast preset application to other users (if not from collaborative source)
+  if (!fromCollaborative && collaborativeMode) {
+    sendCollaborativeMessage('preset_applied', {
+      preset_name: preset.name,
+      preset_data: preset
+    });
+  }
+
+  // Animate to preset values
+  if (typeof preset.zeta === 'number') {
+    animateParameterTo('zeta', preset.zeta);
+  }
+  if (typeof preset.pmw === 'number') {
+    animateParameterTo('pmw', preset.pmw);
+  }
+  if (typeof preset.unity === 'number') {
+    animateParameterTo('unity', preset.unity);
+  }
+  if (typeof preset.flatness === 'number') {
+    animateParameterTo('flatness', preset.flatness);
+  }
+
+  // Visual feedback
+  showPresetNotification(preset.name);
+}
+
+// Save current state as preset
+function saveCurrentStateAsPreset(name) {
+  const currentState = {
+    name: name,
+    zeta: zeta,
+    pmw: pmw,
+    unity: parseFloat(document.getElementById('unity').value),
+    flatness: parseFloat(document.getElementById('flatness').value),
+    timestamp: Date.now()
+  };
+
+  // Store in localStorage for persistence
+  const savedPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+  savedPresets[`user_${name.toLowerCase().replace(/\s+/g, '_')}`] = currentState;
+  localStorage.setItem('userPresets', JSON.stringify(savedPresets));
+
+  console.log(`💾 Saved preset: ${name}`, currentState);
+  showPresetNotification(`Saved: ${name}`);
+
+  return currentState;
+}
+
+// Load user presets from localStorage
+function loadUserPresets() {
+  const savedPresets = JSON.parse(localStorage.getItem('userPresets') || '{}');
+  Object.assign(presets, savedPresets);
+  console.log('📂 Loaded user presets:', savedPresets);
+}
+
+// Animate parameter to target value
+function animateParameterTo(paramName, targetValue, duration = 1000) {
+  const startTime = Date.now();
+  let startValue;
+
+  switch (paramName) {
+    case 'zeta': startValue = zeta; break;
+    case 'pmw': startValue = pmw; break;
+    case 'unity': startValue = parseFloat(document.getElementById('unity').value); break;
+    case 'flatness': startValue = parseFloat(document.getElementById('flatness').value); break;
+    default: return;
+  }
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = smoothstep(0, 1, progress);
+
+    const currentValue = startValue + (targetValue - startValue) * easedProgress;
+    updateParameterFromMidi(paramName, currentValue * 127); // Convert back to MIDI range
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+
+  animate();
+}
+
+// Handle MIDI actions (presets, functions)
+function handleMidiAction(actionName, velocity = 127) {
+  console.log(`🎹 MIDI Action: ${actionName} (vel: ${velocity})`);
+
+  switch (actionName) {
+    case 'center_me':
+      document.getElementById('center-me').click();
+      break;
+
+    case 'portal_random':
+      triggerRandomPortal();
+      break;
+
+    case 'toggle_shells':
+      toggleShellVisibility();
+      break;
+
+    case 'reset_view':
+      resetCameraView();
+      break;
+
+    case 'save_preset':
+      const timestamp = new Date().toLocaleTimeString();
+      saveCurrentStateAsPreset(`Live_${timestamp}`);
+      break;
+
+    default:
+      // Check if it's a preset
+      if (actionName.startsWith('preset_') && presets[actionName]) {
+        applyPreset(actionName);
+      } else {
+        console.warn(`Unknown MIDI action: ${actionName}`);
+      }
+  }
+}
+
+// Extended parameter functions
+function updateShellOpacity(value) {
+  shells.forEach(shell => {
+    shell.material.opacity = 0.05 + value * 0.2;
+  });
+}
+
+function updateInstrumentScale(value) {
+  if (instrumentMesh) {
+    const scale = 0.5 + value * 1.5;
+    instrumentMesh.scale.setScalar(scale);
+  }
+}
+
+function updateDeformIntensity(value) {
+  // This would affect the eigenmode displacement scaling
+  // Implementation depends on how you want to scale the deformation
+}
+
+function triggerRandomPortal() {
+  if (sprites.length > 0) {
+    const randomSprite = sprites[Math.floor(Math.random() * sprites.length)];
+    handleSpriteClick(randomSprite);
+  }
+}
+
+function toggleShellVisibility() {
+  shells.forEach(shell => {
+    shell.visible = !shell.visible;
+  });
+}
+
+function resetCameraView() {
+  zeta = 0.3;
+  document.getElementById('zeta').value = zeta;
+  document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+  updateCamera();
+  updateShells();
+}
+
+// Visual feedback functions
+function showMidiActivity(paramName, value) {
+  const indicator = document.getElementById('midi-indicator');
+  const activity = document.getElementById('midi-activity');
+
+  // Flash the indicator
+  indicator.style.animation = 'none';
+  indicator.offsetHeight; // Trigger reflow
+  indicator.style.animation = 'midiFlash 0.2s ease-out';
+
+  // Show activity popup
+  activity.textContent = `${paramName}: ${(value * 100).toFixed(0)}%`;
+  activity.classList.add('show');
+
+  setTimeout(() => {
+    activity.classList.remove('show');
+  }, 1500);
+}
+
+function showPresetNotification(presetName) {
+  const notification = document.getElementById('preset-notification');
+  notification.textContent = `🎹 ${presetName}`;
+  notification.classList.add('show');
+
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 2000);
+}
+
+function flashMidiStatus() {
+  const status = document.getElementById('midi-status');
+  const originalColor = status.style.color;
+  status.style.color = '#10b981';
+  setTimeout(() => {
+    status.style.color = originalColor;
+  }, 100);
+}
+
+// Collaborative functions
+function updateCollaborationStatus(collaboration) {
+  const status = document.getElementById('collab-status');
+  const userCount = collaboration.users_count || 1;
+
+  if (!collaborativeMode || userCount === 1) {
+    status.textContent = 'Collab: Single-User';
+    status.style.color = '#94a3b8';
+  } else {
+    status.textContent = `Collab: Connected (${userCount} users)`;
+    status.style.color = '#10b981';
+  }
+}
+
+function addCollaborativeUser(user) {
+  collaborativeUsers.set(user.user_id, user);
+  createCollaborativeCursor(user);
+}
+
+function removeCollaborativeUser(userId) {
+  if (collaborativeUsers.has(userId)) {
+    removeCollaborativeCursor(userId);
+    collaborativeUsers.delete(userId);
+  }
+}
+
+function createCollaborativeCursor(user) {
+  const cursorId = `cursor-${user.user_id}`;
+
+  // Remove existing cursor if any
+  const existingCursor = document.getElementById(cursorId);
+  if (existingCursor) {
+    existingCursor.remove();
+  }
+
+  // Create cursor element
+  const cursor = document.createElement('div');
+  cursor.id = cursorId;
+  cursor.className = 'collab-cursor';
+
+  const pointer = document.createElement('div');
+  pointer.className = 'cursor-pointer';
+  pointer.style.backgroundColor = user.color;
+
+  const label = document.createElement('div');
+  label.className = 'cursor-label';
+  label.textContent = user.username;
+
+  cursor.appendChild(pointer);
+  cursor.appendChild(label);
+  document.body.appendChild(cursor);
+
+  // Position cursor
+  const x = user.cursor_x * window.innerWidth;
+  const y = user.cursor_y * window.innerHeight;
+  cursor.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function removeCollaborativeCursor(userId) {
+  const cursor = document.getElementById(`cursor-${userId}`);
+  if (cursor) {
+    cursor.remove();
+  }
+}
+
+function updateCollaborativeCursor(data) {
+  const cursor = document.getElementById(`cursor-${data.user_id}`);
+  if (cursor) {
+    const x = data.x * window.innerWidth;
+    const y = data.y * window.innerHeight;
+    cursor.style.transform = `translate(${x}px, ${y}px)`;
+  }
+}
+
+function handleCollaborativeParameterUpdate(data) {
+  console.log(`🔄 ${data.username} changed ${data.parameter} to ${data.value}`);
+
+  // Apply parameter update from other user
+  switch (data.parameter) {
+    case 'zeta':
+      zeta = data.value;
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = data.value;
+      document.getElementById('pmw').value = pmw;
+      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = data.value;
+      document.getElementById('unity-val').textContent = data.value.toFixed(3);
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = data.value;
+      document.getElementById('flatness-val').textContent = data.value.toFixed(3);
+      break;
+  }
+
+  // Show visual feedback
+  showMidiActivity(`${data.parameter} (${data.username})`, data.value);
+}
+
+function handleCollaborativeSpriteInteraction(data) {
+  console.log(`🎭 ${data.username} interacted with sprite ${data.media_id}`);
+
+  // Show portal activation overlay
+  showCollaborativeNotification(
+    `${data.username} opened portal ${data.media_id}`,
+    data.user_color || '#00ffff',
+    3000
+  );
+
+  // Find and highlight the sprite
+  const sprite = sprites.find(s => s.userData.mediaItem.id === data.media_id);
+  if (sprite) {
+    sprite.material.emissive.setHex(0x00ffff); // Cyan for collaborative interactions
+    setTimeout(() => {
+      sprite.material.emissive.setHex(0x000000);
+    }, 1000);
+  }
+}
+
+function handleCollaborativePresetApplied(data) {
+  const presetType = data.preset_type || 'global';
+  console.log(`🎹 ${data.username} applied ${presetType} preset: ${data.preset_name}`);
+
+  if (presetType === 'spectral') {
+    // Handle spectral preset application
+    if (data.preset_data) {
+      // Store in local spectral presets
+      spectralPresets[data.preset_name] = data.preset_data;
+      saveSpectralPresets();
+      updatePresetDropdown();
+
+      // Apply the preset with smooth transitions
+      applySpectralPreset(data.preset_data, true);
+
+      // Update UI to show current preset
+      const presetSelect = document.getElementById('spectral-preset-select');
+      const currentPresetName = document.getElementById('current-preset-name');
+      if (presetSelect) presetSelect.value = data.preset_name;
+      if (currentPresetName) currentPresetName.textContent = `Current: ${data.preset_name}`;
+      currentSpectralPreset = data.preset_name;
+    }
+
+    showCollaborativeNotification(
+      `${data.username} applied spectral preset: ${data.preset_name}`,
+      data.user_color || '#22c55e',
+      3000
+    );
+  } else {
+    // Handle global presets (existing functionality)
+    if (data.preset_data) {
+      collaborativePresets[data.preset_name] = data.preset_data;
+      console.log(`📋 Received collaborative preset: ${data.preset_name}`);
+    }
+
+    // Apply preset from collaborative source
+    if (data.preset_data) {
+      applyPreset(data.preset_name, true);  // true = from collaborative source
+    }
+
+    showCollaborativeNotification(
+      `${data.username} applied preset: ${data.preset_name}`,
+      data.user_color || '#10b981',
+      3000
+    );
+  }
+}
+
+function sendCollaborativeMessage(type, data) {
+  if (ws && ws.readyState === WebSocket.OPEN && collaborativeMode) {
+    const message = {
+      type: type,
+      ...data,
+      timestamp: Date.now()
+    };
+    ws.send(JSON.stringify(message));
+  }
+}
+
+function showCollaborativeNotification(message, userColor = '#00ffff', duration = 3000) {
+  const notification = document.createElement('div');
+  notification.className = 'collab-notification';
+  notification.textContent = message;
+  notification.style.borderLeftColor = userColor;
+
+  document.body.appendChild(notification);
+
+  // Animate in
+  setTimeout(() => notification.classList.add('show'), 10);
+
+  // Remove after duration
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, duration);
+}
+
+function handleUserJoin(data) {
+  console.log(`🤝 ${data.user.username} joined the session`);
+
+  // Update users online count
+  updateUsersOnlineCount(data.users_count);
+
+  // Show presence toast notification
+  showPresenceToast(`${data.user.username} joined`, 'join', data.user.color);
+
+  // Update collaboration status
+  updateCollaborationStatus({ users_count: data.users_count });
+}
+
+function handleUserLeave(data) {
+  console.log(`👋 ${data.username} left the session`);
+
+  // Update users online count
+  updateUsersOnlineCount(data.users_count);
+
+  // Show presence toast notification
+  showPresenceToast(`${data.username} left`, 'leave', data.user_color);
+
+  // Update collaboration status
+  updateCollaborationStatus({ users_count: data.users_count });
+}
+
+function updateUsersOnlineCount(count) {
+  const badge = document.getElementById('users-online-badge');
+  const countSpan = document.getElementById('users-count');
+
+  if (count > 1) { // Only show when there are other users besides yourself
+    badge.style.display = 'inline';
+    countSpan.textContent = count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showPresenceToast(message, type = 'join', userColor = '#3b82f6') {
+  const toast = document.createElement('div');
+  toast.className = `presence-toast ${type}`;
+  toast.textContent = message;
+  toast.style.borderColor = userColor;
+
+  // Add specific styling based on type
+  if (type === 'join') {
+    toast.style.borderColor = '#22c55e';
+  } else if (type === 'leave') {
+    toast.style.borderColor = '#f59e0b';
+  }
+
+  document.body.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function flashParameterWithUserColor(parameterName, userColor) {
+  const control = document.getElementById(parameterName);
+  if (control) {
+    const originalBorder = control.style.border || '';
+    const originalBoxShadow = control.style.boxShadow || '';
+
+    // Flash with user's color
+    control.style.border = `2px solid ${userColor}`;
+    control.style.boxShadow = `0 0 10px ${userColor}`;
+    control.style.transition = 'all 0.2s ease';
+
+    setTimeout(() => {
+      control.style.border = originalBorder;
+      control.style.boxShadow = originalBoxShadow;
+      setTimeout(() => {
+        control.style.transition = '';
+      }, 200);
+    }, 600);
+  }
+}
+
+function handleCollaborativeParameterUpdate(data) {
+  console.log(`🔄 ${data.username} changed ${data.parameter} to ${data.value}`);
+
+  // Show collaborative notification
+  showCollaborativeNotification(
+    `${data.username} adjusted ${data.parameter}`,
+    data.user_color || '#00ffff',
+    2000
+  );
+
+  // Flash parameter control with user's color
+  flashParameterWithUserColor(data.parameter, data.user_color || '#00ffff');
+
+  // Apply parameter update from other user (last-writer-wins)
+  switch (data.parameter) {
+    case 'zeta':
+      zeta = data.value;
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = data.value;
+      document.getElementById('pmw').value = pmw;
+      document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = data.value;
+      document.getElementById('unity-val').textContent = data.value.toFixed(3);
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = data.value;
+      document.getElementById('flatness-val').textContent = data.value.toFixed(3);
+      break;
+
+    case 'spectral_enabled':
+      spectralEnabled = data.value;
+      document.getElementById('spectral-toggle').textContent = spectralEnabled ? 'ON' : 'OFF';
+      document.getElementById('spectral-toggle').className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+      if (fftContainer) {
+        fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_enabled', data.value, data.user_color);
+      break;
+
+    case 'spectral_mode':
+      spectralMode = data.value;
+      document.getElementById('spectral-mode').value = spectralMode;
+      // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
+      showCollaborativeSpectralToast(data.username, 'spectral_mode', data.value, data.user_color);
+      break;
+
+    case 'spectral_fft_size':
+      if (window.updateFFTSize) {
+        window.updateFFTSize(data.value, false); // false = not from user interaction
+      } else {
+        fftSize = data.value;
+        document.getElementById('spectral-fft-size').value = fftSize;
+        document.getElementById('spectral-fft-val').textContent = fftSize;
+        if (analyser) {
+          analyser.fftSize = fftSize;
+          fftDataArray = new Uint8Array(analyser.frequencyBinCount);
+          // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
+        }
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_fft_size', data.value, data.user_color);
+      break;
+
+    case 'spectral_log_scale':
+      logFrequencyScale = data.value;
+      const logToggle = document.getElementById('fft-log-toggle');
+      if (logToggle) {
+        logToggle.classList.toggle('active', logFrequencyScale);
+      }
+      // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
+      if (typeof gradientCache !== 'undefined') {
+        gradientCache.clear();
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_log_scale', data.value, data.user_color);
+      break;
+
+    case 'spectral_hud_expanded':
+      spectralHudExpanded = data.value;
+      const hudToggle = document.getElementById('spectral-hud-toggle');
+      const advancedControls = document.getElementById('spectral-advanced-controls');
+      if (hudToggle) {
+        hudToggle.textContent = spectralHudExpanded ? 'ON' : 'OFF';
+        hudToggle.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
+      }
+      if (advancedControls) {
+        advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+      }
+      showCollaborativeSpectralToast(data.username, 'spectral_hud', spectralHudExpanded ? 'expanded' : 'collapsed', data.user_color);
+      break;
+
+    case 'spectral_history_depth':
+      temporalDepthMs = data.value;
+      const depthSelect = document.getElementById('temporal-depth');
+      if (depthSelect) {
+        depthSelect.value = temporalDepthMs.toString();
+      }
+      temporalBuffer = []; // Clear buffer when depth changes
+      showCollaborativeSpectralToast(data.username, 'history_depth', `${data.value / 1000}s`, data.user_color);
+      break;
+
+    default:
+      console.warn(`Unknown parameter: ${data.parameter}`);
+  }
+
+  // Show visual feedback
+  showMidiActivity(`${data.parameter} (${data.username})`, data.value);
+}
+
+// Setup cursor tracking for collaborative mode
+function setupCursorTracking() {
+  if (!collaborativeMode) return;
+
+  let lastCursorUpdate = 0;
+  const CURSOR_UPDATE_THROTTLE = 50; // ms
+
+  document.addEventListener('mousemove', (event) => {
+    if (Date.now() - lastCursorUpdate < CURSOR_UPDATE_THROTTLE) return;
+
+    const x = event.clientX / window.innerWidth;
+    const y = event.clientY / window.innerHeight;
+
+    sendCollaborativeMessage('cursor_move', { x, y });
+    lastCursorUpdate = Date.now();
+  });
+}
+
+function setupCollaborativeChat() {
+  if (!collaborativeMode) return;
+
+  const chatOverlay = document.getElementById('chat-overlay');
+  const chatMiniToggle = document.getElementById('chat-mini-toggle');
+  const chatToggle = document.getElementById('chat-toggle');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  // Show chat controls in collaborative mode
+  chatMiniToggle.style.display = 'block';
+
+  // Chat toggle functionality
+  let chatVisible = false;
+
+  function toggleChat() {
+    chatVisible = !chatVisible;
+    chatOverlay.style.display = chatVisible ? 'flex' : 'none';
+    chatMiniToggle.style.display = chatVisible ? 'none' : 'block';
+
+    if (chatVisible) {
+      chatInput.focus();
+    }
+  }
+
+  chatMiniToggle.addEventListener('click', toggleChat);
+  chatToggle.addEventListener('click', toggleChat);
+
+  // Send message functionality
+  function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    sendCollaborativeMessage('chat_message', {
+      message: message,
+      timestamp: Date.now()
+    });
+
+    // Add own message to chat
+    addChatMessage({
+      username: currentUser ? currentUser.username : 'You',
+      user_color: currentUser ? currentUser.color : '#3b82f6',
+      message: message,
+      timestamp: Date.now()
+    }, true);
+
+    chatInput.value = '';
+  }
+
+  chatSend.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+}
+
+function addChatMessage(data, isOwnMessage = false) {
+  const chatMessages = document.getElementById('chat-messages');
+  const messageElement = document.createElement('div');
+  messageElement.className = 'chat-message';
+
+  const timestamp = new Date(data.timestamp).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  messageElement.innerHTML = `
+    <div class="chat-message-header">
+      <span class="chat-username" style="color: ${data.user_color || '#3b82f6'}">
+        ${data.username}
+      </span>
+      <span class="chat-timestamp">${timestamp}</span>
+    </div>
+    <div class="chat-text">${escapeHtml(data.message)}</div>
+  `;
+
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // Auto-remove welcome message when first real message arrives
+  const welcome = chatMessages.querySelector('.chat-welcome');
+  if (welcome && chatMessages.children.length > 1) {
+    welcome.remove();
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Multi-window synchronization functions
+function initBroadcastChannel() {
+  if (!window.BroadcastChannel) {
+    console.warn('BroadcastChannel not supported, multi-window sync disabled');
+    document.getElementById('multiwindow-status').textContent = 'Multi-Window: Not Supported';
+    return;
+  }
+
+  broadcastChannel = new BroadcastChannel('signal-form-sync');
+
+  broadcastChannel.onmessage = (event) => {
+    const { type, data, windowId: senderWindowId, timestamp } = event.data;
+
+    // Ignore messages from self or older messages
+    if (senderWindowId === windowId || timestamp <= lastSyncTime) {
+      return;
+    }
+
+    console.log(`📡 Received sync: ${type} from window ${senderWindowId}`);
+
+    switch (type) {
+      case 'parameter_update':
+        handleRemoteParameterUpdate(data);
+        break;
+
+      case 'camera_update':
+        handleRemoteCameraUpdate(data);
+        break;
+
+      case 'sprite_interaction':
+        handleRemoteSpriteInteraction(data);
+        break;
+
+      case 'preset_applied':
+        handleRemotePresetApplied(data);
+        break;
+
+      case 'window_heartbeat':
+        handleWindowHeartbeat(senderWindowId, data);
+        break;
+    }
+
+    lastSyncTime = timestamp;
+  };
+
+  // Send initial heartbeat
+  sendWindowHeartbeat();
+
+  // Regular heartbeat to maintain window list
+  setInterval(sendWindowHeartbeat, 5000);
+
+  console.log(`🪟 Multi-window sync initialized (Window ID: ${windowId})`);
+}
+
+function broadcastUpdate(type, data) {
+  if (!broadcastChannel) return;
+
+  const message = {
+    type,
+    data,
+    windowId,
+    timestamp: Date.now()
+  };
+
+  broadcastChannel.postMessage(message);
+}
+
+function sendWindowHeartbeat() {
+  broadcastUpdate('window_heartbeat', {
+    active: isWindowActive,
+    zeta: zeta,
+    pmw: pmw
+  });
+}
+
+function handleWindowHeartbeat(senderWindowId, data) {
+  connectedWindows.add(senderWindowId);
+  updateMultiWindowStatus();
+
+  // Clean up old windows after 10 seconds of no heartbeat
+  setTimeout(() => {
+    connectedWindows.delete(senderWindowId);
+    updateMultiWindowStatus();
+  }, 10000);
+}
+
+function updateMultiWindowStatus() {
+  const status = document.getElementById('multiwindow-status');
+  const windowCount = connectedWindows.size;
+
+  if (windowCount === 1) {
+    status.textContent = 'Multi-Window: Single';
+    status.style.color = '#94a3b8';
+  } else {
+    const activeText = isWindowActive ? 'Active' : 'Idle';
+    status.textContent = `Multi-Window: ${activeText} (${windowCount} windows)`;
+    status.style.color = isWindowActive ? '#10b981' : '#f59e0b';
+  }
+}
+
+function handleRemoteParameterUpdate(data) {
+  const { parameter, value, source } = data;
+
+  // Only apply if this window is not the active MIDI listener
+  if (isWindowActive && source === 'midi') return;
+
+  console.log(`🔄 Syncing ${parameter} = ${value} (from ${source})`);
+
+  switch (parameter) {
+    case 'zeta':
+      zeta = value;
+      document.getElementById('zeta').value = value;
+      document.getElementById('zeta-val').textContent = value.toFixed(3);
+      updateCamera();
+      updateShells();
+      break;
+
+    case 'pmw':
+      pmw = value;
+      document.getElementById('pmw').value = value;
+      document.getElementById('pmw-val').textContent = value.toFixed(3);
+      break;
+
+    case 'unity':
+      document.getElementById('unity').value = value;
+      document.getElementById('unity-val').textContent = value.toFixed(3);
+      break;
+
+    case 'flatness':
+      document.getElementById('flatness').value = value;
+      document.getElementById('flatness-val').textContent = value.toFixed(3);
+      break;
+  }
+}
+
+function handleRemoteCameraUpdate(data) {
+  // Only sync camera if this window is idle
+  if (isWindowActive) return;
+
+  const { position, target, up } = data;
+  if (camera && position) {
+    camera.position.copy(position);
+    camera.up.copy(up);
+    camera.lookAt(target.x, target.y, target.z);
+  }
+}
+
+function handleRemoteSpriteInteraction(data) {
+  const { mediaId, type } = data;
+  console.log(`🎭 Remote sprite interaction: ${type} on ${mediaId}`);
+
+  // Find and highlight the sprite briefly
+  const sprite = sprites.find(s => s.userData.mediaItem.id === mediaId);
+  if (sprite) {
+    sprite.material.emissive.setHex(0x00ff00);
+    setTimeout(() => {
+      sprite.material.emissive.setHex(0x000000);
+    }, 500);
+  }
+}
+
+function handleRemotePresetApplied(data) {
+  const { presetName } = data;
+  showPresetNotification(`🌐 ${presetName} (Remote)`);
+}
+
+// Window focus/blur handling for MIDI isolation
+function setupWindowFocusHandling() {
+  window.addEventListener('focus', () => {
+    isWindowActive = true;
+    updateMultiWindowStatus();
+    console.log(`🎯 Window ${windowId} became active`);
+
+    // Re-enable MIDI if this window becomes active
+    if (midiWS && midiWS.readyState === WebSocket.OPEN) {
+      document.getElementById('midi-status').style.color = '#34d399';
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    isWindowActive = false;
+    updateMultiWindowStatus();
+    console.log(`😴 Window ${windowId} became idle`);
+  });
+
+  // Handle page visibility changes
+  document.addEventListener('visibilitychange', () => {
+    isWindowActive = !document.hidden;
+    updateMultiWindowStatus();
+  });
+}
+
+// MIDI WebSocket connection
+function connectMidiWebSocket() {
+  try {
+    midiWS = new WebSocket('ws://localhost:7072/midi');
+
+    midiWS.onopen = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Connected';
+      document.getElementById('midi-status').style.color = '#34d399';
+      console.log('MIDI WebSocket connected');
+    };
+
+    midiWS.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        // Handle CC (Control Change) messages
+        if (data.type === 'cc' && typeof data.cc === 'number' && typeof data.value === 'number') {
+          // Only process MIDI if this window is active
+          if (!isWindowActive) {
+            console.log(`🔇 Ignoring MIDI CC${data.cc} - window not active`);
+            return;
+          }
+
+          const ccString = data.cc.toString();
+          const paramName = midiMapping[ccString];
+
+          // Enhanced logging with panel context
+          const panelContext = activePanel ? `panel:${activePanel}` : 'global';
+          console.log(`🎛️ MIDI CC${data.cc}=${data.value} (${panelContext}) → ${paramName || 'unmapped'}`);
+
+          if (paramName) {
+            // Apply velocity sensitivity if provided
+            let finalValue = data.value;
+            if (typeof data.velocity === 'number' && data.velocity !== 127) {
+              // Scale value based on velocity for expressive control
+              const velocityFactor = data.velocity / 127.0;
+              finalValue = data.value * velocityFactor;
+            }
+
+            updateParameterFromMidi(paramName, finalValue);
+            console.log(`CC${data.cc} (${finalValue}) → ${paramName} (${scaleMidiValue(finalValue).toFixed(3)})`);
+            flashMidiStatus();
+
+            // Broadcast parameter update to other windows
+            broadcastUpdate('parameter_update', {
+              parameter: paramName,
+              value: scaleMidiValue(finalValue),
+              source: 'midi',
+              panel: activePanel || 'global',
+              cc: data.cc
+            });
+
+            // Send collaborative parameter update if in collaborative mode
+            sendCollaborativeMessage('parameter_change', {
+              parameter: paramName,
+              value: scaleMidiValue(finalValue),
+              source: 'midi',
+              panel: activePanel || 'global',
+              cc: data.cc
+            });
+          } else {
+            console.log(`Unmapped CC${data.cc}: ${data.value}`);
+          }
+        }
+
+        // Handle Note On messages (for presets and actions)
+        if (data.type === 'note_on' && typeof data.note === 'number' && data.velocity > 0) {
+          // Only process MIDI if this window is active
+          if (!isWindowActive) {
+            console.log(`🔇 Ignoring MIDI Note${data.note} - window not active`);
+            return;
+          }
+
+          const noteString = data.note.toString();
+          let actionName = null;
+
+          // Check note mappings from config
+          if (midiPanelConfig.note_mappings && midiPanelConfig.note_mappings[noteString]) {
+            actionName = midiPanelConfig.note_mappings[noteString];
+          }
+          // Check panel-specific mappings (if panel type is specified)
+          else if (midiPanelConfig.panel_configs) {
+            for (const panelName in midiPanelConfig.panel_configs) {
+              const panel = midiPanelConfig.panel_configs[panelName];
+              if (panel.pads && panel.pads[noteString]) {
+                actionName = panel.pads[noteString];
+                break;
+              }
+              if (panel.notes && panel.notes[noteString]) {
+                actionName = panel.notes[noteString];
+                break;
+              }
+            }
+          }
+
+          if (actionName) {
+            handleMidiAction(actionName, data.velocity);
+            flashMidiStatus();
+
+            // Broadcast preset actions to other windows
+            if (actionName.startsWith('preset_')) {
+              broadcastUpdate('preset_applied', {
+                presetName: presets[actionName]?.name || actionName,
+                actionName: actionName
+              });
+            }
+          } else {
+            console.log(`Unmapped Note${data.note}: velocity ${data.velocity}`);
+          }
+        }
+
+        // Legacy support: direct parameter updates (backward compatibility)
+        if (typeof data.zeta === 'number') {
+          zeta = Math.max(0, Math.min(1, data.zeta));
+          document.getElementById('zeta').value = zeta;
+          document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+          updateCamera();
+          updateShells();
+        }
+
+        if (typeof data.unity === 'number') {
+          const unity = Math.max(0, Math.min(1, data.unity));
+          document.getElementById('unity').value = unity;
+          document.getElementById('unity-val').textContent = unity.toFixed(3);
+          sendControl({ set: { unity: unity } });
+        }
+
+        if (typeof data.flatness === 'number') {
+          const flatness = Math.max(0, Math.min(1, data.flatness));
+          document.getElementById('flatness').value = flatness;
+          document.getElementById('flatness-val').textContent = flatness.toFixed(3);
+          sendControl({ set: { flatness: flatness } });
+        }
+
+        if (typeof data.pmw === 'number') {
+          pmw = Math.max(0, Math.min(1, data.pmw));
+          document.getElementById('pmw').value = pmw;
+          document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+          sendControl({ set: { pmw: pmw } });
+        }
+
+        // Handle config reload message
+        if (data.type === 'reload_config') {
+          console.log('Reloading MIDI configuration...');
+          await loadMidiMapping();
+        }
+
+      } catch (error) {
+        console.warn('Error parsing MIDI data:', error);
+      }
+    };
+
+    midiWS.onerror = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Error';
+      document.getElementById('midi-status').style.color = '#ef4444';
+    };
+
+    midiWS.onclose = () => {
+      document.getElementById('midi-status').textContent = 'MIDI: Disconnected';
+      document.getElementById('midi-status').style.color = '#f59e0b';
+      // Reconnect after delay
+      setTimeout(connectMidiWebSocket, 3000);
+    };
+
+  } catch (error) {
+    console.error('MIDI WebSocket connection failed:', error);
+    document.getElementById('midi-status').textContent = 'MIDI: Failed';
+    document.getElementById('midi-status').style.color = '#ef4444';
+  }
+}
+
+// Load collection data
+async function loadCollection() {
+  try {
+    const response = await fetch(`${config.encoder_base}/collection/${config.collection_id}`);
+    collection = await response.json();
+    console.log('Collection loaded:', collection.media.length, 'items');
+    createSprites();
+  } catch (error) {
+    console.error('Failed to load collection:', error);
+  }
+}
+
+// Mouse interaction
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredSprite = null;
+
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(sprites);
+
+  // Clear previous hover
+  if (hoveredSprite) {
+    hoveredSprite.material.emissive.setHex(0x000000);
+    document.getElementById('sprite-card').style.display = 'none';
+  }
+
+  hoveredSprite = null;
+
+  if (intersects.length > 0) {
+    hoveredSprite = intersects[0].object;
+    hoveredSprite.material.emissive.setHex(0x444444);
+
+    // Show sprite card
+    const card = document.getElementById('sprite-card');
+    const media = hoveredSprite.userData.media;
+
+    card.querySelector('.id').textContent = media.id;
+    card.querySelector('.type').textContent = media.type;
+
+    const palette = card.querySelector('.palette');
+    palette.innerHTML = '';
+    media.palette.forEach(color => {
+      const colorDiv = document.createElement('div');
+      colorDiv.className = 'color';
+      colorDiv.style.backgroundColor = `rgb(${Math.floor(color*255)}, ${Math.floor(color*255)}, ${Math.floor(color*255)})`;
+      palette.appendChild(colorDiv);
+    });
+
+    card.style.display = 'block';
+    card.style.left = `${event.clientX + 10}px`;
+    card.style.top = `${event.clientY + 10}px`;
+  }
+}
+
+function onMouseClick(event) {
+  if (hoveredSprite) {
+    handleSpriteClick(hoveredSprite);
+  }
+}
+
+function onWheel(event) {
+  zeta = Math.max(0, Math.min(1, zeta + event.deltaY * 0.001));
+  document.getElementById('zeta').value = zeta;
+  document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+  updateCamera();
+  updateShells();
+  event.preventDefault();
+}
+
+// UI Controls
+function setupControls() {
+  const zetaSlider = document.getElementById('zeta');
+  const pmwSlider = document.getElementById('pmw');
+  const unitySlider = document.getElementById('unity');
+  const flatnessSlider = document.getElementById('flatness');
+
+  zetaSlider.addEventListener('input', (e) => {
+    zeta = parseFloat(e.target.value);
+    document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+    updateCamera();
+    updateShells();
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'zeta',
+      value: zeta,
+      source: 'slider'
+    });
+
+    // Send collaborative update if in collaborative mode
+    sendCollaborativeMessage('parameter_change', {
+      parameter: 'zeta',
+      value: zeta,
+      source: 'slider'
+    });
+  });
+
+  pmwSlider.addEventListener('input', (e) => {
+    pmw = parseFloat(e.target.value);
+    document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'pmw',
+      value: pmw,
+      source: 'slider'
+    });
+
+    // Send collaborative update
+    sendCollaborativeMessage('parameter_change', {
+      parameter: 'pmw',
+      value: pmw,
+      source: 'slider'
+    });
+  });
+
+  unitySlider.addEventListener('input', (e) => {
+    const unity = parseFloat(e.target.value);
+    document.getElementById('unity-val').textContent = unity.toFixed(3);
+    // Send control update
+    sendControl({ set: { unity: unity } });
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'unity',
+      value: unity,
+      source: 'slider'
+    });
+  });
+
+  flatnessSlider.addEventListener('input', (e) => {
+    const flatness = parseFloat(e.target.value);
+    document.getElementById('flatness-val').textContent = flatness.toFixed(3);
+    // Send control update
+    sendControl({ set: { flatness: flatness } });
+
+    // Broadcast parameter update
+    broadcastUpdate('parameter_update', {
+      parameter: 'flatness',
+      value: flatness,
+      source: 'slider'
+    });
+  });
+
+  // Center Me button
+  document.getElementById('center-me').addEventListener('click', () => {
+    // Smooth transition to center
+    const startZeta = zeta;
+    const targetZeta = 1.0;
+    const startTime = Date.now();
+    const duration = 500; // ms
+
+    function animateToCenter() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = smoothstep(0, 1, progress);
+
+      zeta = lerp(startZeta, targetZeta, easedProgress);
+      document.getElementById('zeta').value = zeta;
+      document.getElementById('zeta-val').textContent = zeta.toFixed(3);
+
+      updateCamera();
+      updateShells();
+
+      if (progress < 1) {
+        requestAnimationFrame(animateToCenter);
+      } else {
+        // Set PMW to 1 and apply grounding
+        pmw = 1.0;
+        document.getElementById('pmw').value = pmw;
+        document.getElementById('pmw-val').textContent = pmw.toFixed(3);
+        sendControl({
+          set: { pmw: 1.0, alpha_white: 0.8 },
+          bias: { weights: [0.8, 0.1, 0.1] } // Flatten spectrum
+        });
+      }
+    }
+
+    animateToCenter();
+  });
+}
+
+// Send control command
+async function sendControl(command) {
+  try {
+    await fetch(config.http_control, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(command)
+    });
+  } catch (error) {
+    console.error('Control send failed:', error);
+  }
+}
+
+// FFT Spectral Analysis System
+let audioContext = null;
+let analyser = null;
+let fftDataArray = null;
+let fftCanvas = null;
+let fftCtx = null;
+let spectralEnabled = true;
+let spectralMode = 'bars';
+let fftSize = 256;
+let waterfallBuffer = [];
+let oscillatorNode = null;
+let gainNode = null;
+let logFrequencyScale = false;
+let fftContainer = null;
+let isDragging = false;
+let dragOffset = { x: 0, y: 0 };
+let gradientCache = new Map();
+
+// Advanced spectral analysis data
+let temporalBuffer = []; // For temporal evolution tracking
+let modalEnergyHistory = []; // For modal energy distribution
+let spectralPeaks = []; // Track spectral peaks over time
+let temporalDepthMs = 15000; // Default 15 seconds
+let spectralHudExpanded = true; // Main spectral HUD state
+let energyBands = { // Frequency band definitions
+  sub: { min: 20, max: 60, energy: 0 },
+  bass: { min: 60, max: 250, energy: 0 },
+  lowMid: { min: 250, max: 500, energy: 0 },
+  mid: { min: 500, max: 2000, energy: 0 },
+  highMid: { min: 2000, max: 4000, energy: 0 },
+  high: { min: 4000, max: 8000, energy: 0 },
+  ultra: { min: 8000, max: 20000, energy: 0 }
+};
+
+// Spectral Preset System
+let spectralPresets = {};
+let currentSpectralPreset = null;
+let presetTransitionDuration = 800; // ms for smooth transitions
+
+// Load spectral presets from localStorage
+function loadSpectralPresets() {
+  try {
+    const saved = localStorage.getItem('spectral_presets');
+    if (saved) {
+      spectralPresets = JSON.parse(saved);
+      updatePresetDropdown();
+    }
+  } catch (e) {
+    console.warn('Failed to load spectral presets:', e);
+    spectralPresets = {};
+  }
+}
+
+// Save spectral presets to localStorage
+function saveSpectralPresets() {
+  try {
+    localStorage.setItem('spectral_presets', JSON.stringify(spectralPresets));
+  } catch (e) {
+    console.warn('Failed to save spectral presets:', e);
+  }
+}
+
+// Get current spectral state
+function getCurrentSpectralState() {
+  return {
+    enabled: spectralEnabled,
+    mode: spectralMode,
+    fft_size: fftSize,
+    log_scale: logScale || false,
+    timestamp: Date.now()
+  };
+}
+
+// Apply spectral preset with smooth transitions
+function applySpectralPreset(presetData, smooth = true) {
+  if (!presetData) return;
+
+  const duration = smooth ? presetTransitionDuration : 0;
+
+  // Apply with transitions
+  if (duration > 0) {
+    // Add transition classes for smooth changes
+    const fftContainer = document.getElementById('fft-overlay-container');
+    if (fftContainer) {
+      fftContainer.style.transition = `opacity ${duration}ms ease-in-out`;
+      fftContainer.style.opacity = '0.7';
+    }
+  }
+
+  setTimeout(() => {
+    // Update spectral settings
+    if (presetData.enabled !== undefined) {
+      spectralEnabled = presetData.enabled;
+      const toggleBtn = document.getElementById('spectral-toggle');
+      if (toggleBtn) {
+        toggleBtn.textContent = spectralEnabled ? 'ON' : 'OFF';
+        toggleBtn.className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+      }
+      const fftContainer = document.getElementById('fft-overlay-container');
+      if (fftContainer) {
+        fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+      }
+    }
+
+    if (presetData.mode !== undefined) {
+      spectralMode = presetData.mode;
+      const modeSelect = document.getElementById('spectral-mode');
+      if (modeSelect) modeSelect.value = spectralMode;
+    }
+
+    if (presetData.fft_size !== undefined) {
+      fftSize = presetData.fft_size;
+      const fftSizeSlider = document.getElementById('spectral-fft-size');
+      const fftVal = document.getElementById('spectral-fft-val');
+      if (fftSizeSlider) fftSizeSlider.value = fftSize;
+      if (fftVal) fftVal.textContent = fftSize;
+
+      // Update preset buttons
+      document.querySelectorAll('.fft-preset-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.size) === fftSize);
+      });
+    }
+
+    if (presetData.log_scale !== undefined && typeof setLogScale === 'function') {
+      setLogScale(presetData.log_scale);
+    }
+
+    // Restore container opacity
+    if (duration > 0) {
+      const fftContainer = document.getElementById('fft-overlay-container');
+      if (fftContainer) {
+        fftContainer.style.opacity = '1';
+        // Remove transition after animation
+        setTimeout(() => {
+          fftContainer.style.transition = '';
+        }, duration);
+      }
+    }
+  }, duration * 0.3);
+}
+
+// Update preset dropdown
+function updatePresetDropdown() {
+  const select = document.getElementById('spectral-preset-select');
+  if (!select) return;
+
+  // Clear existing options except the first one
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+
+  // Add presets to dropdown
+  Object.keys(spectralPresets).forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+}
+
+async function startFFTAnalysis() {
+  try {
+    fftCanvas = document.getElementById('fft-canvas');
+    fftContainer = document.getElementById('fft-overlay-container');
+    fftCtx = fftCanvas.getContext('2d');
+
+    // Set initial canvas size
+    resizeFFTCanvas();
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+
+    const bufferLength = analyser.frequencyBinCount;
+    fftDataArray = new Uint8Array(bufferLength);
+
+    // Try microphone first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      console.log('🎤 FFT: Using microphone input');
+    } catch (micError) {
+      // Fallback to synthetic audio for demonstration
+      oscillatorNode = audioContext.createOscillator();
+      gainNode = audioContext.createGain();
+
+      oscillatorNode.type = 'sawtooth';
+      oscillatorNode.frequency.setValueAtTime(220, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+      oscillatorNode.connect(gainNode);
+      gainNode.connect(analyser);
+      gainNode.connect(audioContext.destination);
+
+      oscillatorNode.start();
+      console.log('🔊 FFT: Using synthetic audio fallback');
+    }
+
+    setupFFTInteractions();
+    requestAnimationFrame(updateFFTVisualization);
+  } catch (error) {
+    console.warn('FFT initialization failed:', error);
+  }
+}
+
+function resizeFFTCanvas() {
+  if (!fftCanvas || !fftContainer) return;
+
+  const containerRect = fftContainer.getBoundingClientRect();
+  const headerHeight = 20;
+
+  fftCanvas.width = containerRect.width;
+  fftCanvas.height = containerRect.height - headerHeight;
+
+  // Clear all spectral buffers on resize
+  waterfallBuffer = [];
+  temporalBuffer = [];
+  modalEnergyHistory = [];
+  spectralPeaks = [];
+  gradientCache.clear();
+}
+
+function updateFFTVisualization() {
+  if (!spectralEnabled || !analyser || !fftCtx) {
+    requestAnimationFrame(updateFFTVisualization);
+    return;
+  }
+
+  analyser.getByteFrequencyData(fftDataArray);
+
+  const canvas = fftCanvas;
+  const ctx = fftCtx;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (spectralMode === 'bars') {
+    renderFFTBars(ctx, canvas);
+  } else if (spectralMode === 'waterfall') {
+    renderFFTWaterfall(ctx, canvas);
+  } else if (spectralMode === 'modal_energy') {
+    renderModalEnergy(ctx, canvas);
+  } else if (spectralMode === 'temporal_evolution') {
+    renderTemporalEvolution(ctx, canvas);
+  } else if (spectralMode === 'advanced_spectrogram') {
+    renderAdvancedSpectrogram(ctx, canvas);
+  }
+
+  requestAnimationFrame(updateFFTVisualization);
+}
+
+function renderFFTBars(ctx, canvas) {
+  const barCount = Math.min(64, fftDataArray.length);
+
+  for (let i = 0; i < barCount; i++) {
+    const dataIndex = logFrequencyScale ? getLogIndex(i, barCount, fftDataArray.length) : i;
+    const barHeight = (fftDataArray[dataIndex] / 255) * canvas.height;
+
+    let barX, barWidth;
+    if (logFrequencyScale) {
+      const startFreq = getLogIndex(i, barCount, fftDataArray.length);
+      const endFreq = getLogIndex(i + 1, barCount, fftDataArray.length);
+      barX = (startFreq / fftDataArray.length) * canvas.width;
+      barWidth = ((endFreq - startFreq) / fftDataArray.length) * canvas.width;
+    } else {
+      barWidth = canvas.width / barCount;
+      barX = i * barWidth;
+    }
+
+    // Enhanced gradient coloring
+    const intensity = fftDataArray[dataIndex] / 255;
+    const hue = 220 - (intensity * 180); // Blue to orange/red
+    const saturation = 70 + (intensity * 30);
+    const lightness = 30 + (intensity * 40);
+
+    ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    ctx.fillRect(barX, canvas.height - barHeight, Math.max(1, barWidth - 1), barHeight);
+
+    // Add subtle glow effect for high intensity bars
+    if (intensity > 0.7) {
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fillRect(barX, canvas.height - barHeight, Math.max(1, barWidth - 1), barHeight);
+      ctx.shadowBlur = 0;
+    }
+  }
+}
+
+function renderFFTWaterfall(ctx, canvas) {
+  // Enhanced waterfall with temporal band history buffer (longer persistence)
+  const maxBufferSize = Math.max(canvas.height * 3, 800); // Extended buffer for scrolling spectrogram
+
+  if (waterfallBuffer.length >= maxBufferSize) {
+    waterfallBuffer.shift();
+  }
+
+  // Process new line with enhanced frequency mapping
+  let processedLine;
+  if (logFrequencyScale) {
+    processedLine = new Array(canvas.width);
+    for (let x = 0; x < canvas.width; x++) {
+      const logIndex = getLogIndex(x, canvas.width, fftDataArray.length);
+      processedLine[x] = fftDataArray[logIndex];
+    }
+  } else {
+    const step = fftDataArray.length / canvas.width;
+    processedLine = new Array(canvas.width);
+    for (let x = 0; x < canvas.width; x++) {
+      processedLine[x] = fftDataArray[Math.floor(x * step)];
+    }
+  }
+
+  // Add timestamp for temporal band tracking
+  processedLine.timestamp = Date.now();
+  waterfallBuffer.push(processedLine);
+
+  // Create gradient if not cached
+  const gradientKey = `${canvas.width}_${canvas.height}`;
+  if (!gradientCache.has(gradientKey)) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(0, 0, 255, 0.8)'); // Blue (low)
+    gradient.addColorStop(0.3, 'rgba(0, 255, 255, 0.9)'); // Cyan
+    gradient.addColorStop(0.6, 'rgba(255, 255, 0, 1.0)'); // Yellow
+    gradient.addColorStop(0.8, 'rgba(255, 128, 0, 1.0)'); // Orange
+    gradient.addColorStop(1.0, 'rgba(255, 0, 0, 1.0)'); // Red (high)
+    gradientCache.set(gradientKey, gradient);
+  }
+
+  // Enhanced scrolling spectrogram with temporal persistence
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+  const currentTime = Date.now();
+  const fadeTime = 15000; // 15 second fade for longer persistence
+
+  // Render with temporal fade and enhanced spectral bands
+  const displayHeight = Math.min(waterfallBuffer.length, canvas.height);
+  const startIndex = Math.max(0, waterfallBuffer.length - displayHeight);
+
+  for (let y = 0; y < displayHeight; y++) {
+    const bufferIndex = startIndex + y;
+    const lineData = waterfallBuffer[bufferIndex];
+    const age = currentTime - (lineData.timestamp || currentTime);
+    const fadeFactor = Math.max(0.2, 1 - (age / fadeTime));
+
+    for (let x = 0; x < lineData.length && x < canvas.width; x++) {
+      const intensity = (lineData[x] / 255) * fadeFactor;
+      const pixelIndex = (y * canvas.width + x) * 4;
+
+      // Enhanced spectral color mapping with temporal bands
+      let r, g, b;
+      if (intensity < 0.25) {
+        // Low: Deep blue to cyan
+        const t = intensity * 4;
+        r = Math.floor(t * 50);
+        g = Math.floor(t * 150);
+        b = Math.floor(200 + t * 55);
+      } else if (intensity < 0.5) {
+        // Mid-low: Cyan to green
+        const t = (intensity - 0.25) * 4;
+        r = Math.floor(50 * (1 - t));
+        g = Math.floor(150 + t * 105);
+        b = Math.floor(255 * (1 - t * 0.8));
+      } else if (intensity < 0.75) {
+        // Mid-high: Green to yellow
+        const t = (intensity - 0.5) * 4;
+        r = Math.floor(t * 255);
+        g = 255;
+        b = Math.floor(50 * (1 - t));
+      } else {
+        // High: Yellow to red with white peaks
+        const t = (intensity - 0.75) * 4;
+        r = 255;
+        g = Math.floor(255 * (1 - t * 0.6));
+        b = Math.floor(20 * (1 - t));
+
+        // Add white highlights for extreme peaks
+        if (intensity > 0.9) {
+          const whiteFactor = (intensity - 0.9) * 10;
+          r = Math.floor(r + (255 - r) * whiteFactor);
+          g = Math.floor(g + (255 - g) * whiteFactor);
+          b = Math.floor(b + (255 - b) * whiteFactor);
+        }
+      }
+
+      data[pixelIndex] = r;     // Red
+      data[pixelIndex + 1] = g; // Green
+      data[pixelIndex + 2] = b; // Blue
+      data[pixelIndex + 3] = Math.floor(255 * Math.min(1, fadeFactor + 0.1)); // Alpha with fade
+    }
+  }
+
+  ctx.putImageData(imageData, 0, canvas.height - displayHeight);
+
+  // Add temporal frequency grid for better readability
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1;
+
+  // Frequency grid lines
+  for (let i = 0; i < 10; i++) {
+    const x = (i / 9) * canvas.width;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  // Time grid lines (every 2 seconds)
+  const timeGridSpacing = 120; // ~2 seconds at 60fps
+  for (let i = timeGridSpacing; i < displayHeight; i += timeGridSpacing) {
+    const y = canvas.height - i;
+    if (y > 0) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }
+}
+
+function getLogIndex(linearIndex, linearMax, dataLength) {
+  const logMin = Math.log(1);
+  const logMax = Math.log(dataLength);
+  const logStep = (logMax - logMin) / linearMax;
+  return Math.floor(Math.exp(logMin + linearIndex * logStep)) - 1;
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+// Advanced Spectral Visualization Functions
+
+function renderModalEnergy(ctx, canvas) {
+  // Calculate energy for each frequency band and eigenmode
+  updateEnergyBands();
+  updateModalEigenmodes();
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Add current snapshot to modal energy history
+  const currentSnapshot = {};
+  const bandNames = Object.keys(energyBands);
+  bandNames.forEach(bandName => {
+    currentSnapshot[bandName] = energyBands[bandName].energy;
+  });
+
+  modalEnergyHistory.push(currentSnapshot);
+  const maxHistoryLength = Math.min(canvas.width * 2, 300); // Increased history depth
+  if (modalEnergyHistory.length > maxHistoryLength) {
+    modalEnergyHistory.shift();
+  }
+
+  // Draw stacked curves per eigenmode with fading history
+  const timeStep = canvas.width / Math.max(1, modalEnergyHistory.length - 1);
+  const modeColors = [
+    'rgba(255, 100, 100, 0.9)', // Red
+    'rgba(100, 255, 100, 0.9)', // Green
+    'rgba(100, 100, 255, 0.9)', // Blue
+    'rgba(255, 255, 100, 0.9)', // Yellow
+    'rgba(255, 100, 255, 0.9)', // Magenta
+    'rgba(100, 255, 255, 0.9)', // Cyan
+    'rgba(255, 150, 0, 0.9)'    // Orange
+  ];
+
+  // Draw historical curves with fading
+  bandNames.forEach((bandName, bandIndex) => {
+    if (modalEnergyHistory.length < 2) return;
+
+    const color = modeColors[bandIndex % modeColors.length];
+    const [r, g, b] = color.match(/\d+/g).map(Number);
+
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+
+    for (let i = 0; i < modalEnergyHistory.length; i++) {
+      const snapshot = modalEnergyHistory[i];
+      const energy = snapshot[bandName] || 0;
+
+      // Fade older history
+      const age = (modalEnergyHistory.length - 1 - i) / modalEnergyHistory.length;
+      const alpha = Math.max(0.1, 1 - age * 0.8);
+
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+      const x = i * timeStep;
+      const y = canvas.height - (energy * canvas.height * 0.8) - 20; // Leave space for labels
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.stroke();
+
+    // Draw current energy level with glow
+    const currentEnergy = energyBands[bandName].energy;
+    const currentY = canvas.height - (currentEnergy * canvas.height * 0.8) - 20;
+
+    ctx.beginPath();
+    ctx.arc(canvas.width - 5, currentY, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // Draw eigenmode labels and current values
+  const labelY = canvas.height - 5;
+  const labelSpacing = canvas.width / bandNames.length;
+
+  bandNames.forEach((bandName, index) => {
+    const x = (index + 0.5) * labelSpacing;
+    const energy = energyBands[bandName].energy;
+    const color = modeColors[index % modeColors.length];
+
+    // Mode label
+    ctx.fillStyle = color.replace('0.9', '1');
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`M${index + 1}`, x, labelY);
+
+    // Energy percentage
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '8px Arial';
+    ctx.fillText(`${(energy * 100).toFixed(0)}%`, x, labelY - 12);
+  });
+
+  // Add time axis
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height - 25);
+  ctx.lineTo(canvas.width, canvas.height - 25);
+  ctx.stroke();
+
+  // Time labels
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = '8px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Past', 5, canvas.height - 28);
+  ctx.textAlign = 'right';
+  ctx.fillText('Now', canvas.width - 5, canvas.height - 28);
+}
+
+function renderTemporalEvolution(ctx, canvas) {
+  // Track spectral evolution over time with adjustable depth
+  const currentSpectrum = Array.from(fftDataArray).map(val => val / 255);
+  temporalBuffer.push({
+    spectrum: currentSpectrum,
+    timestamp: Date.now()
+  });
+
+  // Calculate buffer size based on temporal depth setting
+  const temporalDepthMs = getTemporalDepth();
+  const frameRate = 60; // Assume 60 FPS for buffer calculation
+  const maxBufferSize = Math.min(
+    Math.floor((temporalDepthMs / 1000) * frameRate),
+    canvas.height
+  );
+
+  // Remove old frames beyond temporal depth
+  const cutoffTime = Date.now() - temporalDepthMs;
+  while (temporalBuffer.length > 0 && temporalBuffer[0].timestamp < cutoffTime) {
+    temporalBuffer.shift();
+  }
+
+  // Also limit by buffer size for performance
+  if (temporalBuffer.length > maxBufferSize) {
+    temporalBuffer.shift();
+  }
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Create temporal evolution display with rolling history
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let t = 0; t < temporalBuffer.length; t++) {
+    const spectrumData = temporalBuffer[t];
+    const spectrum = spectrumData.spectrum;
+    const age = (Date.now() - spectrumData.timestamp) / temporalDepthMs;
+
+    // Y position based on time (newest at top)
+    const y = canvas.height - ((t + 1) / temporalBuffer.length) * canvas.height;
+
+    for (let f = 0; f < Math.min(spectrum.length, canvas.width); f++) {
+      const x = (f / spectrum.length) * canvas.width;
+      const intensity = spectrum[f];
+
+      if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+        const pixelIndex = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
+
+        // Time-based fading (recent = bright, older = dim)
+        const timeAlpha = Math.max(0.1, 1 - age * 0.9);
+        const baseIntensity = intensity * timeAlpha;
+
+        // Enhanced color mapping for frequency content
+        const hue = 240 - (f / spectrum.length) * 180; // Blue to red across frequency
+        const saturation = 0.8 + intensity * 0.2;
+        const lightness = baseIntensity * 0.7;
+
+        const rgb = hslToRgb(hue / 360, saturation, lightness);
+
+        if (pixelIndex >= 0 && pixelIndex < data.length - 3) {
+          data[pixelIndex] = rgb[0];     // R
+          data[pixelIndex + 1] = rgb[1]; // G
+          data[pixelIndex + 2] = rgb[2]; // B
+          data[pixelIndex + 3] = Math.min(255, baseIntensity * 200); // A
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Add enhanced temporal axis and time markers
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.lineWidth = 1;
+
+  // Time grid lines
+  const timeSteps = 5;
+  for (let i = 1; i < timeSteps; i++) {
+    const y = (i / timeSteps) * canvas.height;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+
+    // Time labels
+    const timeAgo = (temporalDepthMs * i / timeSteps) / 1000;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '8px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`-${timeAgo.toFixed(1)}s`, 2, y - 2);
+  }
+
+  // Frequency markers
+  const freqSteps = 4;
+  for (let i = 1; i < freqSteps; i++) {
+    const x = (i / freqSteps) * canvas.width;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+
+    // Frequency labels
+    const freq = (i / freqSteps) * ((audioContext?.sampleRate || 44100) / 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '8px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${(freq / 1000).toFixed(1)}kHz`, x, canvas.height - 2);
+  }
+
+  // Current time and depth indicator
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Depth: ${temporalDepthMs / 1000}s`, canvas.width - 5, 15);
+  ctx.fillText('Now', canvas.width - 5, canvas.height - 5);
+}
+
+function renderAdvancedSpectrogram(ctx, canvas) {
+  // Enhanced spectrogram with peak tracking and harmonic analysis
+  const currentSpectrum = Array.from(fftDataArray).map(val => val / 255);
+
+  // Detect and track spectral peaks
+  detectSpectralPeaks(currentSpectrum);
+
+  // Enhanced waterfall with peak overlays
+  renderFFTWaterfall(ctx, canvas);
+
+  // Overlay spectral peaks
+  if (spectralPeaks.length > 0) {
+    ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+
+    spectralPeaks.forEach(peak => {
+      const x = (peak.frequency / (fftDataArray.length / 2)) * canvas.width;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+
+      // Peak label
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+      ctx.font = '8px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${peak.frequency.toFixed(0)}Hz`, x, 12);
+      ctx.fillText(`${(peak.magnitude * 100).toFixed(0)}%`, x, 24);
+    });
+
+    ctx.setLineDash([]);
+  }
+
+  // Add harmonic series visualization
+  if (spectralPeaks.length > 0) {
+    const fundamental = spectralPeaks[0]; // Assume strongest peak is fundamental
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+
+    // Draw harmonic series
+    for (let harmonic = 2; harmonic <= 8; harmonic++) {
+      const harmonicFreq = fundamental.frequency * harmonic;
+      if (harmonicFreq < fftDataArray.length / 2) {
+        const x = (harmonicFreq / (fftDataArray.length / 2)) * canvas.width;
+        ctx.beginPath();
+        ctx.moveTo(x, canvas.height * 0.8);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function updateEnergyBands() {
+  // Calculate energy in each frequency band
+  const nyquist = audioContext ? audioContext.sampleRate / 2 : 22050;
+  const binSize = nyquist / (fftDataArray.length / 2);
+
+  // Reset energy values
+  Object.keys(energyBands).forEach(key => {
+    energyBands[key].energy = 0;
+  });
+
+  // Calculate energy for each band
+  for (let i = 0; i < fftDataArray.length; i++) {
+    const frequency = i * binSize;
+    const magnitude = fftDataArray[i] / 255;
+
+    Object.keys(energyBands).forEach(bandName => {
+      const band = energyBands[bandName];
+      if (frequency >= band.min && frequency <= band.max) {
+        band.energy += magnitude * magnitude; // Energy is magnitude squared
+      }
+    });
+  }
+
+  // Normalize energy values
+  Object.keys(energyBands).forEach(bandName => {
+    const band = energyBands[bandName];
+    const bandWidth = band.max - band.min;
+    band.energy = Math.sqrt(band.energy / bandWidth); // RMS energy
+  });
+}
+
+function updateModalEigenmodes() {
+  // Update eigenmode energy distribution based on FFT data
+  // This simulates modal decomposition for visualization
+  const modeCount = Object.keys(energyBands).length;
+
+  // Apply modal transformation to frequency bands
+  // Each eigenmode contributes differently to the frequency spectrum
+  const modalWeights = [
+    [1.0, 0.8, 0.3, 0.1, 0.05, 0.02, 0.01], // Mode 1: Fundamental
+    [0.3, 1.0, 0.7, 0.4, 0.2, 0.1, 0.05],   // Mode 2: First harmonic
+    [0.1, 0.4, 1.0, 0.8, 0.5, 0.3, 0.1],    // Mode 3: Second harmonic
+    [0.05, 0.2, 0.5, 1.0, 0.7, 0.4, 0.2],   // Mode 4: Third harmonic
+    [0.02, 0.1, 0.3, 0.6, 1.0, 0.8, 0.4],   // Mode 5: Fourth harmonic
+    [0.01, 0.05, 0.1, 0.3, 0.6, 1.0, 0.7],  // Mode 6: Fifth harmonic
+    [0.005, 0.02, 0.05, 0.1, 0.3, 0.6, 1.0] // Mode 7: High harmonics
+  ];
+
+  const bandNames = Object.keys(energyBands);
+  bandNames.forEach((bandName, bandIndex) => {
+    const rawEnergy = energyBands[bandName].energy;
+
+    // Apply modal weighting - simulate eigenmode contribution
+    if (modalWeights[bandIndex]) {
+      let modalContribution = 0;
+      modalWeights[bandIndex].forEach((weight, freqIndex) => {
+        if (freqIndex < fftDataArray.length / 16) { // Sample subset for performance
+          const freqBinEnergy = (fftDataArray[freqIndex * 16] || 0) / 255;
+          modalContribution += weight * freqBinEnergy;
+        }
+      });
+
+      // Blend raw frequency energy with modal contribution
+      energyBands[bandName].energy = (rawEnergy * 0.7) + (modalContribution * 0.3);
+    }
+  });
+}
+
+function detectSpectralPeaks(spectrum) {
+  spectralPeaks = [];
+  const minPeakHeight = 0.1; // Minimum peak magnitude
+  const minPeakDistance = 5; // Minimum distance between peaks
+
+  for (let i = 1; i < spectrum.length - 1; i++) {
+    if (spectrum[i] > spectrum[i-1] &&
+        spectrum[i] > spectrum[i+1] &&
+        spectrum[i] > minPeakHeight) {
+
+      // Check minimum distance from other peaks
+      const frequency = i;
+      const tooClose = spectralPeaks.some(peak =>
+        Math.abs(peak.frequency - frequency) < minPeakDistance
+      );
+
+      if (!tooClose) {
+        spectralPeaks.push({
+          frequency: frequency,
+          magnitude: spectrum[i]
+        });
+      }
+    }
+  }
+
+  // Sort by magnitude (strongest first) and keep top 10
+  spectralPeaks.sort((a, b) => b.magnitude - a.magnitude);
+  spectralPeaks = spectralPeaks.slice(0, 10);
+}
+
+function getTemporalDepth() {
+  return temporalDepthMs;
+}
+
+function setTemporalDepth(depthMs) {
+  temporalDepthMs = depthMs;
+  // Clear temporal buffer when depth changes
+  temporalBuffer = [];
+
+  // Broadcast to collaborative users if applicable
+  if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+    sendCollaborativeMessage('parameter_change', {
+      parameter: 'spectral_history_depth',
+      value: depthMs,
+      source: 'spectral_controls'
+    });
+  }
+}
+
+function setupSpectralControls() {
+  const hudToggleBtn = document.getElementById('spectral-hud-toggle');
+  const advancedControls = document.getElementById('spectral-advanced-controls');
+  const toggleBtn = document.getElementById('spectral-toggle');
+  const modeSelect = document.getElementById('spectral-mode');
+  const fftSizeSlider = document.getElementById('spectral-fft-size');
+  const fftVal = document.getElementById('spectral-fft-val');
+  const temporalDepthSelect = document.getElementById('temporal-depth');
+  const presetBtns = document.querySelectorAll('.fft-preset-btn');
+
+  // Main Spectral HUD toggle
+  hudToggleBtn.addEventListener('click', () => {
+    spectralHudExpanded = !spectralHudExpanded;
+    hudToggleBtn.textContent = spectralHudExpanded ? 'ON' : 'OFF';
+    hudToggleBtn.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
+    advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
+
+    // Broadcast to collaborative users if applicable
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_hud_expanded',
+        value: spectralHudExpanded,
+        source: 'spectral_controls'
+      });
+    }
+  });
+
+  // Toggle spectral overlay
+  toggleBtn.addEventListener('click', () => {
+    spectralEnabled = !spectralEnabled;
+    toggleBtn.textContent = spectralEnabled ? 'ON' : 'OFF';
+    toggleBtn.className = spectralEnabled ? 'spectral-btn' : 'spectral-btn off';
+    fftContainer.style.display = spectralEnabled ? 'block' : 'none';
+
+    // Broadcast to collaborative users with enhanced user attribution
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_enabled',
+        value: spectralEnabled,
+        source: 'spectral_controls'
+      });
+      showSpectralToast(`Spectral overlay ${spectralEnabled ? 'enabled' : 'disabled'}`);
+    }
+  });
+
+  // Change visualization mode
+  modeSelect.addEventListener('change', () => {
+    spectralMode = modeSelect.value;
+    // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
+
+    // Broadcast to collaborative users with enhanced user attribution
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_mode',
+        value: spectralMode,
+        source: 'spectral_controls'
+      });
+      showSpectralToast(`Spectral mode: ${spectralMode.replace('_', ' ')}`);
+    }
+  });
+
+  // Change FFT size
+  fftSizeSlider.addEventListener('input', () => {
+    const newSize = parseInt(fftSizeSlider.value);
+    updateFFTSize(newSize, true);
+  });
+
+  // FFT Size Preset buttons
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const size = parseInt(btn.dataset.size);
+      updateFFTSize(size, true);
+    });
+  });
+
+  // Update active preset button
+  function updatePresetButtons() {
+    presetBtns.forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.size) === fftSize);
+    });
+  }
+
+  function updateFFTSize(newSize, fromUser = false) {
+    if (newSize !== fftSize) {
+      fftSize = newSize;
+      fftVal.textContent = fftSize;
+      fftSizeSlider.value = fftSize;
+      updatePresetButtons();
+
+      if (analyser) {
+        analyser.fftSize = fftSize;
+        fftDataArray = new Uint8Array(analyser.frequencyBinCount);
+        // Reset all spectral buffers
+        waterfallBuffer = [];
+        temporalBuffer = [];
+        modalEnergyHistory = [];
+        spectralPeaks = [];
+      }
+
+      // Broadcast to collaborative users with enhanced user attribution
+      if (fromUser && collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_fft_size',
+          value: fftSize,
+          source: 'spectral_controls'
+        });
+        showSpectralToast(`FFT size: ${fftSize}`);
+      }
+
+      // Broadcast to collaborative users if applicable
+      if (fromUser && collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+        sendCollaborativeMessage('parameter_change', {
+          parameter: 'spectral_fft_size',
+          value: fftSize,
+          source: 'spectral_controls'
+        });
+        showSpectralToast(`FFT size: ${fftSize}`);
+      }
+    }
+  }
+
+  // Initialize preset buttons
+  updatePresetButtons();
+  window.updateFFTSize = updateFFTSize; // Make available globally for collaborative updates
+
+  // Temporal Depth Control
+  temporalDepthSelect.addEventListener('change', () => {
+    const newDepth = parseInt(temporalDepthSelect.value);
+    setTemporalDepth(newDepth);
+    showSpectralToast(`History depth: ${newDepth / 1000}s`);
+  });
+
+  // Spectral Preset Controls
+  const presetSelect = document.getElementById('spectral-preset-select');
+  const presetSaveBtn = document.getElementById('spectral-preset-save');
+  const currentPresetName = document.getElementById('current-preset-name');
+
+  // Load saved presets on startup
+  loadSpectralPresets();
+
+  // Preset selection handler
+  if (presetSelect) {
+    presetSelect.addEventListener('change', () => {
+      const presetName = presetSelect.value;
+      if (presetName && spectralPresets[presetName]) {
+        applySpectralPreset(spectralPresets[presetName], true);
+        currentSpectralPreset = presetName;
+        currentPresetName.textContent = `Current: ${presetName}`;
+
+        // Broadcast collaborative preset application
+        if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+          sendCollaborativeMessage('preset_applied', {
+            preset_name: presetName,
+            preset_data: spectralPresets[presetName],
+            preset_type: 'spectral'
+          });
+        }
+      } else if (!presetName) {
+        currentSpectralPreset = null;
+        currentPresetName.textContent = '';
+      }
+    });
+  }
+
+  // Preset save handler
+  if (presetSaveBtn) {
+    presetSaveBtn.addEventListener('click', () => {
+      const presetName = prompt('Enter preset name:');
+      if (presetName && presetName.trim()) {
+        const trimmedName = presetName.trim();
+        const currentState = getCurrentSpectralState();
+        spectralPresets[trimmedName] = currentState;
+        saveSpectralPresets();
+        updatePresetDropdown();
+
+        // Select the new preset
+        presetSelect.value = trimmedName;
+        currentSpectralPreset = trimmedName;
+        currentPresetName.textContent = `Current: ${trimmedName}`;
+
+        // Show success notification
+        if (collaborativeMode) {
+          showSpectralToast(`Spectral preset "${trimmedName}" saved`);
+        }
+
+        console.log('Spectral preset saved:', trimmedName, currentState);
+      }
+    });
+  }
+
+  // Update current preset name when parameters change manually
+  function clearCurrentPreset() {
+    if (currentSpectralPreset) {
+      currentSpectralPreset = null;
+      currentPresetName.textContent = '';
+      if (presetSelect) presetSelect.value = '';
+    }
+  }
+
+  // Clear preset indication when manually changing controls
+  [toggleBtn, modeSelect, fftSizeSlider].forEach(element => {
+    if (element) {
+      element.addEventListener('change', clearCurrentPreset);
+      element.addEventListener('click', clearCurrentPreset);
+    }
+  });
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', clearCurrentPreset);
+  });
+}
+
+function setupFFTInteractions() {
+  const header = fftContainer.querySelector('.fft-header');
+  const logToggle = document.getElementById('fft-log-toggle');
+
+  // Log frequency toggle
+  logToggle.addEventListener('click', () => {
+    logFrequencyScale = !logFrequencyScale;
+    logToggle.classList.toggle('active', logFrequencyScale);
+    // Reset all spectral buffers
+    waterfallBuffer = [];
+    temporalBuffer = [];
+    modalEnergyHistory = [];
+    spectralPeaks = [];
+    gradientCache.clear();
+
+    // Broadcast to collaborative users with enhanced user attribution
+    if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
+      sendCollaborativeMessage('parameter_change', {
+        parameter: 'spectral_log_scale',
+        value: logFrequencyScale,
+        source: 'spectral_controls'
+      });
+      showSpectralToast(`Log frequency: ${logFrequencyScale ? 'ON' : 'OFF'}`);
+    }
+  });
+
+  // Dragging functionality
+  header.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    const rect = fftContainer.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    header.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      // Keep within screen bounds
+      const maxX = window.innerWidth - fftContainer.offsetWidth;
+      const maxY = window.innerHeight - fftContainer.offsetHeight;
+
+      fftContainer.style.left = Math.max(0, Math.min(maxX, newX)) + 'px';
+      fftContainer.style.top = Math.max(0, Math.min(maxY, newY)) + 'px';
+      fftContainer.style.bottom = 'auto';
+      fftContainer.style.right = 'auto';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      header.style.cursor = 'move';
+    }
+  });
+
+  // Handle resizing
+  const resizeObserver = new ResizeObserver(() => {
+    resizeFFTCanvas();
+  });
+  resizeObserver.observe(fftContainer);
+}
+
+function showSpectralToast(message, userColor = '#3b82f6') {
+  const toast = document.createElement('div');
+  toast.className = 'spectral-toast';
+  toast.textContent = message;
+  toast.style.borderColor = userColor;
+
+  document.body.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function showCollaborativeSpectralToast(username, parameter, value, userColor) {
+  const parameterNames = {
+    spectral_enabled: 'Spectral overlay',
+    spectral_mode: 'Spectral mode',
+    spectral_fft_size: 'FFT size',
+    spectral_log_scale: 'Log frequency'
+  };
+
+  const paramName = parameterNames[parameter] || parameter;
+  let valueText = value;
+
+  if (parameter === 'spectral_enabled') {
+    valueText = value ? 'enabled' : 'disabled';
+  } else if (parameter === 'spectral_log_scale') {
+    valueText = value ? 'ON' : 'OFF';
+  }
+
+  const message = `${username} changed ${paramName}: ${valueText}`;
+  showSpectralToast(message, userColor);
+}
+
+// Window resize
+function onWindowResize() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+// Animation loop
+function animate() {
+  updateCamera();
+  updateInstrument();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// Initialize
+window.addEventListener('resize', onWindowResize);
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('click', onMouseClick);
+window.addEventListener('wheel', onWheel, { passive: false });
+
+// Add panel switching keyboard shortcuts for demonstration
+window.addEventListener('keydown', (event) => {
+  // Only handle panel switching if not typing in an input
+  if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+    return;
+  }
+
+  switch (event.key) {
+    case '1':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('global');
+      }
+      break;
+    case '2':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('spectral');
+      }
+      break;
+    case '3':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('cymatic');
+      }
+      break;
+    case '4':
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setActivePanel('collaboration');
+      }
+      break;
+    case 'Escape':
+      setActivePanel(null);
+      break;
+  }
+});
+
+onWindowResize();
+createShells();
+createInstrument();
+setupControls();
+loadCollection();
+loadMidiMapping(); // Load MIDI CC mapping configuration
+loadUserPresets(); // Load saved user presets
+startMidiConfigWatcher(); // Start watching for config changes
+initBroadcastChannel(); // Initialize multi-window synchronization
+setupWindowFocusHandling(); // Handle window focus/blur for MIDI isolation
+connectWebSocket();
+connectMidiWebSocket();
+setupCursorTracking(); // Initialize cursor tracking for collaborative mode
+setupCollaborativeChat(); // Initialize chat system for collaborative mode
+setupSpectralControls(); // Initialize spectral overlay controls
+startFFTAnalysis(); // Start FFT spectral analysis
+animate();
+
+console.log('🌊 Signal→Form Spherical POV initialized');
+console.log('Configuration:', config);
+
+// Test CC scaling function
+console.log('🎛️ MIDI CC Scaling Test:');
+console.log('CC 0 → ' + scaleMidiValue(0).toFixed(3));
+console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
+console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
+console.log('MIDI Mapping:', midiMapping);
+
+</script>
+</body>
+</html>
