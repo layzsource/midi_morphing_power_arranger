@@ -315,6 +315,327 @@
       }
     }
 
+    /* Mythic Cycle: Dowsing Rod Prototype */
+    .dowsing-rod-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 12px 0;
+      padding: 8px;
+      background: var(--panel-light);
+      border-radius: 6px;
+      border: 1px solid rgba(0, 191, 166, 0.2);
+    }
+
+    .dowsing-rod-label {
+      font-size: 10px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .dowsing-rod-track {
+      position: relative;
+      width: 200px;
+      height: 6px;
+      background: linear-gradient(to right,
+        rgba(100, 255, 200, 0.3) 0%,     /* whisper */
+        rgba(255, 255, 255, 0.6) 50%,    /* static */
+        rgba(255, 100, 100, 0.8) 100%    /* roar */
+      );
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .dowsing-rod-thumb {
+      position: absolute;
+      top: -4px;
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      border: 2px solid white;
+      border-radius: 50%;
+      cursor: grab;
+      transition: all 0.1s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .dowsing-rod-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+
+    .dowsing-rod-state {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-top: 4px;
+      min-height: 12px;
+      transition: color 0.3s ease;
+    }
+
+    .dowsing-rod-state.whisper {
+      color: rgba(100, 255, 200, 0.8);
+    }
+
+    .dowsing-rod-state.static {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .dowsing-rod-state.roar {
+      color: rgba(255, 100, 100, 0.9);
+    }
+
+    /* Mythic Cycle: Periaktos Scene Rotation */
+    .periaktos-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .periaktos-label {
+      font-size: 12px;
+      color: var(--accent-color);
+      font-weight: 500;
+      min-width: 60px;
+    }
+
+    .periaktos-prism {
+      position: relative;
+      width: 120px;
+      height: 30px;
+      background: rgba(30, 30, 30, 0.8);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      perspective: 1000px;
+    }
+
+    .periaktos-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      background: linear-gradient(135deg, rgba(50, 50, 50, 0.9), rgba(70, 70, 70, 0.7));
+      border-radius: 3px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+      opacity: 0;
+      transform: rotateY(-120deg) translateZ(-20px);
+      color: rgba(200, 200, 200, 0.8);
+    }
+
+    .periaktos-face.active {
+      opacity: 1;
+      transform: rotateY(0deg) translateZ(0px);
+      background: linear-gradient(135deg, var(--accent-color), rgba(0, 191, 166, 0.7));
+      color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 8px rgba(0, 191, 166, 0.3);
+    }
+
+    .periaktos-face.next {
+      opacity: 0.3;
+      transform: rotateY(120deg) translateZ(-15px);
+    }
+
+    .periaktos-face.prev {
+      opacity: 0.3;
+      transform: rotateY(-120deg) translateZ(-15px);
+    }
+
+    .periaktos-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .periaktos-btn {
+      background: rgba(40, 40, 40, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .periaktos-btn:hover {
+      background: rgba(60, 60, 60, 0.9);
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      transform: scale(1.1);
+    }
+
+    .periaktos-btn:active {
+      transform: scale(0.95);
+    }
+
+    .periaktos-indicator {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* Mythic Cycle: RGB → White Hexagon Cue */
+    .rgb-hexagon-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .rgb-hexagon-label {
+      font-size: 12px;
+      color: var(--accent-color);
+      font-weight: 500;
+      min-width: 60px;
+    }
+
+    .rgb-cubes-area {
+      position: relative;
+      width: 120px;
+      height: 40px;
+      background: rgba(20, 20, 20, 0.9);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rgb-cube {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      cursor: grab;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .rgb-cube:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+
+    .rgb-cube.red {
+      background: linear-gradient(135deg, #ff4444, #cc3333);
+      top: 8px;
+      left: 20px;
+    }
+
+    .rgb-cube.green {
+      background: linear-gradient(135deg, #44ff44, #33cc33);
+      top: 20px;
+      left: 35px;
+    }
+
+    .rgb-cube.blue {
+      background: linear-gradient(135deg, #4444ff, #3333cc);
+      top: 8px;
+      left: 50px;
+    }
+
+    .rgb-cube.aligned {
+      box-shadow: 0 0 8px currentColor;
+      transform: scale(1.1);
+    }
+
+    .white-hexagon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.0);
+      transition: all 0.3s ease;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+    }
+
+    .white-hexagon.visible {
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    .alignment-status {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: monospace;
+      letter-spacing: 2px;
+    }
+
+    .alignment-status.aligned {
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Mythic Cycle: Aether Breath Background Animation */
+    .aether-breath-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 50%,
+        rgba(0, 191, 166, 0.03) 0%,
+        rgba(0, 191, 166, 0.01) 30%,
+        rgba(0, 0, 0, 0.02) 70%,
+        transparent 100%);
+      transition: opacity 1s ease;
+      z-index: -1;
+    }
+
+    .aether-breath-overlay.active {
+      opacity: 1;
+      animation: aetherBreathe 8s ease-in-out infinite;
+    }
+
+    @keyframes aetherBreathe {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.3;
+        filter: brightness(1) hue-rotate(0deg);
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.6;
+        filter: brightness(1.2) hue-rotate(15deg);
+      }
+    }
+
+    /* Additional breathing effect on canvas container */
+    .canvas-container.aether-active {
+      animation: canvasBreathe 8s ease-in-out infinite;
+    }
+
+    @keyframes canvasBreathe {
+      0%, 100% {
+        filter: brightness(1) contrast(1) saturate(1);
+      }
+      50% {
+        filter: brightness(1.02) contrast(1.01) saturate(1.05);
+      }
+    }
+
     .spectral-select {
       background: #1f2937;
       color: #e5e7eb;
@@ -853,6 +1174,9 @@
 </head>
 <body>
 
+<!-- Mythic Cycle: Aether Breath Overlay -->
+<div class="aether-breath-overlay" id="aether-breath-overlay"></div>
+
 <!-- HUD Controls -->
 <div id="hud">
   <div class="title glow-tile">Signal→Form Spherical POV</div>
@@ -971,6 +1295,45 @@
     <label class="spectral-fft-label">Z:</label>
     <input type="range" id="spatial-pos-z" min="-10" max="10" step="0.5" value="0" class="spectral-slider">
     <span id="spatial-pos-z-val" class="spectral-val">0.0</span>
+  </div>
+  <!-- Mythic Cycle: Dowsing Rod Prototype -->
+  <div class="row spectral-controls">
+    <div class="dowsing-rod-container">
+      <label class="dowsing-rod-label">Dowsing Rod:</label>
+      <div class="dowsing-rod-track" id="dowsing-rod-track">
+        <div class="dowsing-rod-thumb" id="dowsing-rod-thumb"></div>
+      </div>
+      <span class="dowsing-rod-state" id="dowsing-rod-state">static</span>
+    </div>
+  </div>
+  <!-- Mythic Cycle: Periaktos Scene Rotation -->
+  <div class="row spectral-controls">
+    <div class="periaktos-container">
+      <label class="periaktos-label">Scene:</label>
+      <div class="periaktos-prism" id="periaktos-prism">
+        <div class="periaktos-face active" data-act="1">Act I</div>
+        <div class="periaktos-face" data-act="2">Act II</div>
+        <div class="periaktos-face" data-act="3">Act III</div>
+      </div>
+      <div class="periaktos-controls">
+        <button class="periaktos-btn" id="periaktos-prev">‹</button>
+        <span class="periaktos-indicator" id="periaktos-indicator">1/3</span>
+        <button class="periaktos-btn" id="periaktos-next">›</button>
+      </div>
+    </div>
+  </div>
+  <!-- Mythic Cycle: RGB → White Hexagon Cue -->
+  <div class="row spectral-controls">
+    <div class="rgb-hexagon-container">
+      <label class="rgb-hexagon-label">Alignment:</label>
+      <div class="rgb-cubes-area" id="rgb-cubes-area">
+        <div class="rgb-cube red" id="red-cube" data-color="red"></div>
+        <div class="rgb-cube green" id="green-cube" data-color="green"></div>
+        <div class="rgb-cube blue" id="blue-cube" data-color="blue"></div>
+        <div class="white-hexagon" id="white-hexagon">⬢</div>
+      </div>
+      <div class="alignment-status" id="alignment-status">○○○</div>
+    </div>
   </div>
   <div id="spectral-advanced-controls" class="row spectral-controls">
     <button id="spectral-toggle" class="spectral-btn">ON</button>
@@ -1178,6 +1541,26 @@ let currentUser = null;
 let collaborativeUsers = new Map();
 let collaborativePresets = {};
 let cursorTracking = true;
+
+// Mythic Cycle: Dowsing Rod state
+let dowsingRodValue = 0.5; // 0=whisper, 0.5=static, 1=roar
+let dowsingRodIsDragging = false;
+let dowsingRodLastUpdate = 0;
+
+// Mythic Cycle: Periaktos Scene Rotation state
+let periaktosCurrentAct = 1; // 1, 2, or 3
+let periaktosIsAnimating = false;
+
+// Mythic Cycle: RGB → White Hexagon Cue state
+let rgbCubesPosition = { red: {x: 20, y: 8}, green: {x: 35, y: 20}, blue: {x: 50, y: 8} };
+let rgbAlignmentThreshold = 8; // pixels
+let rgbCenterPoint = {x: 60, y: 20}; // center of the area
+let rgbIsDragging = null; // which cube is being dragged
+let rgbIsAligned = false;
+
+// Mythic Cycle: Aether Breath state
+let aetherBreathActive = false;
+let aetherIntensity = 0.5; // 0-1 intensity of the breathing effect
 
 // ζ-Camera system
 function updateCamera() {
@@ -5605,6 +5988,11 @@ function animate() {
   updateInstrument();
   updateSpatialAudio(); // Update 3D audio spatialization
 
+  // Mythic Cycle: Check engagement state (throttled to ~10fps)
+  if (Math.random() < 0.17) { // ~1/6 chance per frame = ~10fps at 60fps
+    checkMythicCycleEngagement();
+  }
+
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -5719,6 +6107,445 @@ setupControls();
 loadCollection();
 loadMidiMapping(); // Load MIDI CC mapping configuration
 loadUserPresets(); // Load saved user presets
+// Mythic Cycle: Dowsing Rod Prototype
+function initDowsingRod() {
+  const track = document.getElementById('dowsing-rod-track');
+  const thumb = document.getElementById('dowsing-rod-thumb');
+  const stateDisplay = document.getElementById('dowsing-rod-state');
+
+  if (!track || !thumb || !stateDisplay) return;
+
+  updateDosingRodDisplay();
+
+  // Mouse events for dragging
+  thumb.addEventListener('mousedown', startDosingRodDrag);
+  track.addEventListener('mousedown', handleDosingRodClick);
+
+  // Global mouse events for dragging
+  document.addEventListener('mousemove', updateDosingRodDrag);
+  document.addEventListener('mouseup', endDosingRodDrag);
+}
+
+function startDosingRodDrag(e) {
+  e.preventDefault();
+  dowsingRodIsDragging = true;
+  dowsingRodLastUpdate = Date.now();
+}
+
+function handleDosingRodClick(e) {
+  if (e.target === document.getElementById('dowsing-rod-track')) {
+    const track = document.getElementById('dowsing-rod-track');
+    const rect = track.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const trackWidth = rect.width;
+    const newValue = Math.max(0, Math.min(1, clickX / trackWidth));
+
+    setDosingRodValue(newValue);
+  }
+}
+
+function updateDosingRodDrag(e) {
+  if (!dowsingRodIsDragging) return;
+
+  const now = Date.now();
+  if (now - dowsingRodLastUpdate < 16) return; // ~60fps throttle
+  dowsingRodLastUpdate = now;
+
+  const track = document.getElementById('dowsing-rod-track');
+  const rect = track.getBoundingClientRect();
+  const dragX = e.clientX - rect.left;
+  const trackWidth = rect.width;
+  const newValue = Math.max(0, Math.min(1, dragX / trackWidth));
+
+  setDosingRodValue(newValue);
+}
+
+function endDosingRodDrag() {
+  dowsingRodIsDragging = false;
+}
+
+function setDosingRodValue(value) {
+  dowsingRodValue = Math.max(0, Math.min(1, value));
+  updateDosingRodDisplay();
+
+  // Apply dosing rod effect to navigation
+  applyDosingRodEffect();
+}
+
+function updateDosingRodDisplay() {
+  const thumb = document.getElementById('dowsing-rod-thumb');
+  const stateDisplay = document.getElementById('dowsing-rod-state');
+
+  if (!thumb || !stateDisplay) return;
+
+  // Update thumb position
+  const percentage = dowsingRodValue * 100;
+  thumb.style.left = `calc(${percentage}% - 10px)`;
+
+  // Update state text
+  let state;
+  if (dowsingRodValue < 0.33) {
+    state = 'whisper';
+  } else if (dowsingRodValue < 0.67) {
+    state = 'static';
+  } else {
+    state = 'roar';
+  }
+
+  stateDisplay.textContent = state;
+  stateDisplay.className = `dowsing-rod-state ${state}`;
+}
+
+function applyDosingRodEffect() {
+  // Map dosing rod to navigation parameters
+  // whisper (0-0.33): gentle, slow movement
+  // static (0.33-0.67): balanced, normal speed
+  // roar (0.67-1): intense, fast movement
+
+  const intensity = dowsingRodValue;
+
+  // Modulate zeta progression speed
+  const baseSpeed = 0.001;
+  const speedMultiplier = lerp(0.3, 2.0, intensity); // whisper = 0.3x, roar = 2x
+
+  // This can be used in animation loop or other navigation functions
+  window.dowsingRodSpeedMultiplier = speedMultiplier;
+
+  // Optional: visual feedback through subtle ambient light changes
+  if (directionalLight) {
+    const lightIntensity = lerp(0.3, 1.2, intensity);
+    directionalLight.intensity = lightIntensity;
+  }
+}
+
+// Mythic Cycle: Periaktos Scene Rotation
+function initPeriaktos() {
+  const prevBtn = document.getElementById('periaktos-prev');
+  const nextBtn = document.getElementById('periaktos-next');
+  const prism = document.getElementById('periaktos-prism');
+
+  if (!prevBtn || !nextBtn || !prism) return;
+
+  prevBtn.addEventListener('click', () => rotatePeriaktos(-1));
+  nextBtn.addEventListener('click', () => rotatePeriaktos(1));
+
+  // Allow clicking on the prism itself to cycle forward
+  prism.addEventListener('click', () => rotatePeriaktos(1));
+
+  updatePeriaktosDisplay();
+}
+
+function rotatePeriaktos(direction) {
+  if (periaktosIsAnimating) return;
+
+  periaktosIsAnimating = true;
+
+  // Update current act
+  periaktosCurrentAct += direction;
+  if (periaktosCurrentAct > 3) periaktosCurrentAct = 1;
+  if (periaktosCurrentAct < 1) periaktosCurrentAct = 3;
+
+  updatePeriaktosDisplay();
+
+  // Reset animation flag after transition
+  setTimeout(() => {
+    periaktosIsAnimating = false;
+  }, 400);
+
+  // Apply scene effect
+  applyPeriaktosSceneEffect();
+}
+
+function updatePeriaktosDisplay() {
+  const faces = document.querySelectorAll('.periaktos-face');
+  const indicator = document.getElementById('periaktos-indicator');
+
+  if (!faces.length || !indicator) return;
+
+  // Update indicator
+  indicator.textContent = `${periaktosCurrentAct}/3`;
+
+  // Update face states
+  faces.forEach(face => {
+    const act = parseInt(face.getAttribute('data-act'));
+    face.className = 'periaktos-face';
+
+    if (act === periaktosCurrentAct) {
+      face.classList.add('active');
+    } else if (act === (periaktosCurrentAct % 3) + 1) {
+      face.classList.add('next');
+    } else {
+      face.classList.add('prev');
+    }
+  });
+}
+
+function applyPeriaktosSceneEffect() {
+  // Apply different visual effects based on current act
+  // Act I: Fresh, bright - increase saturation
+  // Act II: Dramatic, intense - increase contrast
+  // Act III: Climactic, vibrant - full intensity
+
+  const renderer = window.renderer;
+  if (!renderer) return;
+
+  switch (periaktosCurrentAct) {
+    case 1: // Act I - Fresh beginning
+      renderer.toneMappingExposure = 1.0;
+      if (directionalLight) {
+        directionalLight.color.setRGB(1.0, 1.0, 1.0);
+        directionalLight.intensity = 0.8;
+      }
+      break;
+
+    case 2: // Act II - Dramatic development
+      renderer.toneMappingExposure = 1.2;
+      if (directionalLight) {
+        directionalLight.color.setRGB(1.0, 0.95, 0.9);
+        directionalLight.intensity = 1.0;
+      }
+      break;
+
+    case 3: // Act III - Climactic resolution
+      renderer.toneMappingExposure = 1.4;
+      if (directionalLight) {
+        directionalLight.color.setRGB(1.0, 0.9, 0.8);
+        directionalLight.intensity = 1.3;
+      }
+      break;
+  }
+
+  // Store current act for other systems to use
+  window.periaktosCurrentAct = periaktosCurrentAct;
+}
+
+// Mythic Cycle: RGB → White Hexagon Cue
+function initRGBHexagon() {
+  const redCube = document.getElementById('red-cube');
+  const greenCube = document.getElementById('green-cube');
+  const blueCube = document.getElementById('blue-cube');
+  const cubesArea = document.getElementById('rgb-cubes-area');
+
+  if (!redCube || !greenCube || !blueCube || !cubesArea) return;
+
+  // Set initial positions
+  updateRGBCubePositions();
+
+  // Add drag event listeners to each cube
+  [redCube, greenCube, blueCube].forEach(cube => {
+    cube.addEventListener('mousedown', startRGBDrag);
+  });
+
+  // Global mouse events for dragging
+  document.addEventListener('mousemove', updateRGBDrag);
+  document.addEventListener('mouseup', endRGBDrag);
+
+  // Check initial alignment
+  checkRGBAlignment();
+}
+
+function startRGBDrag(e) {
+  e.preventDefault();
+  rgbIsDragging = e.target.getAttribute('data-color');
+}
+
+function updateRGBDrag(e) {
+  if (!rgbIsDragging) return;
+
+  const cubesArea = document.getElementById('rgb-cubes-area');
+  if (!cubesArea) return;
+
+  const rect = cubesArea.getBoundingClientRect();
+  const x = Math.max(0, Math.min(rect.width - 12, e.clientX - rect.left - 6));
+  const y = Math.max(0, Math.min(rect.height - 12, e.clientY - rect.top - 6));
+
+  // Update position
+  rgbCubesPosition[rgbIsDragging] = { x, y };
+
+  updateRGBCubePositions();
+  checkRGBAlignment();
+}
+
+function endRGBDrag() {
+  rgbIsDragging = null;
+}
+
+function updateRGBCubePositions() {
+  const redCube = document.getElementById('red-cube');
+  const greenCube = document.getElementById('green-cube');
+  const blueCube = document.getElementById('blue-cube');
+
+  if (!redCube || !greenCube || !blueCube) return;
+
+  redCube.style.left = rgbCubesPosition.red.x + 'px';
+  redCube.style.top = rgbCubesPosition.red.y + 'px';
+
+  greenCube.style.left = rgbCubesPosition.green.x + 'px';
+  greenCube.style.top = rgbCubesPosition.green.y + 'px';
+
+  blueCube.style.left = rgbCubesPosition.blue.x + 'px';
+  blueCube.style.top = rgbCubesPosition.blue.y + 'px';
+}
+
+function checkRGBAlignment() {
+  const redPos = rgbCubesPosition.red;
+  const greenPos = rgbCubesPosition.green;
+  const bluePos = rgbCubesPosition.blue;
+  const center = rgbCenterPoint;
+
+  // Calculate distances from center
+  const redDist = Math.sqrt(Math.pow(redPos.x - center.x, 2) + Math.pow(redPos.y - center.y, 2));
+  const greenDist = Math.sqrt(Math.pow(greenPos.x - center.x, 2) + Math.pow(greenPos.y - center.y, 2));
+  const blueDist = Math.sqrt(Math.pow(bluePos.x - center.x, 2) + Math.pow(bluePos.y - center.y, 2));
+
+  // Check if all cubes are within threshold of center
+  const redAligned = redDist <= rgbAlignmentThreshold;
+  const greenAligned = greenDist <= rgbAlignmentThreshold;
+  const blueAligned = blueDist <= rgbAlignmentThreshold;
+
+  const wasAligned = rgbIsAligned;
+  rgbIsAligned = redAligned && greenAligned && blueAligned;
+
+  updateRGBAlignmentDisplay(redAligned, greenAligned, blueAligned);
+
+  // Trigger effect when alignment changes
+  if (rgbIsAligned !== wasAligned) {
+    applyRGBAlignmentEffect(rgbIsAligned);
+  }
+}
+
+function updateRGBAlignmentDisplay(redAligned, greenAligned, blueAligned) {
+  const redCube = document.getElementById('red-cube');
+  const greenCube = document.getElementById('green-cube');
+  const blueCube = document.getElementById('blue-cube');
+  const hexagon = document.getElementById('white-hexagon');
+  const status = document.getElementById('alignment-status');
+
+  if (!redCube || !greenCube || !blueCube || !hexagon || !status) return;
+
+  // Update cube alignment states
+  redCube.classList.toggle('aligned', redAligned);
+  greenCube.classList.toggle('aligned', greenAligned);
+  blueCube.classList.toggle('aligned', blueAligned);
+
+  // Update hexagon visibility
+  hexagon.classList.toggle('visible', rgbIsAligned);
+
+  // Update status display
+  const statusText = (redAligned ? '●' : '○') + (greenAligned ? '●' : '○') + (blueAligned ? '●' : '○');
+  status.textContent = statusText;
+  status.classList.toggle('aligned', rgbIsAligned);
+}
+
+function applyRGBAlignmentEffect(isAligned) {
+  if (isAligned) {
+    // Alignment achieved - create brief visual enhancement
+    console.log('🌈 RGB Alignment achieved!');
+
+    // Brief brightness boost to the scene
+    if (directionalLight) {
+      const originalIntensity = directionalLight.intensity;
+      directionalLight.intensity = originalIntensity * 1.5;
+
+      setTimeout(() => {
+        directionalLight.intensity = originalIntensity;
+      }, 500);
+    }
+
+    // Optional: trigger brief particle effect or shader enhancement
+    window.rgbAlignmentActive = true;
+
+    setTimeout(() => {
+      window.rgbAlignmentActive = false;
+    }, 1000);
+  } else {
+    window.rgbAlignmentActive = false;
+  }
+}
+
+// Mythic Cycle: Aether Breath Background Animation
+function initAetherBreath() {
+  const overlay = document.getElementById('aether-breath-overlay');
+
+  if (!overlay) return;
+
+  // Initialize based on mythic cycle engagement state
+  updateAetherBreathState();
+}
+
+function toggleAetherBreath(active = null) {
+  if (active === null) {
+    aetherBreathActive = !aetherBreathActive;
+  } else {
+    aetherBreathActive = active;
+  }
+
+  updateAetherBreathState();
+}
+
+function updateAetherBreathState() {
+  const overlay = document.getElementById('aether-breath-overlay');
+  const canvasContainer = document.querySelector('canvas') ? document.querySelector('canvas').parentElement : null;
+
+  if (!overlay) return;
+
+  // Update overlay
+  overlay.classList.toggle('active', aetherBreathActive);
+
+  // Update canvas container if it exists
+  if (canvasContainer) {
+    canvasContainer.classList.toggle('aether-active', aetherBreathActive);
+  }
+
+  // Store state for other systems to use
+  window.aetherBreathActive = aetherBreathActive;
+}
+
+function setAetherIntensity(intensity) {
+  aetherIntensity = Math.max(0, Math.min(1, intensity));
+
+  const overlay = document.getElementById('aether-breath-overlay');
+  if (!overlay) return;
+
+  // Adjust animation duration based on intensity
+  // Lower intensity = slower breathing (longer duration)
+  // Higher intensity = faster breathing (shorter duration)
+  const minDuration = 6; // seconds
+  const maxDuration = 12; // seconds
+  const duration = lerp(maxDuration, minDuration, aetherIntensity);
+
+  overlay.style.animationDuration = `${duration}s`;
+
+  // Adjust opacity based on intensity
+  const baseOpacity = lerp(0.2, 0.8, aetherIntensity);
+  overlay.style.setProperty('--base-opacity', baseOpacity);
+}
+
+// Auto-engage Aether Breath based on mythic cycle activity
+function checkMythicCycleEngagement() {
+  // Engage Aether Breath when any mythic cycle feature is actively being used
+  const dowsingRodEngaged = dowsingRodIsDragging || dowsingRodValue !== 0.5;
+  const periaktosEngaged = periaktosIsAnimating || periaktosCurrentAct !== 1;
+  const rgbEngaged = rgbIsDragging !== null || rgbIsAligned;
+
+  const shouldActivate = dowsingRodEngaged || periaktosEngaged || rgbEngaged;
+
+  if (shouldActivate !== aetherBreathActive) {
+    toggleAetherBreath(shouldActivate);
+  }
+
+  // Adjust intensity based on level of engagement
+  let intensityLevel = 0.3; // base level
+
+  if (dowsingRodEngaged) intensityLevel += 0.2;
+  if (periaktosEngaged) intensityLevel += 0.2;
+  if (rgbEngaged) intensityLevel += 0.3;
+
+  if (intensityLevel !== aetherIntensity) {
+    setAetherIntensity(intensityLevel);
+  }
+}
+
 startMidiConfigWatcher(); // Start watching for config changes
 initBroadcastChannel(); // Initialize multi-window synchronization
 setupWindowFocusHandling(); // Handle window focus/blur for MIDI isolation
@@ -5729,6 +6556,10 @@ setupCollaborativeChat(); // Initialize chat system for collaborative mode
 setupSpectralControls(); // Initialize spectral overlay controls
 setupPerformanceControls(); // Initialize performance monitoring controls
 setupStreamingControls(); // Initialize streaming and prefetch controls
+initDowsingRod(); // Initialize Mythic Cycle Dowsing Rod Prototype
+initPeriaktos(); // Initialize Mythic Cycle Periaktos Scene Rotation
+initRGBHexagon(); // Initialize Mythic Cycle RGB → White Hexagon Cue
+initAetherBreath(); // Initialize Mythic Cycle Aether Breath animation
 startFFTAnalysis(); // Start FFT spectral analysis
 init3DAudioSystem(); // Initialize 3D audio spatialization
 initPerformanceMonitoring(); // Initialize performance monitoring system
