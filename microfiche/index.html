@@ -388,10 +388,16 @@
 
     /* Mythic Cycle: Periaktos Scene Rotation */
     .periaktos-container {
-      display: flex;
+      display: flex !important;
       align-items: center;
       gap: 8px;
       flex: 1;
+      background: rgba(255, 165, 0, 0.15) !important;
+      padding: 8px !important;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 165, 0, 0.5) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
 
     .periaktos-label {
@@ -491,10 +497,16 @@
 
     /* Mythic Cycle: RGB → White Hexagon Cue */
     .rgb-hexagon-container {
-      display: flex;
+      display: flex !important;
       align-items: center;
       gap: 8px;
       flex: 1;
+      background: rgba(255, 0, 255, 0.15) !important;
+      padding: 8px !important;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 0, 255, 0.5) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
 
     .rgb-hexagon-label {
@@ -1296,8 +1308,8 @@
     <input type="range" id="spatial-pos-z" min="-10" max="10" step="0.5" value="0" class="spectral-slider">
     <span id="spatial-pos-z-val" class="spectral-val">0.0</span>
   </div>
-  <!-- Mythic Cycle: Dowsing Rod Prototype -->
-  <div class="row spectral-controls">
+  <div id="spectral-advanced-controls" class="row spectral-controls">
+    <!-- Mythic Cycle Features -->
     <div class="dowsing-rod-container">
       <label class="dowsing-rod-label">Dowsing Rod:</label>
       <div class="dowsing-rod-track" id="dowsing-rod-track">
@@ -1305,9 +1317,6 @@
       </div>
       <span class="dowsing-rod-state" id="dowsing-rod-state">static</span>
     </div>
-  </div>
-  <!-- Mythic Cycle: Periaktos Scene Rotation -->
-  <div class="row spectral-controls">
     <div class="periaktos-container">
       <label class="periaktos-label">Scene:</label>
       <div class="periaktos-prism" id="periaktos-prism">
@@ -1321,9 +1330,6 @@
         <button class="periaktos-btn" id="periaktos-next">›</button>
       </div>
     </div>
-  </div>
-  <!-- Mythic Cycle: RGB → White Hexagon Cue -->
-  <div class="row spectral-controls">
     <div class="rgb-hexagon-container">
       <label class="rgb-hexagon-label">Alignment:</label>
       <div class="rgb-cubes-area" id="rgb-cubes-area">
@@ -1334,8 +1340,7 @@
       </div>
       <div class="alignment-status" id="alignment-status">○○○</div>
     </div>
-  </div>
-  <div id="spectral-advanced-controls" class="row spectral-controls">
+    <!-- Original Spectral Controls -->
     <button id="spectral-toggle" class="spectral-btn">ON</button>
     <select id="spectral-mode" class="spectral-select">
       <option value="bars">Bars</option>
@@ -6109,11 +6114,16 @@ loadMidiMapping(); // Load MIDI CC mapping configuration
 loadUserPresets(); // Load saved user presets
 // Mythic Cycle: Dowsing Rod Prototype
 function initDowsingRod() {
+  console.log('🔮 Initializing Dowsing Rod...');
   const track = document.getElementById('dowsing-rod-track');
   const thumb = document.getElementById('dowsing-rod-thumb');
   const stateDisplay = document.getElementById('dowsing-rod-state');
 
-  if (!track || !thumb || !stateDisplay) return;
+  if (!track || !thumb || !stateDisplay) {
+    console.error('❌ Dowsing Rod elements not found:', { track, thumb, stateDisplay });
+    return;
+  }
+  console.log('✅ Dowsing Rod elements found, setting up...');
 
   updateDosingRodDisplay();
 
@@ -6220,11 +6230,16 @@ function applyDosingRodEffect() {
 
 // Mythic Cycle: Periaktos Scene Rotation
 function initPeriaktos() {
+  console.log('🎭 Initializing Periaktos Scene Rotation...');
   const prevBtn = document.getElementById('periaktos-prev');
   const nextBtn = document.getElementById('periaktos-next');
   const prism = document.getElementById('periaktos-prism');
 
-  if (!prevBtn || !nextBtn || !prism) return;
+  if (!prevBtn || !nextBtn || !prism) {
+    console.error('❌ Periaktos elements not found:', { prevBtn, nextBtn, prism });
+    return;
+  }
+  console.log('✅ Periaktos elements found, setting up...');
 
   prevBtn.addEventListener('click', () => rotatePeriaktos(-1));
   nextBtn.addEventListener('click', () => rotatePeriaktos(1));
