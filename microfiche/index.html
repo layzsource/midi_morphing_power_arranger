@@ -888,6 +888,19 @@
     </select>
   </div>
   <div class="row spectral-controls">
+    <label class="spectral-label">Streaming:</label>
+    <button id="streaming-toggle" class="spectral-btn">ON</button>
+    <label class="spectral-fft-label">Batch:</label>
+    <select id="streaming-batch-size" class="spectral-select">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="200">200</option>
+    </select>
+    <label class="spectral-fft-label">Cache:</label>
+    <span id="cache-status" class="spectral-val">0/0</span>
+  </div>
+  <div class="row spectral-controls">
     <label class="spectral-label">3D Audio:</label>
     <button id="audio-3d-toggle" class="spectral-btn">ON</button>
     <label class="spectral-fft-label">Mode:</label>
@@ -1015,6 +1028,18 @@
   <div class="perf-metric">
     <span class="perf-label">LOD Level:</span>
     <span id="perf-lod" class="perf-value">High</span>
+  </div>
+  <div class="perf-metric">
+    <span class="perf-label">Streaming:</span>
+    <span id="perf-streaming-state" class="perf-value">Idle</span>
+  </div>
+  <div class="perf-metric">
+    <span class="perf-label">Cache Hit Rate:</span>
+    <span id="perf-cache-hit-rate" class="perf-value">0%</span>
+  </div>
+  <div class="perf-metric">
+    <span class="perf-label">Prefetch Queue:</span>
+    <span id="perf-prefetch-queue" class="perf-value">0</span>
   </div>
 </div>
 
@@ -2361,6 +2386,37 @@ function handleCollaborativeParameterUpdate(data) {
       showCollaborativeSpectralToast(data.username, 'history_depth', `${data.value / 1000}s`, data.user_color);
       break;
 
+    case 'spectral_streaming_enabled':
+      streamingEnabled = data.value;
+      const streamingToggle = document.getElementById('streaming-toggle');
+      if (streamingToggle) {
+        streamingToggle.textContent = streamingEnabled ? 'ON' : 'OFF';
+        streamingToggle.className = streamingEnabled ? 'spectral-btn' : 'spectral-btn off';
+      }
+      if (!streamingEnabled) {
+        offlineCacheManager.clear();
+        streamingState = 'idle';
+      }
+      showCollaborativeStreamingToast(data.username, 'streaming', streamingEnabled ? 'enabled' : 'disabled', data.user_color);
+      break;
+
+    case 'spectral_streaming_batch_size':
+      lodConfig.visibleBatchSize = data.value;
+      const batchSelect = document.getElementById('streaming-batch-size');
+      if (batchSelect) {
+        batchSelect.value = data.value.toString();
+      }
+      showCollaborativeStreamingToast(data.username, 'batch size', data.value.toString(), data.user_color);
+      break;
+
+    case 'spectral_streaming_prefetch':
+      // Handle prefetch notifications from other users
+      if (data.value && typeof data.value === 'object') {
+        const { mediaId, cacheSize, hitRate } = data.value;
+        showCollaborativeStreamingToast(data.username, 'prefetched', `media ${mediaId} (cache: ${cacheSize})`, data.user_color);
+      }
+      break;
+
     default:
       console.warn(`Unknown parameter: ${data.parameter}`);
   }
@@ -3107,6 +3163,270 @@ let instanceColors = new Float32Array(4096 * 4);
 let computeRenderer = null;
 let fftComputeShader = null;
 let spectralComputeTexture = null;
+
+// Streaming & Prefetch System
+let streamingEnabled = true;
+let streamingState = 'idle'; // idle | loading | streaming | cached | error
+let lodConfig = {
+  visibleBatchSize: 50,        // Number of sprites to render at once
+  prefetchBatchSize: 100,      // Number of sprites to prefetch ahead
+  nearDistance: 2.0,           // Near prefetch threshold
+  mediumDistance: 5.0,         // Medium prefetch threshold
+  farDistance: 10.0,           // Far prefetch threshold
+  cullDistance: 15.0,          // Distance beyond which to cull
+  maxCacheSize: 1000,          // Maximum cached sprites
+  prefetchDelay: 100           // Delay between prefetch batches (ms)
+};
+
+// Offline Cache Manager
+let offlineCacheManager = {
+  cache: new Map(),            // spriteId -> cached data
+  prefetchQueue: [],           // Queue of sprites to prefetch
+  loadingQueue: new Set(),     // Currently loading sprites
+  cacheHits: 0,               // Performance metrics
+  cacheMisses: 0,
+  totalRequests: 0,
+  lastPrefetchTime: 0,
+
+  // Enhanced cache management
+  get(spriteId) {
+    this.totalRequests++;
+    if (this.cache.has(spriteId)) {
+      this.cacheHits++;
+      const cached = this.cache.get(spriteId);
+      cached.lastAccessed = Date.now();
+      return cached;
+    } else {
+      this.cacheMisses++;
+      return null;
+    }
+  },
+
+  put(spriteId, data) {
+    // Implement LRU eviction if cache is full
+    if (this.cache.size >= lodConfig.maxCacheSize && !this.cache.has(spriteId)) {
+      this.evictLRU();
+    }
+
+    data.lastAccessed = Date.now();
+    this.cache.set(spriteId, data);
+  },
+
+  evictLRU() {
+    let oldestTime = Date.now();
+    let oldestKey = null;
+
+    for (let [key, value] of this.cache.entries()) {
+      if (value.lastAccessed < oldestTime) {
+        oldestTime = value.lastAccessed;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+    }
+  },
+
+  getCacheHitRate() {
+    return this.totalRequests > 0 ? (this.cacheHits / this.totalRequests) * 100 : 0;
+  },
+
+  getStatus() {
+    return {
+      cacheSize: this.cache.size,
+      maxSize: lodConfig.maxCacheSize,
+      hitRate: this.getCacheHitRate(),
+      queueLength: this.prefetchQueue.length,
+      loading: this.loadingQueue.size,
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      total: this.totalRequests
+    };
+  },
+
+  clear() {
+    this.cache.clear();
+    this.prefetchQueue = [];
+    this.loadingQueue.clear();
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
+    this.totalRequests = 0;
+    this.lastPrefetchTime = 0;
+  },
+
+  // Intelligent prefetching based on movement patterns
+  predictMovement(camera) {
+    // Simple prediction based on camera velocity
+    const velocity = camera.userData.velocity || new THREE.Vector3();
+    const futurePosition = camera.position.clone().add(velocity.clone().multiplyScalar(2.0));
+    return futurePosition;
+  },
+
+  // Priority-based prefetch scheduling
+  updatePrefetchPriorities() {
+    this.prefetchQueue.sort((a, b) => {
+      // Higher priority for closer items and recently accessed
+      const distanceFactor = 1.0 / Math.max(a.distance, 0.1);
+      const timeFactor = Math.max(0, 1.0 - (Date.now() - (a.lastAccessed || 0)) / 60000); // Decay over 1 minute
+      const aPriority = distanceFactor + timeFactor;
+
+      const bDistanceFactor = 1.0 / Math.max(b.distance, 0.1);
+      const bTimeFactor = Math.max(0, 1.0 - (Date.now() - (b.lastAccessed || 0)) / 60000);
+      const bPriority = bDistanceFactor + bTimeFactor;
+
+      return bPriority - aPriority;
+    });
+  }
+};
+
+// Streaming state tracking
+let currentBatch = [];
+let visibleSprites = new Set();
+let prefetchedSprites = new Set();
+
+// Core Streaming Functions
+function visibleBatchSize() {
+    if (!streamingEnabled || !collection.media) return collection.media ? collection.media.length : 0;
+
+    let visible = [];
+    const cameraPos = camera.position;
+
+    // Calculate distances and sort sprites by distance
+    const spritesWithDistance = collection.media.map((media, index) => {
+        const sprite = sprites[index];
+        if (!sprite) return null;
+
+        const distance = cameraPos.distanceTo(sprite.position);
+        const lodLevel = getLODLevel(distance);
+
+        return {
+            index,
+            media,
+            sprite,
+            distance,
+            lodLevel,
+            visible: distance < lodConfig.cullDistance
+        };
+    }).filter(item => item !== null && item.visible);
+
+    // Sort by distance (closest first)
+    spritesWithDistance.sort((a, b) => a.distance - b.distance);
+
+    // Take only the visible batch size
+    visible = spritesWithDistance.slice(0, lodConfig.visibleBatchSize);
+
+    // Update visible set
+    visibleSprites.clear();
+    visible.forEach(item => visibleSprites.add(item.index));
+
+    return visible.length;
+}
+
+function prefetchNextBatch() {
+    if (!streamingEnabled || !collection.media) return;
+
+    const cameraPos = camera.position;
+    const visibleCount = visibleBatchSize();
+
+    // Calculate next batch to prefetch (beyond visible batch)
+    const nextBatch = collection.media.slice(visibleCount, visibleCount + lodConfig.prefetchBatchSize)
+        .map((media, index) => {
+            const actualIndex = visibleCount + index;
+            const sprite = sprites[actualIndex];
+            if (!sprite) return null;
+
+            const distance = cameraPos.distanceTo(sprite.position);
+            return {
+                index: actualIndex,
+                media,
+                distance,
+                priority: 1.0 / Math.max(distance, 0.1) // Higher priority for closer items
+            };
+        })
+        .filter(item => item !== null)
+        .sort((a, b) => b.priority - a.priority); // Sort by priority (highest first)
+
+    // Add to prefetch queue
+    nextBatch.forEach(item => {
+        if (!offlineCacheManager.cache.has(item.media.id) &&
+            !offlineCacheManager.prefetchQueue.some(queued => queued.media.id === item.media.id)) {
+            offlineCacheManager.prefetchQueue.push(item);
+        }
+    });
+
+    // Process prefetch queue with delay
+    setTimeout(() => {
+        processPrefetchQueue();
+    }, lodConfig.prefetchDelay);
+}
+
+function processPrefetchQueue() {
+    if (offlineCacheManager.prefetchQueue.length === 0) return;
+
+    // Update queue priorities before processing
+    offlineCacheManager.updatePrefetchPriorities();
+
+    // Process one item from queue
+    const item = offlineCacheManager.prefetchQueue.shift();
+    if (!item) return;
+
+    // Check if already loading or cached
+    if (offlineCacheManager.loadingQueue.has(item.media.id) ||
+        offlineCacheManager.get(item.media.id)) {
+        return;
+    }
+
+    // Add to loading queue
+    offlineCacheManager.loadingQueue.add(item.media.id);
+
+    // Simulate prefetch loading (in real implementation, this would load textures/geometry)
+    const prefetchData = {
+        id: item.media.id,
+        loaded: true,
+        timestamp: Date.now(),
+        priority: item.priority,
+        distance: item.distance,
+        loadTime: Math.random() * 50 + 10, // Simulate 10-60ms load time
+        lastAccessed: Date.now()
+    };
+
+    // Use enhanced cache manager
+    offlineCacheManager.put(item.media.id, prefetchData);
+    prefetchedSprites.add(item.index);
+
+    // Remove from loading queue
+    offlineCacheManager.loadingQueue.delete(item.media.id);
+    offlineCacheManager.lastPrefetchTime = Date.now();
+
+    // Broadcast streaming event to collaborative session
+    if (wsConn && wsConn.readyState === WebSocket.OPEN && currentUser) {
+        wsConn.send(JSON.stringify({
+            type: 'parameter_change',
+            parameter: 'spectral_streaming_prefetch',
+            value: {
+                mediaId: item.media.id,
+                cacheSize: offlineCacheManager.cache.size,
+                hitRate: offlineCacheManager.getCacheHitRate()
+            },
+            source: 'streaming_system'
+        }));
+    }
+
+    // Continue processing queue
+    if (offlineCacheManager.prefetchQueue.length > 0) {
+        setTimeout(() => {
+            processPrefetchQueue();
+        }, 10); // Small delay between processing items
+    }
+}
+
+function getLODLevel(distance) {
+    if (distance < lodConfig.nearDistance) return 'high';
+    if (distance < lodConfig.mediumDistance) return 'medium';
+    if (distance < lodConfig.farDistance) return 'low';
+    return 'cull';
+}
 
 let spectralPeaks = []; // Track spectral peaks over time
 let temporalDepthMs = 15000; // Default 15 seconds
@@ -4596,6 +4916,54 @@ function setupPerformanceControls() {
   });
 }
 
+function setupStreamingControls() {
+  const streamingToggle = document.getElementById('streaming-toggle');
+  const streamingBatchSizeSelect = document.getElementById('streaming-batch-size');
+
+  // Streaming toggle
+  streamingToggle.addEventListener('click', () => {
+    streamingEnabled = !streamingEnabled;
+    streamingToggle.textContent = streamingEnabled ? 'ON' : 'OFF';
+    streamingToggle.className = streamingEnabled ? 'spectral-btn' : 'spectral-btn off';
+
+    // Clear cache when disabling
+    if (!streamingEnabled) {
+      offlineCacheManager.clear();
+      streamingState = 'idle';
+    }
+
+    // Broadcast streaming state change
+    if (wsConn && wsConn.readyState === WebSocket.OPEN && currentUser) {
+      wsConn.send(JSON.stringify({
+        type: 'parameter_change',
+        parameter: 'spectral_streaming_enabled',
+        value: streamingEnabled,
+        source: 'streaming_hud'
+      }));
+    }
+
+    console.log(`📦 Streaming: ${streamingEnabled ? 'enabled' : 'disabled'}`);
+  });
+
+  // Batch size control
+  streamingBatchSizeSelect.addEventListener('change', () => {
+    const newBatchSize = parseInt(streamingBatchSizeSelect.value);
+    lodConfig.visibleBatchSize = newBatchSize;
+
+    // Broadcast batch size change
+    if (wsConn && wsConn.readyState === WebSocket.OPEN && currentUser) {
+      wsConn.send(JSON.stringify({
+        type: 'parameter_change',
+        parameter: 'spectral_streaming_batch_size',
+        value: newBatchSize,
+        source: 'streaming_hud'
+      }));
+    }
+
+    console.log(`📦 Streaming: Batch size set to ${newBatchSize}`);
+  });
+}
+
 function setupSpectralControls() {
   const hudToggleBtn = document.getElementById('spectral-hud-toggle');
   const advancedControls = document.getElementById('spectral-advanced-controls');
@@ -5055,6 +5423,20 @@ function showCollaborativeSpectralToast(username, parameter, value, userColor) {
   showSpectralToast(message, userColor);
 }
 
+function showCollaborativeStreamingToast(username, parameter, value, userColor) {
+  const parameterNames = {
+    streaming: 'Streaming',
+    'batch size': 'Batch size',
+    prefetched: 'Prefetched'
+  };
+
+  const paramName = parameterNames[parameter] || parameter;
+  const message = `${username} changed ${paramName}: ${value}`;
+
+  // Use streaming-specific icon
+  showSpectralToast(`📦 ${message}`, userColor);
+}
+
 // Window resize
 function onWindowResize() {
   const width = window.innerWidth;
@@ -5077,6 +5459,20 @@ function animate() {
 
   // Update performance metrics
   updatePerformanceMetrics(currentTime);
+
+  // Streaming system integration
+  if (streamingEnabled && collection && collection.media) {
+    // Throttle streaming updates (every ~100ms)
+    if (currentTime - offlineCacheManager.lastPrefetchTime > lodConfig.prefetchDelay) {
+      const visible = visibleBatchSize();
+      prefetchNextBatch();
+
+      // Update streaming state
+      if (visible > 0) {
+        streamingState = offlineCacheManager.prefetchQueue.length > 0 ? 'streaming' : 'cached';
+      }
+    }
+  }
 
   // LOD system for performance optimization
   if (useInstancing && instancedSprites) {
@@ -5214,6 +5610,7 @@ setupCursorTracking(); // Initialize cursor tracking for collaborative mode
 setupCollaborativeChat(); // Initialize chat system for collaborative mode
 setupSpectralControls(); // Initialize spectral overlay controls
 setupPerformanceControls(); // Initialize performance monitoring controls
+setupStreamingControls(); // Initialize streaming and prefetch controls
 startFFTAnalysis(); // Start FFT spectral analysis
 init3DAudioSystem(); // Initialize 3D audio spatialization
 initPerformanceMonitoring(); // Initialize performance monitoring system
