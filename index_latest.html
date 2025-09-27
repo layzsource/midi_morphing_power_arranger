@@ -6550,6 +6550,65 @@ document.addEventListener('DOMContentLoaded', () => {
 console.log('🔷 Three.js Geometry Modules system loaded');
 
 // ==========================================
+// MIDI WebSocket Control System
+// ==========================================
+
+// --- MIDI WebSocket Listener for Cube & Sphere ---
+function connectMidiWebSocket() {
+  const ws = new WebSocket("ws://localhost:7072/midi");
+
+  ws.onopen = () => console.log("🎛 MIDI WebSocket connected");
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.cc !== undefined && data.value !== undefined) {
+        updateGeometryFromMIDI(data.cc, data.value);
+      } else if (data.echo) {
+        // Echo payload from stub, parse if it's {cc, value}
+        try {
+          const echoData = JSON.parse(data.echo);
+          if (echoData.cc !== undefined && echoData.value !== undefined) {
+            updateGeometryFromMIDI(echoData.cc, echoData.value);
+          }
+        } catch {
+          console.log("🎛 Echo:", data.echo);
+        }
+      }
+    } catch (err) {
+      console.error("🎛 MIDI parse error:", err);
+    }
+  };
+  ws.onclose = () => {
+    console.warn("🎛 MIDI WebSocket closed, retrying in 2s");
+    setTimeout(connectMidiWebSocket, 2000);
+  };
+}
+
+// --- Geometry Update Function ---
+function updateGeometryFromMIDI(cc, value) {
+  const norm = value / 127;
+  if (cc === 1 && window.cubeMesh) {
+    window.cubeMesh.scale.setScalar(0.2 + norm * 0.8);
+    console.log(`🎛 CC1 → cube scale ${norm.toFixed(2)}`);
+  }
+  if (cc === 2 && window.sphereMesh) {
+    window.sphereMesh.rotation.x = norm * Math.PI * 2;
+    console.log(`🎛 CC2 → sphere rotX ${norm.toFixed(2)}`);
+  }
+  if (cc === 3 && window.sphereMesh) {
+    window.sphereMesh.rotation.y = norm * Math.PI * 2;
+    console.log(`🎛 CC3 → sphere rotY ${norm.toFixed(2)}`);
+  }
+}
+
+// --- Initialize MIDI pipeline ---
+document.addEventListener("DOMContentLoaded", () => {
+  connectMidiWebSocket();
+});
+
+console.log('🎛 MIDI WebSocket system loaded');
+
+// ==========================================
 // Periaktos System - Phase 7
 // ==========================================
 
