@@ -114,6 +114,7 @@
       font-weight: 500;
     }
 
+
     .controls-help {
       position: fixed;
       bottom: 12px;
@@ -639,6 +640,21 @@
       position: absolute !important;
       top: 0 !important;
       left: 0 !important;
+    }
+
+    .hud-fallback-icon {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
     }
 
     .periaktos-canvas {
@@ -1573,7 +1589,7 @@
         <div class="geometry-header">
           <label class="geometry-label">Chestahedron</label>
           <div class="geometry-placeholder" id="chestahedron-placeholder">
-            <canvas id="chestahedron-canvas" width="300" height="300" class="geometry-canvas"></canvas>
+            <div id="chestahedron-fallback" class="hud-fallback-icon">C</div>
           </div>
         </div>
         <div class="geometry-controls">
@@ -1685,7 +1701,7 @@
         <div class="periaktos-header">
           <label class="periaktos-label">Rotating Prism</label>
           <div class="periaktos-placeholder" id="periaktos-placeholder">
-            <canvas id="periaktos-canvas" width="300" height="300" class="periaktos-canvas"></canvas>
+            <div id="periaktos-fallback" class="hud-fallback-icon">P</div>
           </div>
         </div>
 
@@ -3767,7 +3783,7 @@ let ambientGain = null;
 let spatialMasterGain = null;
 let spectralPeaks = []; // Track spectral peaks over time
 let temporalDepthMs = 15000; // Default 15 seconds
-let spectralHudExpanded = false; // Main spectral HUD state
+let spectralHudExpanded = true; // Main spectral HUD state - default to visible
 let energyBands = { // Frequency band definitions
   sub: { min: 20, max: 60, energy: 0 },
   bass: { min: 60, max: 250, energy: 0 },
@@ -6197,7 +6213,7 @@ let geometryAnimationIds = {};
 function initializeGeometryModules() {
   console.log('🔷 Initializing Three.js Geometry Modules...');
 
-  const modules = ['cube', 'sphere', 'chestahedron'];
+  const modules = ['cube', 'sphere'];
 
   modules.forEach(moduleName => {
     console.log(`🔍 Looking for canvas: ${moduleName}-canvas`);
@@ -6275,6 +6291,7 @@ function initializeGeometryModules() {
   });
 
   console.log('✅ Geometry modules initialized:', Object.keys(geometryRenderers));
+  console.log("✅ HUD fallbacks applied: Chestahedron → C, Periaktos → P");
 }
 
 // Create individual geometry meshes - Phase 8: Material + Texture Pipeline
@@ -6317,15 +6334,31 @@ function createGeometryMesh(moduleName, scene) {
       break;
 
     case 'chestahedron':
-      // Solid chestahedron (octahedron) with base material
-      geometry = new THREE.OctahedronGeometry(1.4, 2); // Detail level 2 for smoother edges
-      material = new THREE.MeshBasicMaterial({
-        color: 0xff6600, // Vibrant orange for visibility
-        wireframe: false, // Solid surface ready for textures/shaders
-        transparent: false,
-        opacity: 1.0
-      });
-      console.log('🎨 Created solid chestahedron material (texture-ready)');
+      try {
+        // Solid chestahedron (octahedron) with base material
+        geometry = new THREE.OctahedronGeometry(1.4, 2); // Detail level 2 for smoother edges
+        material = new THREE.MeshBasicMaterial({
+          color: 0xff6600, // Vibrant orange for visibility
+          wireframe: false, // Solid surface ready for textures/shaders
+          transparent: false,
+          opacity: 1.0
+        });
+        console.log('🎨 Created solid chestahedron material (texture-ready)');
+      } catch (err) {
+        console.warn("⚠️ Chestahedron geometry failed, using fallback icon");
+        const loader = new THREE.FontLoader();
+        loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", font => {
+          const textGeo = new THREE.TextGeometry("C", {
+            font: font,
+            size: 40,
+            height: 5
+          });
+          const textMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+          const textMesh = new THREE.Mesh(textGeo, textMat);
+          scene.add(textMesh);
+        });
+        return; // Exit early since we're handling this asynchronously
+      }
       break;
 
     default:
@@ -6472,35 +6505,31 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🔺 HUD visible state:', isVisible);
     handleGeometryModuleVisibility(isVisible);
     handlePeriaktosVisibility(isVisible);
+
+    // Ensure cube and sphere canvases are visible after initialization
+    setTimeout(() => {
+      console.log('🔷 Ensuring cube and sphere canvases are visible on load');
+      handleGeometryModuleVisibility(true);
+    }, 100);
   }, 100);
 });
 
-// HUD Toggle Integration - ensure geometry modules hide/show properly
+// 🔧 HUD Visibility Handler Patch
 function handleGeometryModuleVisibility(isVisible) {
-  const modules = ['cube', 'sphere', 'chestahedron'];
-
-  console.log(`🔷 handleGeometryModuleVisibility called with isVisible: ${isVisible}`);
-
-  modules.forEach(moduleName => {
-    const canvas = document.getElementById(`${moduleName}-canvas`);
-    if (canvas) {
-      // FORCE VISIBLE FOR TESTING - override isVisible
-      const forceVisible = true; // Always show for debugging
-      canvas.style.display = forceVisible ? 'block' : 'none';
-      console.log(`🎨 ${moduleName} canvas display set to: ${canvas.style.display}`);
-      console.log(`🎨 ${moduleName} canvas computed style: ${window.getComputedStyle(canvas).display}`);
-    } else {
-      console.error(`❌ Canvas not found for ${moduleName} in visibility handler`);
-    }
-
-    // Always start animation for testing
-    if (!geometryAnimationIds[moduleName]) {
-      startGeometryAnimation(moduleName);
+  const ids = ["cube-canvas", "sphere-canvas"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.display = isVisible ? "block" : "none";
+      console.log(`🎨 ${id} display set to: ${el.style.display}`);
     }
   });
-
-  console.log(`🔷 Geometry modules visibility handled - forced visible for testing`);
+  console.log("ℹ️ Periaktos + Chestahedron → fallback icons (C, P), no canvas toggling");
 }
+
+// Test the function immediately
+console.log("🧪 Testing handleGeometryModuleVisibility with isVisible: true");
+handleGeometryModuleVisibility(true);
 
 // Hook into existing HUD toggle system
 document.addEventListener('DOMContentLoaded', () => {
@@ -6574,10 +6603,17 @@ function initializePeriaktos() {
     window.periaktosMesh = fallback;
   }
 
-  // ✅ Expose globals
+  // Expose Periaktos objects globally for debugging and scaling
   window.periaktosScene = periaktosScene;
   window.periaktosRenderer = periaktosRenderer;
   window.periaktosCamera = periaktosCamera;
+
+  console.log("✅ Periaktos exposed:", {
+    scene: window.periaktosScene,
+    renderer: window.periaktosRenderer,
+    camera: window.periaktosCamera,
+    mesh: window.periaktosMesh
+  });
 
   // ✅ First render
   periaktosRenderer.render(periaktosScene, periaktosCamera);
@@ -6603,7 +6639,19 @@ function createPeriaktosGeometry() {
   group.add(faceA, faceB, faceC);
 
   // ✅ Add group to scene
-  periaktosScene.add(group);
+  try {
+    periaktosScene.add(group);
+  } catch (err) {
+    console.error("❌ Error creating periaktos geometry:", err);
+    // Fallback: simple crimson cube
+    const fallbackMat = new THREE.MeshBasicMaterial({ color: 0xcc3333 });
+    const fallbackGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    const fallbackCube = new THREE.Mesh(fallbackGeo, fallbackMat);
+    const fallbackGroup = new THREE.Group();
+    fallbackGroup.add(fallbackCube);
+    periaktosScene.add(fallbackGroup);
+    window.periaktosMesh = fallbackGroup;
+  }
 
   // ✅ Expose mesh
   window.periaktosMesh = group;
@@ -6701,18 +6749,6 @@ function updatePeriaktosRotation_Manual(value) {
   const valueDisplay = document.getElementById('periaktos-rotation-val');
   if (valueDisplay) valueDisplay.textContent = `${Math.round(periaktosState.rotation)}°`;
 
-  // Visual feedback flash for periaktos canvas
-  const canvas = document.getElementById('periaktos-canvas');
-  if (canvas) {
-    canvas.style.transform = 'scale(1.05)';
-    canvas.style.transition = 'transform 0.1s ease-out';
-    setTimeout(() => {
-      canvas.style.transform = 'scale(1.0)';
-      setTimeout(() => {
-        canvas.style.transition = '';
-      }, 100);
-    }, 50);
-  }
 }
 
 // Handle periaktos speed change
@@ -6745,31 +6781,15 @@ function cleanupPeriaktos() {
   periaktosMesh = null;
 }
 
-// Periaktos visibility handler for HUD toggle integration
+// 🔧 Periaktos Fallback Visibility Handler
 function handlePeriaktosVisibility(isVisible) {
-  const canvas = document.getElementById('periaktos-canvas');
-  if (canvas) {
-    canvas.style.display = isVisible ? 'block' : 'none';
-    console.log('🔺 Canvas display set to:', canvas.style.display);
-    console.log('Canvas computed style:', window.getComputedStyle(canvas).display);
-  } else {
-    console.error('❌ Periaktos canvas not found in visibility handler');
-  }
-
-  // Pause/resume animation when hidden to save performance
-  if (isVisible) {
-    if (!periaktosAnimationId) {
-      startPeriaktosAnimation();
-    }
-  } else {
-    if (periaktosAnimationId) {
-      cancelAnimationFrame(periaktosAnimationId);
-      periaktosAnimationId = null;
-    }
-  }
-
-  console.log(`🔺 Periaktos ${isVisible ? 'shown' : 'hidden'}`);
+  // Periaktos now uses fallback icon, no canvas toggling
+  console.log(`ℹ️ Periaktos fallback 'P' is always visible (requested state: ${isVisible})`);
 }
+
+// Test the function immediately
+console.log("🧪 Testing handlePeriaktosVisibility with isVisible: true");
+handlePeriaktosVisibility(true);
 
 // Periaktos Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -6912,7 +6932,7 @@ if (chestaHUD) {
 }
 
 // Force Periaktos HUD back into its placeholder
-const periCanvas = window.periaktosRenderer?.domElement || document.getElementById('periaktos-canvas');
+const periCanvas = window.periaktosRenderer?.domElement;
 const periHolder = document.getElementById('periaktos-placeholder');
 
 if (periCanvas && periHolder) {
