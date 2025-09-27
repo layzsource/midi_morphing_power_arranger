@@ -630,6 +630,15 @@
       background: rgba(0, 0, 0, 0.3);
       border-radius: 3px;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .periaktos-placeholder canvas {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
     }
 
     .periaktos-canvas {
@@ -6213,10 +6222,18 @@ function initializeGeometryModules() {
       antialias: true,
       alpha: true
     });
-    renderer.setSize(300, 300);
+    renderer.setSize(80, 80); // Lock to 80×80 HUD panel size
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x1a1a1a, 1);
     geometryRenderers[moduleName] = renderer;
+
+    // Append renderer's canvas to correct placeholder
+    const placeholder = document.getElementById(`${moduleName}-placeholder`);
+    if (placeholder && renderer.domElement) {
+      placeholder.innerHTML = ''; // Clear any existing content
+      placeholder.appendChild(renderer.domElement);
+      console.log(`✅ ${moduleName} canvas appended to #${moduleName}-placeholder`);
+    }
 
     console.log(`✅ ${moduleName} renderer created and attached to canvas`);
 
@@ -6522,135 +6539,74 @@ let periaktosState = {
 
 // Initialize Three.js periaktos
 function initializePeriaktos() {
-  console.log('🔺 Initializing Periaktos System...');
+  // ✅ Always create scene fresh
+  periaktosScene = new THREE.Scene();
 
-  const canvas = document.getElementById('periaktos-canvas');
-  if (!canvas) {
-    console.error('❌ Periaktos canvas not found');
-    return;
+  // ✅ Renderer
+  periaktosRenderer = new THREE.WebGLRenderer({ antialias: true });
+  periaktosRenderer.setSize(80, 80);
+
+  const placeholder = document.getElementById('periaktos-placeholder');
+  if (placeholder) {
+    placeholder.innerHTML = '';
+    placeholder.appendChild(periaktosRenderer.domElement);
   }
 
-  console.log('✅ Periaktos canvas found:', canvas);
-  console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
-  console.log('Canvas style:', canvas.style.cssText);
+  // ✅ Camera
+  periaktosCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+  periaktosCamera.position.z = 200;
 
+  // ✅ Lights
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(0, 0, 200).normalize();
+  periaktosScene.add(light);
+
+  // ✅ Geometry with fallback
   try {
-    // Create renderer
-    periaktosRenderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      antialias: true,
-      alpha: true
-    });
-    periaktosRenderer.setSize(300, 300);
-    periaktosRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    periaktosRenderer.setClearColor(0x000000, 1); // Black background for better color contrast
-    console.log('✅ Periaktos renderer created');
-
-    // Create scene
-    periaktosScene = new THREE.Scene();
-    console.log('✅ Periaktos scene created');
-
-    // Create camera - adjust position for better framing
-    periaktosCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    periaktosCamera.position.set(0, 0, 200);
-    periaktosCamera.lookAt(0, 0, 0);
-    console.log('✅ Periaktos camera created at position:', periaktosCamera.position);
-
-    // Add minimal lighting (MeshBasicMaterial doesn't need much lighting)
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
-    periaktosScene.add(ambientLight);
-
-    console.log('✅ Periaktos lighting added');
-
-    // Create periaktos geometry (3 cubes for now)
     createPeriaktosGeometry();
-
-    // Start animation loop
-    startPeriaktosAnimation();
-
-    // Force an initial render
-    if (periaktosRenderer && periaktosScene && periaktosCamera) {
-      console.log('🔺 Forcing initial periaktos render...');
-      periaktosRenderer.render(periaktosScene, periaktosCamera);
-    }
-
-    // Expose periaktos objects to window for console debugging
-    window.periaktosScene = periaktosScene;
-    window.periaktosRenderer = periaktosRenderer;
-    window.periaktosCamera = periaktosCamera;
-    console.log('🪟 Exposed periaktos objects to window for debugging');
-
-    console.log('✅ Periaktos initialization complete');
-  } catch (error) {
-    console.error('❌ Error initializing periaktos:', error);
+  } catch (err) {
+    console.error("Periaktos geometry failed, adding fallback cube:", err);
+    const fallback = new THREE.Mesh(
+      new THREE.BoxGeometry(20,20,20),
+      new THREE.MeshBasicMaterial({ color: 0xcc3333 })
+    );
+    periaktosScene.add(fallback);
+    window.periaktosMesh = fallback;
   }
+
+  // ✅ Expose globals
+  window.periaktosScene = periaktosScene;
+  window.periaktosRenderer = periaktosRenderer;
+  window.periaktosCamera = periaktosCamera;
+
+  // ✅ First render
+  periaktosRenderer.render(periaktosScene, periaktosCamera);
 }
 
 // Create periaktos geometry (3 cubes arranged in triangular formation)
 function createPeriaktosGeometry() {
-  console.log('🔺 Creating periaktos geometry...');
+  const group = new THREE.Group();
 
-  try {
-    // Create main group to hold all cubes
-    const group = new THREE.Group();
+  const materials = [
+    new THREE.MeshBasicMaterial({ color: 0xcc3333 }), // Crimson
+    new THREE.MeshBasicMaterial({ color: 0x33cc33 }), // Forest
+    new THREE.MeshBasicMaterial({ color: 0x3366cc })  // Sapphire
+  ];
 
-    // Define cube positions and colors - texture-ready base materials
-    const cubes = [
-      { position: [-60, 0, 0], color: 0xcc3333, name: 'Face A (Crimson)' },    // Left - Deep Red
-      { position: [60, 0, 0], color: 0x33cc33, name: 'Face B (Forest)' },      // Right - Deep Green
-      { position: [0, 60, 0], color: 0x3366cc, name: 'Face C (Sapphire)' }     // Top - Deep Blue
-    ];
+  const faceA = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), materials[0]);
+  faceA.position.set(-60, 0, 0);
+  const faceB = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), materials[1]);
+  faceB.position.set(60, 0, 0);
+  const faceC = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), materials[2]);
+  faceC.position.set(0, 60, 0);
 
-    cubes.forEach((cubeData, index) => {
-      // Create cube geometry - much larger size
-      const geometry = new THREE.BoxGeometry(40, 40, 40);
+  group.add(faceA, faceB, faceC);
 
-      // Create material - solid base colors ready for texture overlay
-      const material = new THREE.MeshBasicMaterial({
-        color: cubeData.color,
-        transparent: false,
-        opacity: 1.0
-        // Future: add texture map support here
-        // map: textureLoader.load(cubeData.textureUrl)
-      });
+  // ✅ Add group to scene
+  periaktosScene.add(group);
 
-      // Create wireframe overlay
-      const wireframeGeometry = new THREE.BoxGeometry(40, 40, 40);
-      const wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.4
-      });
-
-      // Create meshes
-      const cubeMesh = new THREE.Mesh(geometry, material);
-      const wireframeMesh = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-
-      // Position the cube
-      cubeMesh.position.set(...cubeData.position);
-      wireframeMesh.position.set(...cubeData.position);
-
-      // Add to group
-      group.add(cubeMesh);
-      group.add(wireframeMesh);
-
-      console.log(`🎨 Periaktos ${cubeData.name} mesh added - Position: (${cubeData.position}), Material: 0x${cubeData.color.toString(16)}, Scale: will be set on group`);
-    });
-
-    // Add group to scene
-    group.scale.set(0.3, 0.3, 0.3); // Lock to icon size for HUD panel
-    periaktosScene.add(group);
-    periaktosMesh = group;
-
-    console.log(`🎨 Periaktos group added to scene - Scale: (${group.scale.x}, ${group.scale.y}, ${group.scale.z}), Children: ${group.children.length}`);
-
-    console.log(`✅ Periaktos geometry created with ${group.children.length} meshes`);
-    console.log('Scene children count:', periaktosScene.children.length);
-
-  } catch (error) {
-    console.error('❌ Error creating periaktos geometry:', error);
-  }
+  // ✅ Expose mesh
+  window.periaktosMesh = group;
 }
 
 // Animation loop for periaktos
