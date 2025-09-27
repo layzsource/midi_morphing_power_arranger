@@ -1301,6 +1301,35 @@
       white-space: nowrap;
       backdrop-filter: blur(4px);
     }
+
+    .geometry-placeholder,
+    .periaktos-placeholder {
+      position: relative;
+      display: inline-block;
+      width: 80px;
+      height: 80px;
+      flex: 0 0 auto;
+      margin: 4px;
+    }
+
+    .geometry-canvas,
+    .periaktos-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+    }
+
+    #periaktos-container canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
   </style>
 </head>
 <body>
@@ -6194,12 +6223,14 @@ function initializeGeometryModules() {
     // Create scene
     const scene = new THREE.Scene();
     geometryScenes[moduleName] = scene;
+    console.log(`✅ ${moduleName} scene created`);
 
     // Create camera
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     camera.position.set(0, 0, 5);
     camera.lookAt(0, 0, 0);
     geometryCameras[moduleName] = camera;
+    console.log(`✅ ${moduleName} camera created at position:`, camera.position);
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -6218,54 +6249,66 @@ function initializeGeometryModules() {
 
     // Start animation loop
     startGeometryAnimation(moduleName);
+
+    // Expose objects to window for console debugging
+    window[`${moduleName}Scene`] = scene;
+    window[`${moduleName}Renderer`] = renderer;
+    window[`${moduleName}Camera`] = camera;
+    console.log(`🪟 ${moduleName} scene, renderer, and camera exposed to window`);
   });
 
   console.log('✅ Geometry modules initialized:', Object.keys(geometryRenderers));
 }
 
-// Create individual geometry meshes
+// Create individual geometry meshes - Phase 8: Material + Texture Pipeline
 function createGeometryMesh(moduleName, scene) {
   let geometry, material;
 
-  // Color coding: bright blue, green, orange
-  const colors = {
-    'cube': 0x0080ff,      // Bright Blue
-    'sphere': 0x00ff40,    // Bright Green
-    'chestahedron': 0xff8000 // Bright Orange
-  };
+  // Material + Texture Pipeline - expandable base materials ready for future texture mapping
+  // Each module has distinct material characteristics for texture/shader support
 
   switch (moduleName) {
     case 'cube':
-      // Larger SOLID cube for testing visibility
+      // 6-face color-coded cube with distinct materials per face
       geometry = new THREE.BoxGeometry(2, 2, 2);
-      material = new THREE.MeshBasicMaterial({
-        color: 0xff0000, // Bright red for maximum visibility
-        wireframe: false, // SOLID not wireframe
-        transparent: false,
-        opacity: 1.0
-      });
+
+      // Create 6 distinct materials for each face (expandable for textures)
+      const cubeMaterials = [
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }), // Right face - Red
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // Left face - Green
+        new THREE.MeshBasicMaterial({ color: 0x0000ff }), // Top face - Blue
+        new THREE.MeshBasicMaterial({ color: 0xffff00 }), // Bottom face - Yellow
+        new THREE.MeshBasicMaterial({ color: 0xff00ff }), // Front face - Magenta
+        new THREE.MeshBasicMaterial({ color: 0x00ffff })  // Back face - Cyan
+      ];
+
+      // Use material array for multi-face cube
+      material = cubeMaterials;
+      console.log('🎨 Created 6-face color-coded cube materials (texture-ready)');
       break;
 
     case 'sphere':
-      // Larger wireframe sphere with latitude/longitude lines
-      geometry = new THREE.SphereGeometry(1.2, 16, 12);
+      // Smooth sphere with solid material (texture-ready)
+      geometry = new THREE.SphereGeometry(1.2, 32, 24); // Higher resolution for smooth surface
       material = new THREE.MeshBasicMaterial({
-        color: colors.sphere,
-        wireframe: true,
+        color: 0x00ff80, // Bright turquoise for visibility
+        wireframe: false, // Solid surface ready for texture mapping
         transparent: false,
         opacity: 1.0
       });
+      console.log('🎨 Created solid sphere material (texture-ready)');
       break;
 
     case 'chestahedron':
-      // Larger approximate chestahedron as octahedron
-      geometry = new THREE.OctahedronGeometry(1.4);
+      // Solid chestahedron (octahedron) with base material
+      geometry = new THREE.OctahedronGeometry(1.4, 2); // Detail level 2 for smoother edges
       material = new THREE.MeshBasicMaterial({
-        color: colors.chestahedron,
-        wireframe: true,
+        color: 0xff6600, // Vibrant orange for visibility
+        wireframe: false, // Solid surface ready for textures/shaders
         transparent: false,
         opacity: 1.0
       });
+      console.log('🎨 Created solid chestahedron material (texture-ready)');
       break;
 
     default:
@@ -6274,11 +6317,22 @@ function createGeometryMesh(moduleName, scene) {
   }
 
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.scale.set(0.3, 0.3, 0.3); // Lock to icon size for HUD panels
   scene.add(mesh);
   geometryMeshes[moduleName] = mesh;
 
-  console.log(`📐 Created ${moduleName} geometry mesh:`, mesh);
+  // Log mesh creation with scale and material details
+  const materialColor = Array.isArray(material) ?
+    `6-face array: [${material.map(m => `0x${m.color.getHexString()}`).join(', ')}]` :
+    `0x${material.color.getHexString()}`;
+
+  console.log(`🎨 ${moduleName} mesh added - Scale: (${mesh.scale.x}, ${mesh.scale.y}, ${mesh.scale.z}), Material: ${materialColor}`);
   console.log(`📐 Scene now has ${scene.children.length} children:`, scene.children);
+
+  // Debug material inspection when all meshes are created
+  if (Object.keys(geometryMeshes).length === 3) {
+    console.log(geometryMeshes.cube.material, geometryMeshes.sphere.material, periaktosScene.children);
+  }
 }
 
 // Animation loop for geometry modules
@@ -6520,6 +6574,12 @@ function initializePeriaktos() {
       periaktosRenderer.render(periaktosScene, periaktosCamera);
     }
 
+    // Expose periaktos objects to window for console debugging
+    window.periaktosScene = periaktosScene;
+    window.periaktosRenderer = periaktosRenderer;
+    window.periaktosCamera = periaktosCamera;
+    console.log('🪟 Exposed periaktos objects to window for debugging');
+
     console.log('✅ Periaktos initialization complete');
   } catch (error) {
     console.error('❌ Error initializing periaktos:', error);
@@ -6534,22 +6594,24 @@ function createPeriaktosGeometry() {
     // Create main group to hold all cubes
     const group = new THREE.Group();
 
-    // Define cube positions and colors - using larger scale with vibrant colors
+    // Define cube positions and colors - texture-ready base materials
     const cubes = [
-      { position: [-60, 0, 0], color: 0xff0000, name: 'Face A (Red)' },      // Left - Bright Red
-      { position: [60, 0, 0], color: 0x00ff00, name: 'Face B (Green)' },     // Right - Bright Green
-      { position: [0, 60, 0], color: 0x0000ff, name: 'Face C (Blue)' }       // Top - Bright Blue
+      { position: [-60, 0, 0], color: 0xcc3333, name: 'Face A (Crimson)' },    // Left - Deep Red
+      { position: [60, 0, 0], color: 0x33cc33, name: 'Face B (Forest)' },      // Right - Deep Green
+      { position: [0, 60, 0], color: 0x3366cc, name: 'Face C (Sapphire)' }     // Top - Deep Blue
     ];
 
     cubes.forEach((cubeData, index) => {
       // Create cube geometry - much larger size
       const geometry = new THREE.BoxGeometry(40, 40, 40);
 
-      // Create material - using MeshBasicMaterial for pure colors
+      // Create material - solid base colors ready for texture overlay
       const material = new THREE.MeshBasicMaterial({
         color: cubeData.color,
         transparent: false,
         opacity: 1.0
+        // Future: add texture map support here
+        // map: textureLoader.load(cubeData.textureUrl)
       });
 
       // Create wireframe overlay
@@ -6573,12 +6635,15 @@ function createPeriaktosGeometry() {
       group.add(cubeMesh);
       group.add(wireframeMesh);
 
-      console.log(`✅ Created ${cubeData.name} at position:`, cubeData.position, 'with color:', cubeData.color.toString(16));
+      console.log(`🎨 Periaktos ${cubeData.name} mesh added - Position: (${cubeData.position}), Material: 0x${cubeData.color.toString(16)}, Scale: will be set on group`);
     });
 
     // Add group to scene
+    group.scale.set(0.3, 0.3, 0.3); // Lock to icon size for HUD panel
     periaktosScene.add(group);
     periaktosMesh = group;
+
+    console.log(`🎨 Periaktos group added to scene - Scale: (${group.scale.x}, ${group.scale.y}, ${group.scale.z}), Children: ${group.children.length}`);
 
     console.log(`✅ Periaktos geometry created with ${group.children.length} meshes`);
     console.log('Scene children count:', periaktosScene.children.length);
@@ -6787,6 +6852,144 @@ console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
 console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
 console.log('MIDI Mapping:', midiMapping);
 
+</script>
+
+<script>
+function resizeAndRenderGeometry() {
+  const targets = [
+    { renderer: window.cubeRenderer, scene: window.cubeScene, camera: window.cubeCamera, parent: document.querySelector('#cube-placeholder') },
+    { renderer: window.sphereRenderer, scene: window.sphereScene, camera: window.sphereCamera, parent: document.querySelector('#sphere-placeholder') },
+    { renderer: window.chestahedronRenderer, scene: window.chestahedronScene, camera: window.chestahedronCamera, parent: document.querySelector('#chestahedron-placeholder') },
+    { renderer: window.periaktosRenderer, scene: window.periaktosScene, camera: window.periaktosCamera, parent: document.querySelector('#periaktos-placeholder') }
+  ];
+
+  targets.forEach(({ renderer, scene, camera, parent }) => {
+    if (renderer && scene && camera && parent) {
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      renderer.setSize(w, h);
+      renderer.domElement.style.width = w + 'px';
+      renderer.domElement.style.height = h + 'px';
+      renderer.render(scene, camera);
+      console.log(`✅ Resized & rendered ${parent.id} to ${w}x${h}`);
+    }
+  });
+}
+
+window.addEventListener('resize', resizeAndRenderGeometry);
+window.addEventListener('load', resizeAndRenderGeometry);
+
+// 🔧 Normalize geometry modules - context-aware scaling
+function normalizeGeometryModules() {
+  // HUD Panel geometries - icon size (0.3 scale)
+  if (window.cubeScene) {
+    window.cubeScene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+        obj.material = [
+          new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+          new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
+          new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+          new THREE.MeshBasicMaterial({ color: 0x00ffff }),
+          new THREE.MeshBasicMaterial({ color: 0xff00ff }),
+          new THREE.MeshBasicMaterial({ color: 0xffff00 })
+        ];
+      }
+    });
+  }
+
+  if (window.sphereScene) {
+    window.sphereScene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+        obj.material = new THREE.MeshBasicMaterial({ color: 0x40e0d0 });
+      }
+    });
+  }
+
+  if (window.chestahedronScene) {
+    window.chestahedronScene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+        obj.material = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+      }
+    });
+  }
+
+  if (window.periaktosScene) {
+    window.periaktosScene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+        obj.material = new THREE.MeshBasicMaterial({ color: 0xdc143c });
+      }
+    });
+  }
+
+  // Main viewport geometries would preserve 0.6 scale (if they exist)
+  // Add main viewport normalization here when main scene geometries are implemented
+}
+
+// Run once after modules initialize
+normalizeGeometryModules();
+
+// Replace Chestahedron HUD preview with simple orange "C" icon
+const chestaHUD = document.getElementById('chestahedron-placeholder');
+if (chestaHUD) {
+  chestaHUD.innerHTML = `
+    <div style="
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffa500;
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      font-family: sans-serif;
+      border-radius: 8px;
+    ">
+      C
+    </div>
+  `;
+  console.log("✅ Chestahedron HUD replaced with 'C' icon");
+}
+
+// Force Periaktos HUD back into its placeholder
+const periCanvas = window.periaktosRenderer?.domElement || document.getElementById('periaktos-canvas');
+const periHolder = document.getElementById('periaktos-placeholder');
+
+if (periCanvas && periHolder) {
+  periHolder.innerHTML = ''; // clear junk
+  periHolder.appendChild(periCanvas);
+
+  // Normalize size/position
+  periHolder.style.width = '80px';
+  periHolder.style.height = '80px';
+  periHolder.style.position = 'relative';
+
+  periCanvas.style.position = 'absolute';
+  periCanvas.style.top = '0';
+  periCanvas.style.left = '0';
+  periCanvas.style.width = '100%';
+  periCanvas.style.height = '100%';
+  periCanvas.style.display = 'block';
+  periCanvas.style.visibility = 'visible';
+  periCanvas.style.opacity = '1';
+
+  console.log('✅ Periaktos restored into HUD panel at 80×80');
+} else {
+  console.warn('⚠️ Could not find Periaktos canvas or placeholder');
+}
+
+// Normalize Periaktos icon size and visibility
+if (window.periaktosMesh) {
+  // periaktosMesh is the group containing the 3 cubes
+  window.periaktosMesh.scale.set(0.45, 0.45, 0.45); // slightly bigger inside 80×80
+  console.log("✅ Periaktos group scaled to 0.45");
+} else {
+  console.warn("⚠️ periaktosMesh not found");
+}
 </script>
 </body>
 </html>
