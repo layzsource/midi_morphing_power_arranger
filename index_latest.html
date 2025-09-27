@@ -6897,103 +6897,122 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-console.log('🔺 Periaktos system loaded');
-console.log('Configuration:', config);
+// Periaktos setup
+(async function initPeriaktos() {
+  try {
+    // Example: fetch collection or config
+    const response = await fetch("http://localhost:7071/collection/home_cube");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-// Test CC scaling function
-console.log('🎛️ MIDI CC Scaling Test:');
-console.log('CC 0 → ' + scaleMidiValue(0).toFixed(3));
-console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
-console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
-console.log('MIDI Mapping:', midiMapping);
+    const data = await response.json();
+    console.log("📂 Loaded collection:", data);
 
-console.log("✅ index_latest.html fully loaded");
+    // TODO: handle collection data here
+  } catch (err) {
+    console.error("❌ Failed to initialize Periaktos:", err);
+  }
+
+  // ✅ Always runs after try/catch
+  console.log('🔺 Periaktos system loaded');
+  console.log('Configuration:', config);
+
+  // Test CC scaling function
+  console.log('🎛️ MIDI CC Scaling Test:');
+  console.log('CC 0 → ' + scaleMidiValue(0).toFixed(3));
+  console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
+  console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
+  console.log('MIDI Mapping:', midiMapping);
+
+  console.log("✅ index_latest.html fully loaded");
+})(); // <-- properly closes the async IIFE
 </script>
 
 <script>
-function resizeAndRenderGeometry() {
-  const targets = [
-    { renderer: window.cubeRenderer, scene: window.cubeScene, camera: window.cubeCamera, parent: document.querySelector('#cube-placeholder') },
-    { renderer: window.sphereRenderer, scene: window.sphereScene, camera: window.sphereCamera, parent: document.querySelector('#sphere-placeholder') },
-    { renderer: window.chestahedronRenderer, scene: window.chestahedronScene, camera: window.chestahedronCamera, parent: document.querySelector('#chestahedron-placeholder') },
-    { renderer: window.periaktosRenderer, scene: window.periaktosScene, camera: window.periaktosCamera, parent: document.querySelector('#periaktos-placeholder') }
-  ];
-
-  targets.forEach(({ renderer, scene, camera, parent }) => {
-    if (renderer && scene && camera && parent) {
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
-      renderer.setSize(w, h);
-      renderer.domElement.style.width = w + 'px';
-      renderer.domElement.style.height = h + 'px';
-      renderer.render(scene, camera);
-      console.log(`✅ Resized & rendered ${parent.id} to ${w}x${h}`);
+    function resizeAndRenderGeometry() {
+        const targets = [
+                         { renderer: window.cubeRenderer, scene: window.cubeScene, camera: window.cubeCamera, parent: document.querySelector('#cube-placeholder') },
+                         { renderer: window.sphereRenderer, scene: window.sphereScene, camera: window.sphereCamera, parent: document.querySelector('#sphere-placeholder') },
+                         { renderer: window.chestahedronRenderer, scene: window.chestahedronScene, camera: window.chestahedronCamera, parent: document.querySelector('#chestahedron-placeholder') },
+                         { renderer: window.periaktosRenderer, scene: window.periaktosScene, camera: window.periaktosCamera, parent: document.querySelector('#periaktos-placeholder') }
+                         ];
+                         
+                         targets.forEach(({ renderer, scene, camera, parent }) => {
+                             if (renderer && scene && camera && parent) {
+                                 const w = parent.clientWidth;
+                                 const h = parent.clientHeight;
+                                 renderer.setSize(w, h);
+                                 renderer.domElement.style.width = w + 'px';
+                                 renderer.domElement.style.height = h + 'px';
+                                 renderer.render(scene, camera);
+                                 console.log(`✅ Resized & rendered ${parent.id} to ${w}x${h}`);
+                             }
+                         });
     }
-  });
-}
-
-window.addEventListener('resize', resizeAndRenderGeometry);
-window.addEventListener('load', resizeAndRenderGeometry);
-
-// 🔧 Normalize geometry modules - context-aware scaling
-function normalizeGeometryModules() {
-  // HUD Panel geometries - icon size (0.3 scale)
-  if (window.cubeScene) {
-    window.cubeScene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
-        obj.material = [
-          new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-          new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
-          new THREE.MeshBasicMaterial({ color: 0x0000ff }),
-          new THREE.MeshBasicMaterial({ color: 0x00ffff }),
-          new THREE.MeshBasicMaterial({ color: 0xff00ff }),
-          new THREE.MeshBasicMaterial({ color: 0xffff00 })
-        ];
-      }
-    });
-  }
-
-  if (window.sphereScene) {
-    window.sphereScene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
-        obj.material = new THREE.MeshBasicMaterial({ color: 0x40e0d0 });
-      }
-    });
-  }
-
-  if (window.chestahedronScene) {
-    window.chestahedronScene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
-        obj.material = new THREE.MeshBasicMaterial({ color: 0xffa500 });
-      }
-    });
-  }
-
-  if (window.periaktosScene) {
-    window.periaktosScene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
-        obj.material = new THREE.MeshBasicMaterial({ color: 0xdc143c });
-      }
-    });
-  }
-
-  // Main viewport geometries would preserve 0.6 scale (if they exist)
-  // Add main viewport normalization here when main scene geometries are implemented
-}
-
-// Run once after modules initialize
-normalizeGeometryModules();
-
-// Apply HUD fallbacks and setup
-function applyHUDFallbacks() {
-  // Replace Chestahedron HUD preview with simple orange "C" icon
-  const chestaHUD = document.getElementById('chestahedron-placeholder');
-  if (chestaHUD) {
-    chestaHUD.innerHTML = `
+    
+    window.addEventListener('resize', resizeAndRenderGeometry);
+    window.addEventListener('load', resizeAndRenderGeometry);
+    
+    // 🔧 Normalize geometry modules - context-aware scaling
+    function normalizeGeometryModules() {
+        // HUD Panel geometries - icon size (0.3 scale)
+        if (window.cubeScene) {
+            window.cubeScene.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+                    obj.material = [
+                                    new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+                                    new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
+                                    new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+                                    new THREE.MeshBasicMaterial({ color: 0x00ffff }),
+                                    new THREE.MeshBasicMaterial({ color: 0xff00ff }),
+                                    new THREE.MeshBasicMaterial({ color: 0xffff00 })
+                                    ];
+                }
+            });
+        }
+        
+        if (window.sphereScene) {
+            window.sphereScene.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+                    obj.material = new THREE.MeshBasicMaterial({ color: 0x40e0d0 });
+                }
+            });
+        }
+        
+        if (window.chestahedronScene) {
+            window.chestahedronScene.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+                    obj.material = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+                }
+            });
+        }
+        
+        if (window.periaktosScene) {
+            window.periaktosScene.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.scale.set(0.3, 0.3, 0.3); // Icon size for HUD panel
+                    obj.material = new THREE.MeshBasicMaterial({ color: 0xdc143c });
+                }
+            });
+        }
+        
+        // Main viewport geometries would preserve 0.6 scale (if they exist)
+        // Add main viewport normalization here when main scene geometries are implemented
+    }
+    
+    // Run once after modules initialize
+    normalizeGeometryModules();
+    
+    // Apply HUD fallbacks and setup
+    function applyHUDFallbacks() {
+        // Replace Chestahedron HUD preview with simple orange "C" icon
+        const chestaHUD = document.getElementById('chestahedron-placeholder');
+        if (chestaHUD) {
+            chestaHUD.innerHTML = `
       <div style="
         width: 80px;
         height: 80px;
@@ -7011,41 +7030,41 @@ function applyHUDFallbacks() {
       </div>
     `;
     console.log("✅ Chestahedron HUD replaced with 'C' icon");
-  }
-
-  // Handle Periaktos HUD - try canvas first, fallback to 'P' icon
-  const periCanvas = window.periaktosRenderer?.domElement;
-  const periHolder = document.getElementById('periaktos-placeholder');
-
-  if (periCanvas && periHolder) {
-    periHolder.innerHTML = ''; // clear existing content
-    periHolder.appendChild(periCanvas);
-
-    // Normalize size/position
-    periHolder.style.width = '80px';
-    periHolder.style.height = '80px';
-    periHolder.style.position = 'relative';
-
-    periCanvas.style.position = 'absolute';
-    periCanvas.style.top = '0';
-    periCanvas.style.left = '0';
-    periCanvas.style.width = '100%';
-    periCanvas.style.height = '100%';
-    periCanvas.style.display = 'block';
-    periCanvas.style.visibility = 'visible';
-    periCanvas.style.opacity = '1';
-
-    console.log('✅ Periaktos restored into HUD panel at 80×80');
-
-    // Normalize Periaktos mesh if available
-    if (window.periaktosMesh) {
-      window.periaktosMesh.scale.set(0.45, 0.45, 0.45);
-      console.log("✅ Periaktos group scaled to 0.45");
-    }
-  } else {
-    // Fallback to 'P' icon if no canvas available
-    if (periHolder) {
-      periHolder.innerHTML = `
+        }
+        
+        // Handle Periaktos HUD - try canvas first, fallback to 'P' icon
+        const periCanvas = window.periaktosRenderer?.domElement;
+        const periHolder = document.getElementById('periaktos-placeholder');
+        
+        if (periCanvas && periHolder) {
+            periHolder.innerHTML = ''; // clear existing content
+            periHolder.appendChild(periCanvas);
+            
+            // Normalize size/position
+            periHolder.style.width = '80px';
+            periHolder.style.height = '80px';
+            periHolder.style.position = 'relative';
+            
+            periCanvas.style.position = 'absolute';
+            periCanvas.style.top = '0';
+            periCanvas.style.left = '0';
+            periCanvas.style.width = '100%';
+            periCanvas.style.height = '100%';
+            periCanvas.style.display = 'block';
+            periCanvas.style.visibility = 'visible';
+            periCanvas.style.opacity = '1';
+            
+            console.log('✅ Periaktos restored into HUD panel at 80×80');
+            
+            // Normalize Periaktos mesh if available
+            if (window.periaktosMesh) {
+                window.periaktosMesh.scale.set(0.45, 0.45, 0.45);
+                console.log("✅ Periaktos group scaled to 0.45");
+            }
+        } else {
+            // Fallback to 'P' icon if no canvas available
+            if (periHolder) {
+                periHolder.innerHTML = `
         <div style="
           width: 80px;
           height: 80px;
@@ -7063,15 +7082,17 @@ function applyHUDFallbacks() {
         </div>
       `;
       console.log("✅ Periaktos HUD replaced with 'P' fallback icon");
+            }
+            console.warn('⚠️ Could not find Periaktos canvas, using fallback');
+        }
     }
-    console.warn('⚠️ Could not find Periaktos canvas, using fallback');
-  }
-}
+    
+    // Run HUD fallback setup
+    applyHUDFallbacks();
+    
+    console.log("✅ HUD setup complete");
+    console.log("✅ index_latest.html fully parsed and closed");
 
-// Run HUD fallback setup
-applyHUDFallbacks();
-
-console.log("✅ HUD setup complete");
 </script>
 </body>
 </html>
