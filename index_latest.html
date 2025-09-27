@@ -6562,13 +6562,13 @@ function connectMidiWebSocket() {
     try {
       const data = JSON.parse(event.data);
       if (data.cc !== undefined && data.value !== undefined) {
-        updateGeometryFromMIDI(data.cc, data.value);
+        handleMidiMessage(data.cc, data.value);
       } else if (data.echo) {
         // Echo payload from stub, parse if it's {cc, value}
         try {
           const echoData = JSON.parse(data.echo);
           if (echoData.cc !== undefined && echoData.value !== undefined) {
-            updateGeometryFromMIDI(echoData.cc, echoData.value);
+            handleMidiMessage(echoData.cc, echoData.value);
           }
         } catch {
           console.log("🎛 Echo:", data.echo);
@@ -6584,20 +6584,63 @@ function connectMidiWebSocket() {
   };
 }
 
-// --- Geometry Update Function ---
-function updateGeometryFromMIDI(cc, value) {
-  const norm = value / 127;
-  if (cc === 1 && window.cubeMesh) {
-    window.cubeMesh.scale.setScalar(0.2 + norm * 0.8);
-    console.log(`🎛 CC1 → cube scale ${norm.toFixed(2)}`);
-  }
-  if (cc === 2 && window.sphereMesh) {
-    window.sphereMesh.rotation.x = norm * Math.PI * 2;
-    console.log(`🎛 CC2 → sphere rotX ${norm.toFixed(2)}`);
-  }
-  if (cc === 3 && window.sphereMesh) {
-    window.sphereMesh.rotation.y = norm * Math.PI * 2;
-    console.log(`🎛 CC3 → sphere rotY ${norm.toFixed(2)}`);
+// 🎛 Extend MIDI CC mappings
+function handleMidiMessage(cc, value) {
+  const norm = (val, min, max) => min + (val / 127) * (max - min);
+
+  switch (cc) {
+    case 1: // existing → cube scale
+      if (window.cubeMesh) {
+        const s = norm(value, 0.2, 1.0);
+        window.cubeMesh.scale.set(s, s, s);
+        console.log(`🎛 CC1 → cube scale ${s.toFixed(2)}`);
+      }
+      break;
+
+    case 2: // existing → sphere rotX
+      if (window.sphereMesh) {
+        const rx = norm(value, 0, Math.PI * 2);
+        window.sphereMesh.rotation.x = rx;
+        console.log(`🎛 CC2 → sphere rotX ${rx.toFixed(2)}`);
+      }
+      break;
+
+    case 3: // existing → sphere rotY
+      if (window.sphereMesh) {
+        const ry = norm(value, 0, Math.PI * 2);
+        window.sphereMesh.rotation.y = ry;
+        console.log(`🎛 CC3 → sphere rotY ${ry.toFixed(2)}`);
+      }
+      break;
+
+    case 4: // new → cube hue shift
+      if (window.cubeMesh) {
+        const hue = norm(value, 0, 1);
+        window.cubeMesh.material.forEach(m => {
+          m.color.setHSL(hue, 1, 0.5);
+        });
+        console.log(`🎛 CC4 → cube hue ${hue.toFixed(2)}`);
+      }
+      break;
+
+    case 5: // new → sphere opacity
+      if (window.sphereMesh) {
+        const opacity = norm(value, 0.1, 1.0);
+        window.sphereMesh.material.transparent = true;
+        window.sphereMesh.material.opacity = opacity;
+        console.log(`🎛 CC5 → sphere opacity ${opacity.toFixed(2)}`);
+      }
+      break;
+
+    case 6: // new → camera zoom (Z)
+      if (window.sphereCamera) {
+        window.sphereCamera.position.z = norm(value, 2, 10);
+        console.log(`🎛 CC6 → camera Z ${window.sphereCamera.position.z.toFixed(2)}`);
+      }
+      break;
+
+    default:
+      console.log(`🎛 Unmapped CC${cc} value ${value}`);
   }
 }
 
