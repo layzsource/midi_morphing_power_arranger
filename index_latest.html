@@ -3378,8 +3378,8 @@ function setupWindowFocusHandling() {
   });
 }
 
-// MIDI WebSocket connection
-function connectMidiWebSocket() {
+
+// Load collection data
   try {
     midiWS = new WebSocket('ws://localhost:7072/midi');
 
@@ -3519,45 +3519,22 @@ function connectMidiWebSocket() {
           sendControl({ set: { pmw: pmw } });
         }
 
-        // Handle config reload message
-        if (data.type === 'reload_config') {
-          console.log('Reloading MIDI configuration...');
-          await loadMidiMapping();
-        }
-
-      } catch (error) {
-        console.warn('Error parsing MIDI data:', error);
-      }
-    };
-
-    midiWS.onerror = () => {
-      document.getElementById('midi-status').textContent = 'MIDI: Error';
-      document.getElementById('midi-status').style.color = '#ef4444';
-    };
-
-    midiWS.onclose = () => {
-      document.getElementById('midi-status').textContent = 'MIDI: Disconnected';
-      document.getElementById('midi-status').style.color = '#f59e0b';
-      // Reconnect after delay
-      setTimeout(connectMidiWebSocket, 3000);
-    };
-
-  } catch (error) {
-    console.error('MIDI WebSocket connection failed:', error);
-    document.getElementById('midi-status').textContent = 'MIDI: Failed';
-    document.getElementById('midi-status').style.color = '#ef4444';
-  }
-}
 
 // Load collection data
 async function loadCollection() {
   try {
-    const response = await fetch(`${config.encoder_base}/collection/${config.collection_id}`);
-    collection = await response.json();
-    console.log('Collection loaded:', collection.media.length, 'items');
-    createSprites();
-  } catch (error) {
-    console.error('Failed to load collection:', error);
+    const response = await fetch("http://localhost:7071/collection/home_cube");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("📂 Loaded collection:", data);
+
+    // TODO: handle collection data here
+    return data;
+  } catch (err) {
+    console.error("❌ Failed to load collection:", err);
   }
 }
 
@@ -6930,6 +6907,7 @@ console.log('CC 63 → ' + scaleMidiValue(63).toFixed(3));
 console.log('CC 127 → ' + scaleMidiValue(127).toFixed(3));
 console.log('MIDI Mapping:', midiMapping);
 
+console.log("✅ index_latest.html fully loaded");
 </script>
 
 <script>
@@ -7010,64 +6988,90 @@ function normalizeGeometryModules() {
 // Run once after modules initialize
 normalizeGeometryModules();
 
-// Replace Chestahedron HUD preview with simple orange "C" icon
-const chestaHUD = document.getElementById('chestahedron-placeholder');
-if (chestaHUD) {
-  chestaHUD.innerHTML = `
-    <div style="
-      width: 80px;
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #ffa500;
-      color: white;
-      font-size: 48px;
-      font-weight: bold;
-      font-family: sans-serif;
-      border-radius: 8px;
-    ">
-      C
-    </div>
-  `;
-  console.log("✅ Chestahedron HUD replaced with 'C' icon");
+// Apply HUD fallbacks and setup
+function applyHUDFallbacks() {
+  // Replace Chestahedron HUD preview with simple orange "C" icon
+  const chestaHUD = document.getElementById('chestahedron-placeholder');
+  if (chestaHUD) {
+    chestaHUD.innerHTML = `
+      <div style="
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffa500;
+        color: white;
+        font-size: 48px;
+        font-weight: bold;
+        font-family: sans-serif;
+        border-radius: 8px;
+      ">
+        C
+      </div>
+    `;
+    console.log("✅ Chestahedron HUD replaced with 'C' icon");
+  }
+
+  // Handle Periaktos HUD - try canvas first, fallback to 'P' icon
+  const periCanvas = window.periaktosRenderer?.domElement;
+  const periHolder = document.getElementById('periaktos-placeholder');
+
+  if (periCanvas && periHolder) {
+    periHolder.innerHTML = ''; // clear existing content
+    periHolder.appendChild(periCanvas);
+
+    // Normalize size/position
+    periHolder.style.width = '80px';
+    periHolder.style.height = '80px';
+    periHolder.style.position = 'relative';
+
+    periCanvas.style.position = 'absolute';
+    periCanvas.style.top = '0';
+    periCanvas.style.left = '0';
+    periCanvas.style.width = '100%';
+    periCanvas.style.height = '100%';
+    periCanvas.style.display = 'block';
+    periCanvas.style.visibility = 'visible';
+    periCanvas.style.opacity = '1';
+
+    console.log('✅ Periaktos restored into HUD panel at 80×80');
+
+    // Normalize Periaktos mesh if available
+    if (window.periaktosMesh) {
+      window.periaktosMesh.scale.set(0.45, 0.45, 0.45);
+      console.log("✅ Periaktos group scaled to 0.45");
+    }
+  } else {
+    // Fallback to 'P' icon if no canvas available
+    if (periHolder) {
+      periHolder.innerHTML = `
+        <div style="
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #dc143c;
+          color: white;
+          font-size: 48px;
+          font-weight: bold;
+          font-family: sans-serif;
+          border-radius: 8px;
+        ">
+          P
+        </div>
+      `;
+      console.log("✅ Periaktos HUD replaced with 'P' fallback icon");
+    }
+    console.warn('⚠️ Could not find Periaktos canvas, using fallback');
+  }
 }
 
-// Force Periaktos HUD back into its placeholder
-const periCanvas = window.periaktosRenderer?.domElement;
-const periHolder = document.getElementById('periaktos-placeholder');
+// Run HUD fallback setup
+applyHUDFallbacks();
 
-if (periCanvas && periHolder) {
-  periHolder.innerHTML = ''; // clear junk
-  periHolder.appendChild(periCanvas);
-
-  // Normalize size/position
-  periHolder.style.width = '80px';
-  periHolder.style.height = '80px';
-  periHolder.style.position = 'relative';
-
-  periCanvas.style.position = 'absolute';
-  periCanvas.style.top = '0';
-  periCanvas.style.left = '0';
-  periCanvas.style.width = '100%';
-  periCanvas.style.height = '100%';
-  periCanvas.style.display = 'block';
-  periCanvas.style.visibility = 'visible';
-  periCanvas.style.opacity = '1';
-
-  console.log('✅ Periaktos restored into HUD panel at 80×80');
-} else {
-  console.warn('⚠️ Could not find Periaktos canvas or placeholder');
-}
-
-// Normalize Periaktos icon size and visibility
-if (window.periaktosMesh) {
-  // periaktosMesh is the group containing the 3 cubes
-  window.periaktosMesh.scale.set(0.45, 0.45, 0.45); // slightly bigger inside 80×80
-  console.log("✅ Periaktos group scaled to 0.45");
-} else {
-  console.warn("⚠️ periaktosMesh not found");
-}
+console.log("✅ HUD setup complete");
 </script>
 </body>
 </html>
