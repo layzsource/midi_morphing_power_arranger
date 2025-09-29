@@ -317,7 +317,7 @@
 
     /* Mythic Cycle: Dowsing Rod Prototype */
     .dowsing-rod-container {
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       margin: 12px 0;
@@ -388,7 +388,7 @@
 
     /* Mythic Cycle: Periaktos Scene Rotation */
     .periaktos-container {
-      display: flex !important;
+      display: none;
       align-items: center;
       gap: 8px;
       flex: 1;
@@ -497,7 +497,7 @@
 
     /* Mythic Cycle: RGB → White Hexagon Cue */
     .rgb-hexagon-container {
-      display: flex !important;
+      display: none;
       align-items: center;
       gap: 8px;
       flex: 1;
@@ -3936,7 +3936,7 @@ function getLODLevel(distance) {
 
 let spectralPeaks = []; // Track spectral peaks over time
 let temporalDepthMs = 15000; // Default 15 seconds
-let spectralHudExpanded = true; // Main spectral HUD state
+let spectralHudExpanded = false; // Main spectral HUD state
 let energyBands = { // Frequency band definitions
   sub: { min: 20, max: 60, energy: 0 },
   bass: { min: 60, max: 250, energy: 0 },
@@ -5487,21 +5487,30 @@ function setupSpectralControls() {
   const spatialSpreadVal = document.getElementById('spatial-spread-val');
 
   // Main Spectral HUD toggle
-  hudToggleBtn.addEventListener('click', () => {
-    spectralHudExpanded = !spectralHudExpanded;
+  const mythicContainers = [
+    document.querySelector('.dowsing-rod-container'),
+    document.querySelector('.periaktos-container'),
+    document.querySelector('.rgb-hexagon-container'),
+  ];
+
+  const updateHudVisibility = () => {
     hudToggleBtn.textContent = spectralHudExpanded ? 'ON' : 'OFF';
     hudToggleBtn.className = spectralHudExpanded ? 'spectral-btn' : 'spectral-btn off';
-    advancedControls.style.display = spectralHudExpanded ? 'block' : 'none';
+    advancedControls.style.display = spectralHudExpanded ? 'flex' : 'none';
 
-    // Emergency fix: also toggle Mythic Cycle containers
-    const rod = document.querySelector('.dowsing-rod-container');
-    if (rod) rod.style.display = spectralHudExpanded ? 'block' : 'none';
+    mythicContainers.forEach((node) => {
+      if (node) {
+        node.style.display = spectralHudExpanded ? 'flex' : 'none';
+      }
+    });
+  };
 
-    const peri = document.querySelector('.periaktos-container');
-    if (peri) peri.style.display = spectralHudExpanded ? 'block' : 'none';
+  // Initialize HUD in collapsed state
+  updateHudVisibility();
 
-    const rgb = document.querySelector('.rgb-hexagon-container');
-    if (rgb) rgb.style.display = spectralHudExpanded ? 'block' : 'none';
+  hudToggleBtn.addEventListener('click', () => {
+    spectralHudExpanded = !spectralHudExpanded;
+    updateHudVisibility();
 
     // Broadcast to collaborative users if applicable
     if (collaborativeMode && ws && ws.readyState === WebSocket.OPEN) {
