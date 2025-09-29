@@ -67,3 +67,9 @@ Thumbs.db
 # Logs
 *.log
 logs/
+-e nv
+nv.pub
+*.pem
+*.key
+id_*
+
